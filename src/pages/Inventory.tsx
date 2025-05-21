@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Inventory as InventoryIcon } from "lucide-react";
+import { Archive } from "lucide-react";
 
 // Mock inventory data
 const mockInventory = [
@@ -116,7 +116,7 @@ const Inventory = () => {
                 >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <InventoryIcon className="h-4 w-4" />
+                      <Archive className="h-4 w-4" />
                       {item.name}
                     </div>
                   </TableCell>
