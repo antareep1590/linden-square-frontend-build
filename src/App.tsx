@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Customers from "./pages/Customers";
 import UploadRecipient from "./pages/UploadRecipient";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/" element={<DashboardLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="upload-recipient" element={<UploadRecipient />} />
+            <Route path="customers" element={<Customers />} />
             <Route path="choose-gifts" element={<PlaceholderPage title="Choose Gifts" />} />
             <Route path="add-personalization" element={<PlaceholderPage title="Add Personalization" />} />
             <Route path="packaging" element={<PlaceholderPage title="Gift Box & Packaging" />} />

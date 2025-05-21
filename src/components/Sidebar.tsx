@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,8 @@ import {
   Archive, 
   FileText,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Users
 } from 'lucide-react';
 
 type MenuItem = {
@@ -26,6 +26,7 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Upload Recipient', path: '/upload-recipient', icon: <Upload size={20} /> },
+  { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
   { name: 'Choose Gifts', path: '/choose-gifts', icon: <Gift size={20} /> },
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Gift Box & Packaging', path: '/packaging', icon: <Package size={20} /> },
