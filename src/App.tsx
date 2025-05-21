@@ -7,7 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
-import UploadRecipient from "./pages/UploadRecipient";
+import SelectGifts from "./pages/SelectGifts";
+import AddPersonalization from "./pages/AddPersonalization";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotFound from "./pages/NotFound";
@@ -26,10 +27,9 @@ const App = () => (
           {/* Dashboard Routes */}
           <Route path="/" element={<DashboardLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="upload-recipient" element={<UploadRecipient />} />
             <Route path="customers" element={<Customers />} />
-            <Route path="choose-gifts" element={<PlaceholderPage title="Choose Gifts" />} />
-            <Route path="add-personalization" element={<PlaceholderPage title="Add Personalization" />} />
+            <Route path="select-gifts" element={<SelectGifts />} />
+            <Route path="add-personalization" element={<AddPersonalization />} />
             <Route path="packaging" element={<PlaceholderPage title="Gift Box & Packaging" />} />
             <Route path="track-orders" element={<PlaceholderPage title="Track Orders" />} />
             <Route path="inventory" element={<PlaceholderPage title="Inventory" />} />

@@ -39,9 +39,18 @@ import {
   Filter, 
   ArrowDownAZ, 
   ArrowDownZA, 
-  ArrowDown 
+  ArrowDown,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Sample customer data
 interface Customer {
@@ -105,6 +114,8 @@ const customerFormSchema = z.object({
   status: z.enum(["active", "inactive"]).default("active"),
 });
 
+type CustomerFormValues = z.infer<typeof customerFormSchema>;
+
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>(sampleCustomers);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
@@ -115,7 +126,7 @@ const Customers = () => {
   const [editCustomerId, setEditCustomerId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof customerFormSchema>>({
+  const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
       name: "",
@@ -162,7 +173,7 @@ const Customers = () => {
   };
 
   // Handle form submission for adding/editing a customer
-  const onSubmit = (data: z.infer<typeof customerFormSchema>) => {
+  const onSubmit = (data: CustomerFormValues) => {
     if (editCustomerId) {
       // Update existing customer
       setCustomers(
@@ -189,6 +200,19 @@ const Customers = () => {
       });
     }
     setCustomerModalOpen(false);
+  };
+
+  // Handle status change directly from the table
+  const handleStatusChange = (id: string, status: "active" | "inactive") => {
+    setCustomers(
+      customers.map((customer) =>
+        customer.id === id ? { ...customer, status } : customer
+      )
+    );
+    toast({
+      title: "Status updated",
+      description: `Customer status changed to ${status}.`
+    });
   };
 
   // Handle CSV upload
@@ -344,9 +368,39 @@ const Customers = () => {
                       {customer.address}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={customer.status === "active" ? "default" : "outline"}>
-                        {customer.status === "active" ? "Active" : "Inactive"}
-                      </Badge>
+                      <Select
+                        defaultValue={customer.status}
+                        onValueChange={(value: "active" | "inactive") => 
+                          handleStatusChange(customer.id, value)
+                        }
+                      >
+                        <SelectTrigger className="w-28">
+                          <SelectValue>
+                            <div className="flex items-center space-x-2">
+                              {customer.status === "active" ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <XCircle className="h-4 w-4 text-gray-400" />
+                              )}
+                              <span className="capitalize">{customer.status}</span>
+                            </div>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">
+                            <div className="flex items-center space-x-2">
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <span>Active</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="inactive">
+                            <div className="flex items-center space-x-2">
+                              <XCircle className="h-4 w-4 text-gray-400" />
+                              <span>Inactive</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
@@ -485,24 +539,20 @@ const Customers = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <FormControl>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between">
-                            {field.value === "active" ? "Active" : "Inactive"}
-                            <Filter className="h-4 w-4 opacity-50" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-full">
-                          <DropdownMenuItem onClick={() => field.onChange("active")}>
-                            Active
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => field.onChange("inactive")}>
-                            Inactive
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
