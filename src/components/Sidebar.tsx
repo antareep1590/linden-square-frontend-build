@@ -1,0 +1,90 @@
+
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import LindenSquareLogo from './LindenSquareLogo';
+import { 
+  LayoutDashboard, 
+  Upload, 
+  Gift, 
+  Pen, 
+  Package, 
+  Truck, 
+  Archive, 
+  FileText,
+  ChevronRight,
+  ChevronLeft
+} from 'lucide-react';
+
+type MenuItem = {
+  name: string;
+  path: string;
+  icon: React.ReactNode;
+};
+
+const menuItems: MenuItem[] = [
+  { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+  { name: 'Upload Recipient', path: '/upload-recipient', icon: <Upload size={20} /> },
+  { name: 'Choose Gifts', path: '/choose-gifts', icon: <Gift size={20} /> },
+  { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
+  { name: 'Gift Box & Packaging', path: '/packaging', icon: <Package size={20} /> },
+  { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
+  { name: 'Inventory', path: '/inventory', icon: <Archive size={20} /> },
+  { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
+];
+
+const Sidebar: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed);
+  };
+
+  return (
+    <div 
+      className={cn(
+        'h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+        collapsed ? 'w-20' : 'w-64'
+      )}
+    >
+      <div className="flex justify-between items-center p-4 border-b border-gray-100">
+        {!collapsed && <LindenSquareLogo size="small" />}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="ml-auto"
+          onClick={toggleSidebar}
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </Button>
+      </div>
+      
+      <div className="flex-grow overflow-y-auto py-4">
+        <nav className="space-y-1 px-2">
+          {menuItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                'flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors',
+                location.pathname === item.path
+                  ? 'bg-linden-lightblue text-linden-blue'
+                  : 'text-gray-700 hover:bg-gray-100',
+                collapsed ? 'justify-center' : 'justify-start'
+              )}
+            >
+              <div className={cn('flex items-center', collapsed ? 'justify-center' : '')}>
+                {item.icon}
+                {!collapsed && <span className="ml-3">{item.name}</span>}
+              </div>
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;

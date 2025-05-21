@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Linden Square custom colors
+				linden: {
+					blue: '#234A66', 
+					gold: '#C9A95C',
+					lightblue: '#E5F0F9',
+					gray: '#F1F1F1',
 				}
 			},
 			borderRadius: {
