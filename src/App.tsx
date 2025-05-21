@@ -9,7 +9,10 @@ import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import SelectGifts from "./pages/SelectGifts";
 import AddPersonalization from "./pages/AddPersonalization";
-import PlaceholderPage from "./pages/PlaceholderPage";
+import GiftBoxPackaging from "./pages/GiftBoxPackaging";
+import TrackOrders from "./pages/TrackOrders";
+import Inventory from "./pages/Inventory";
+import Invoices from "./pages/Invoices";
 import DashboardLayout from "./layouts/DashboardLayout";
 import NotFound from "./pages/NotFound";
 
@@ -30,10 +33,10 @@ const App = () => (
             <Route path="customers" element={<Customers />} />
             <Route path="select-gifts" element={<SelectGifts />} />
             <Route path="add-personalization" element={<AddPersonalization />} />
-            <Route path="packaging" element={<PlaceholderPage title="Gift Box & Packaging" />} />
-            <Route path="track-orders" element={<PlaceholderPage title="Track Orders" />} />
-            <Route path="inventory" element={<PlaceholderPage title="Inventory" />} />
-            <Route path="invoices" element={<PlaceholderPage title="Invoices & Payments" />} />
+            <Route path="packaging" element={<GiftBoxPackaging />} />
+            <Route path="track-orders" element={<TrackOrders />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="invoices" element={<Invoices />} />
           </Route>
           
           {/* Catch-all route */}
