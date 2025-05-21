@@ -166,7 +166,7 @@ const TrackOrders = () => {
               <SelectValue placeholder="All Carriers" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Carriers</SelectItem>
+              <SelectItem value="all-carriers">All Carriers</SelectItem>
               <SelectItem value="FedEx">FedEx</SelectItem>
               <SelectItem value="UPS">UPS</SelectItem>
               <SelectItem value="USPS">USPS</SelectItem>
@@ -183,7 +183,7 @@ const TrackOrders = () => {
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all-statuses">All Statuses</SelectItem>
               <SelectItem value="delivered">Delivered</SelectItem>
               <SelectItem value="in-transit">In Transit</SelectItem>
               <SelectItem value="processing">Processing</SelectItem>

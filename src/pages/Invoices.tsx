@@ -161,7 +161,7 @@ const Invoices = () => {
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all-statuses">All Statuses</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
