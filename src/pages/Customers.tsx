@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Dialog, 
@@ -188,10 +187,14 @@ const Customers = () => {
         description: "The customer has been successfully updated."
       });
     } else {
-      // Add new customer
+      // Add new customer - ensure all required fields are provided
       const newCustomer: Customer = {
         id: Math.random().toString(36).substr(2, 9),
-        ...data,
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        status: data.status,
       };
       setCustomers([...customers, newCustomer]);
       toast({
