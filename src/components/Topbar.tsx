@@ -17,7 +17,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User, Settings } from 'lucide-react';
 
-const Topbar: React.FC = () => {
+interface TopbarProps {
+  isAdmin?: boolean;
+}
+
+const Topbar: React.FC<TopbarProps> = ({ isAdmin = false }) => {
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -30,10 +34,14 @@ const Topbar: React.FC = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2">
-            <span className="hidden sm:inline-block text-sm font-medium">Client Name</span>
+            <span className="hidden sm:inline-block text-sm font-medium">
+              {isAdmin ? 'Admin User' : 'Client Name'}
+            </span>
             <Avatar className="h-8 w-8">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-linden-blue text-white">CN</AvatarFallback>
+              <AvatarFallback className={isAdmin ? "bg-linden-gold text-white" : "bg-linden-blue text-white"}>
+                {isAdmin ? 'AU' : 'CN'}
+              </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>

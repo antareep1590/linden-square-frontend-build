@@ -14,7 +14,9 @@ import {
   FileText,
   ChevronRight,
   ChevronLeft,
-  Users
+  Users,
+  Settings,
+  UserCog
 } from 'lucide-react';
 
 type MenuItem = {
@@ -23,7 +25,8 @@ type MenuItem = {
   icon: React.ReactNode;
 };
 
-const menuItems: MenuItem[] = [
+// Client menu items
+const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
   { name: 'Select Gifts', path: '/select-gifts', icon: <Gift size={20} /> },
@@ -34,13 +37,35 @@ const menuItems: MenuItem[] = [
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-const Sidebar: React.FC = () => {
+// Admin menu items
+const adminMenuItems: MenuItem[] = [
+  { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
+  { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
+  { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
+  { name: 'Personalization Settings', path: '/admin/personalization', icon: <Pen size={20} /> },
+  { name: 'Packaging & Delivery', path: '/admin/packaging', icon: <Package size={20} /> },
+  { name: 'Delivery Management', path: '/admin/delivery', icon: <Truck size={20} /> },
+  { name: 'Track Orders', path: '/admin/track-orders', icon: <Truck size={20} /> },
+  { name: 'Inventory Management', path: '/admin/inventory', icon: <Archive size={20} /> },
+  { name: 'Invoices & Payments', path: '/admin/invoices', icon: <FileText size={20} /> },
+  { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
+  { name: 'User Management', path: '/admin/users', icon: <UserCog size={20} /> },
+];
+
+interface SidebarProps {
+  isAdmin?: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
+
+  // Choose the appropriate menu items based on whether we're in admin mode
+  const menuItems = isAdmin ? adminMenuItems : clientMenuItems;
 
   return (
     <div 

@@ -14,6 +14,9 @@ import TrackOrders from "./pages/TrackOrders";
 import Inventory from "./pages/Inventory";
 import Invoices from "./pages/Invoices";
 import DashboardLayout from "./layouts/DashboardLayout";
+import AdminDashboardLayout from "./layouts/AdminDashboardLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminCustomers from "./pages/admin/Customers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +30,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Login />} />
           
-          {/* Dashboard Routes */}
+          {/* Client Dashboard Routes */}
           <Route path="/" element={<DashboardLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="customers" element={<Customers />} />
@@ -37,6 +40,22 @@ const App = () => (
             <Route path="track-orders" element={<TrackOrders />} />
             <Route path="inventory" element={<Inventory />} />
             <Route path="invoices" element={<Invoices />} />
+          </Route>
+          
+          {/* Admin Dashboard Routes */}
+          <Route path="/admin" element={<AdminDashboardLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            {/* Placeholder routes for other admin pages */}
+            <Route path="gift-catalog" element={<NotFound />} />
+            <Route path="personalization" element={<NotFound />} />
+            <Route path="packaging" element={<NotFound />} />
+            <Route path="delivery" element={<NotFound />} />
+            <Route path="track-orders" element={<NotFound />} />
+            <Route path="inventory" element={<NotFound />} />
+            <Route path="invoices" element={<NotFound />} />
+            <Route path="settings" element={<NotFound />} />
+            <Route path="users" element={<NotFound />} />
           </Route>
           
           {/* Catch-all route */}

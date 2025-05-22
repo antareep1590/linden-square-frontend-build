@@ -16,7 +16,7 @@ const Login: React.FC = () => {
   };
 
   const handleAdminLogin = () => {
-    navigate('/dashboard');
+    navigate('/admin/dashboard');
   };
 
   return (
