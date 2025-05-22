@@ -28,7 +28,7 @@ type MenuItem = {
 // Client menu items
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
+  { name: 'Client', path: '/customers', icon: <Users size={20} /> },
   { name: 'Select Gifts', path: '/select-gifts', icon: <Gift size={20} /> },
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },
@@ -40,7 +40,7 @@ const clientMenuItems: MenuItem[] = [
 // Admin menu items
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
+  { name: 'Client', path: '/admin/customers', icon: <Users size={20} /> },
   { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
   { name: 'Personalization Settings', path: '/admin/personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/admin/packaging', icon: <Package size={20} /> },

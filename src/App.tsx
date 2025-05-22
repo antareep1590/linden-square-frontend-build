@@ -17,6 +17,11 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import AdminDashboardLayout from "./layouts/AdminDashboardLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCustomers from "./pages/admin/Customers";
+import GiftCatalog from "./pages/admin/GiftCatalog";
+import PersonalizationSettings from "./pages/admin/PersonalizationSettings";
+import PackagingDelivery from "./pages/admin/PackagingDelivery";
+import DeliveryManagement from "./pages/admin/DeliveryManagement";
+import AdminTrackOrders from "./pages/admin/TrackOrders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,12 +51,11 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboardLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="customers" element={<AdminCustomers />} />
-            {/* Placeholder routes for other admin pages */}
-            <Route path="gift-catalog" element={<NotFound />} />
-            <Route path="personalization" element={<NotFound />} />
-            <Route path="packaging" element={<NotFound />} />
-            <Route path="delivery" element={<NotFound />} />
-            <Route path="track-orders" element={<NotFound />} />
+            <Route path="gift-catalog" element={<GiftCatalog />} />
+            <Route path="personalization" element={<PersonalizationSettings />} />
+            <Route path="packaging" element={<PackagingDelivery />} />
+            <Route path="delivery" element={<DeliveryManagement />} />
+            <Route path="track-orders" element={<AdminTrackOrders />} />
             <Route path="inventory" element={<NotFound />} />
             <Route path="invoices" element={<NotFound />} />
             <Route path="settings" element={<NotFound />} />
