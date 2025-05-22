@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,19 @@ const mockClients = [
   { id: "client-4", name: "Modern Solutions" },
   { id: "client-5", name: "Creative Designs" },
 ];
+
+type InvoiceStatus = "paid" | "pending";
+
+type Invoice = {
+  id: string;
+  clientId: string;
+  date: Date;
+  giftCount: number;
+  kittingFee: number;
+  shipping: number;
+  total: number;
+  status: InvoiceStatus;
+};
 
 // Mock invoice data
 const mockInvoices: Invoice[] = [
@@ -94,25 +108,12 @@ const mockInvoices: Invoice[] = [
   }
 ];
 
-type InvoiceStatus = "paid" | "pending";
-
-type Invoice = {
-  id: string;
-  clientId: string;
-  date: Date;
-  giftCount: number;
-  kittingFee: number;
-  shipping: number;
-  total: number;
-  status: InvoiceStatus;
-};
-
 const AdminInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedClient, setSelectedClient] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<string | null>(null);
 
   // Get client name by ID
   const getClientName = (clientId: string) => {
@@ -164,9 +165,9 @@ const AdminInvoices = () => {
   // Reset all filters
   const resetFilters = () => {
     setSearchTerm("");
-    setSelectedClient("");
+    setSelectedClient(null);
     setSelectedDate(undefined);
-    setSelectedStatus("");
+    setSelectedStatus(null);
   };
 
   return (
@@ -198,12 +199,12 @@ const AdminInvoices = () => {
           {/* Client Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Client</label>
-            <Select value={selectedClient} onValueChange={setSelectedClient}>
+            <Select value={selectedClient || "all"} onValueChange={setSelectedClient}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Clients" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Clients</SelectItem>
+                <SelectItem value="all">All Clients</SelectItem>
                 {mockClients.map(client => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}
@@ -243,12 +244,12 @@ const AdminInvoices = () => {
           {/* Status Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Payment Status</label>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select value={selectedStatus || "all"} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
