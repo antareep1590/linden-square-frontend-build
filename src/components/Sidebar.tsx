@@ -33,14 +33,14 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
-  { name: 'Inventory', path: '/inventory', icon: <Archive size={20} /> },
+  // Removed Inventory section for client interface
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-// Admin menu items
+// Admin menu items - Updated names for Client Management and Settings
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Client', path: '/admin/customers', icon: <Users size={20} /> },
+  { name: 'Client Management', path: '/admin/customers', icon: <Users size={20} /> },
   { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
   { name: 'Personalization Settings', path: '/admin/personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/admin/packaging', icon: <Package size={20} /> },

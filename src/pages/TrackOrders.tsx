@@ -24,15 +24,25 @@ import { cn } from "@/lib/utils";
 // Order status types
 type OrderStatus = "delivered" | "in-transit" | "processing" | "pending";
 
+// Order interface
+interface Order {
+  id: string;
+  recipientCount: number;
+  shipDate: Date;
+  carrier: string;
+  trackingLink: string;
+  status: OrderStatus;
+}
+
 // Mock order data
-const orders = [
+const initialOrders: Order[] = [
   {
     id: "ORD-2023-1001",
     recipientCount: 15,
     shipDate: new Date("2023-11-10"),
     carrier: "FedEx",
     trackingLink: "https://www.fedex.com/tracking",
-    status: "delivered" as OrderStatus
+    status: "delivered"
   },
   {
     id: "ORD-2023-1002",
@@ -40,7 +50,7 @@ const orders = [
     shipDate: new Date("2023-11-15"),
     carrier: "UPS",
     trackingLink: "https://www.ups.com/tracking",
-    status: "in-transit" as OrderStatus
+    status: "in-transit"
   },
   {
     id: "ORD-2023-1003",
@@ -48,7 +58,7 @@ const orders = [
     shipDate: new Date("2023-11-20"),
     carrier: "USPS",
     trackingLink: "https://tools.usps.com/go/TrackConfirmAction",
-    status: "processing" as OrderStatus
+    status: "processing"
   },
   {
     id: "ORD-2023-1004",
@@ -56,7 +66,7 @@ const orders = [
     shipDate: new Date("2023-11-25"),
     carrier: "DHL",
     trackingLink: "https://www.dhl.com/tracking",
-    status: "pending" as OrderStatus
+    status: "pending"
   }
 ];
 
@@ -77,14 +87,24 @@ const getStatusBadgeStyle = (status: OrderStatus) => {
 
 const TrackOrders = () => {
   const [date, setDate] = useState<Date>();
-  const [selectedCarrier, setSelectedCarrier] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [filteredOrders, setFilteredOrders] = useState(orders);
+  const [selectedCarrier, setSelectedCarrier] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders);
   const [search, setSearch] = useState("");
   
+  // Update order status
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
+    const updatedOrders = orders.map(order => 
+      order.id === orderId ? { ...order, status: newStatus } : order
+    );
+    setOrders(updatedOrders);
+    filterOrders(updatedOrders);
+  };
+
   // Filter orders based on selected filters
-  const filterOrders = () => {
-    let result = [...orders];
+  const filterOrders = (ordersList = orders) => {
+    let result = [...ordersList];
     
     if (date) {
       result = result.filter(order => 
@@ -92,11 +112,11 @@ const TrackOrders = () => {
       );
     }
     
-    if (selectedCarrier) {
+    if (selectedCarrier && selectedCarrier !== "all") {
       result = result.filter(order => order.carrier === selectedCarrier);
     }
     
-    if (selectedStatus) {
+    if (selectedStatus && selectedStatus !== "all") {
       result = result.filter(order => order.status === selectedStatus);
     }
     
@@ -113,8 +133,8 @@ const TrackOrders = () => {
   // Reset filters
   const resetFilters = () => {
     setDate(undefined);
-    setSelectedCarrier("");
-    setSelectedStatus("");
+    setSelectedCarrier("all");
+    setSelectedStatus("all");
     setSearch("");
     setFilteredOrders(orders);
   };
@@ -153,6 +173,7 @@ const TrackOrders = () => {
                 selected={date}
                 onSelect={setDate}
                 initialFocus
+                className={cn("p-3 pointer-events-auto")}
               />
             </PopoverContent>
           </Popover>
@@ -166,7 +187,7 @@ const TrackOrders = () => {
               <SelectValue placeholder="All Carriers" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all-carriers">All Carriers</SelectItem>
+              <SelectItem value="all">All Carriers</SelectItem>
               <SelectItem value="FedEx">FedEx</SelectItem>
               <SelectItem value="UPS">UPS</SelectItem>
               <SelectItem value="USPS">USPS</SelectItem>
@@ -183,7 +204,7 @@ const TrackOrders = () => {
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all-statuses">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="delivered">Delivered</SelectItem>
               <SelectItem value="in-transit">In Transit</SelectItem>
               <SelectItem value="processing">Processing</SelectItem>
@@ -209,7 +230,7 @@ const TrackOrders = () => {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -245,10 +266,27 @@ const TrackOrders = () => {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusBadgeStyle(order.status)} variant="outline">
-                      {order.status === "in-transit" ? "In Transit" : 
-                       order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
+                    <Select
+                      value={order.status}
+                      onValueChange={(value: OrderStatus) => handleStatusChange(order.id, value)}
+                    >
+                      <SelectTrigger className="w-32 h-8">
+                        <SelectValue>
+                          <div className="flex items-center">
+                            <Badge className={cn("mr-2", getStatusBadgeStyle(order.status))} variant="outline">
+                              {order.status === "in-transit" ? "In Transit" : 
+                               order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </Badge>
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="in-transit">In Transit</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                 </TableRow>
               ))
