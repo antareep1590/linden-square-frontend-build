@@ -22,6 +22,10 @@ import PersonalizationSettings from "./pages/admin/PersonalizationSettings";
 import PackagingDelivery from "./pages/admin/PackagingDelivery";
 import DeliveryManagement from "./pages/admin/DeliveryManagement";
 import AdminTrackOrders from "./pages/admin/TrackOrders";
+import AdminInventory from "./pages/admin/Inventory";
+import AdminInvoices from "./pages/admin/Invoices";
+import AdminSettings from "./pages/admin/Settings";
+import UserManagement from "./pages/admin/Users";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,10 +60,10 @@ const App = () => (
             <Route path="packaging" element={<PackagingDelivery />} />
             <Route path="delivery" element={<DeliveryManagement />} />
             <Route path="track-orders" element={<AdminTrackOrders />} />
-            <Route path="inventory" element={<NotFound />} />
-            <Route path="invoices" element={<NotFound />} />
-            <Route path="settings" element={<NotFound />} />
-            <Route path="users" element={<NotFound />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="invoices" element={<AdminInvoices />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
           
           {/* Catch-all route */}
