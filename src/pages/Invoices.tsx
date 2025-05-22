@@ -30,6 +30,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Label } from '@/components/ui/label';
+import { DateRange } from "react-day-picker";
 
 type PaymentStatus = "paid" | "pending";
 
@@ -101,7 +102,7 @@ const mockInvoices: Invoice[] = [
 const Invoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState<{from: Date | undefined; to: Date | undefined}>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined
   });
@@ -164,8 +165,8 @@ const Invoices = () => {
                          (invoice.clientName && invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Date range filter
-    const matchesDateRange = (!dateRange.from || invoice.date >= dateRange.from) && 
-                             (!dateRange.to || invoice.date <= dateRange.to);
+    const matchesDateRange = (!dateRange?.from || invoice.date >= dateRange.from) && 
+                             (!dateRange?.to || invoice.date <= dateRange.to);
     
     const matchesStatus = selectedStatus === "all" || invoice.paymentStatus === selectedStatus;
     
@@ -295,11 +296,11 @@ const Invoices = () => {
                   variant={"outline"}
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !dateRange.from && !dateRange.to && "text-muted-foreground"
+                    !dateRange?.from && !dateRange?.to && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from || dateRange.to ? (
+                  {dateRange?.from || dateRange?.to ? (
                     <>
                       {dateRange.from ? format(dateRange.from, "PPP") : "From Start"}
                       {" - "}
