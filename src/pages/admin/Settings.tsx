@@ -33,10 +33,19 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { BellRing, Mail, Palette, Box, Truck, Gift, Settings as SettingsIcon } from "lucide-react";
+import { BellRing, Mail, Palette, Box, Truck, Gift, Settings as SettingsIcon, Plus, Upload } from "lucide-react";
 
-const AdminSettings = () => {
+const Settings = () => {
   // Branding Settings
   const [logoUrl, setLogoUrl] = useState("https://example.com/linden-square-logo.png");
   const [primaryColor, setPrimaryColor] = useState("#4B89DC");
@@ -61,26 +70,80 @@ const AdminSettings = () => {
   
   // Add-on Settings
   const [addOns, setAddOns] = useState([
-    { id: 1, name: "Thank You Card", price: 2.99, enabled: true },
-    { id: 2, name: "Gift Wrap", price: 4.99, enabled: true },
-    { id: 3, name: "Company Brochure", price: 1.99, enabled: true },
-    { id: 4, name: "Custom Sticker", price: 0.99, enabled: false }
+    { id: 1, name: "Thank You Card", price: 2.99, enabled: true, type: "Card" },
+    { id: 2, name: "Gift Wrap", price: 4.99, enabled: true, type: "Packaging" },
+    { id: 3, name: "Company Brochure", price: 1.99, enabled: true, type: "Marketing" },
+    { id: 4, name: "Custom Sticker", price: 0.99, enabled: false, type: "Accessory" }
   ]);
 
   // Notification Settings
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [lowInventoryThreshold, setLowInventoryThreshold] = useState(25);
+  
+  // Modals state
+  const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
+  const [newCarrierName, setNewCarrierName] = useState("");
+  const [isEditBoxOpen, setIsEditBoxOpen] = useState(false);
+  const [selectedBoxId, setSelectedBoxId] = useState<number | null>(null);
+  const [editBoxData, setEditBoxData] = useState({ name: "", dimensions: "", price: 0 });
+  const [isAddAddonOpen, setIsAddAddonOpen] = useState(false);
+  const [newAddonData, setNewAddonData] = useState({ name: "", price: 0, type: "Card" });
 
   const handleSaveSettings = () => {
     toast.success("Settings saved successfully");
   };
 
+  // Add New Carrier
   const handleAddCarrier = () => {
-    toast.info("Add new carrier functionality to be implemented");
+    if (newCarrierName.trim()) {
+      setDefaultCarriers([...defaultCarriers, newCarrierName.trim()]);
+      setNewCarrierName("");
+      setIsAddCarrierOpen(false);
+      toast.success(`Added ${newCarrierName} as a carrier`);
+    }
   };
 
+  // Edit Box Size
   const handleEditBoxSize = (id: number) => {
-    toast.info(`Edit box size ${id} functionality to be implemented`);
+    const boxToEdit = boxSizes.find(box => box.id === id);
+    if (boxToEdit) {
+      setSelectedBoxId(id);
+      setEditBoxData({
+        name: boxToEdit.name,
+        dimensions: boxToEdit.dimensions,
+        price: boxToEdit.price
+      });
+      setIsEditBoxOpen(true);
+    }
+  };
+  
+  const handleSaveBoxEdit = () => {
+    if (selectedBoxId !== null) {
+      setBoxSizes(boxSizes.map(box => 
+        box.id === selectedBoxId 
+          ? { ...box, name: editBoxData.name, dimensions: editBoxData.dimensions, price: editBoxData.price }
+          : box
+      ));
+      setIsEditBoxOpen(false);
+      toast.success("Box size updated successfully");
+    }
+  };
+
+  // Add New Add-on
+  const handleAddAddon = () => {
+    if (newAddonData.name.trim() && newAddonData.price > 0) {
+      const newAddon = {
+        id: Math.max(...addOns.map(addon => addon.id)) + 1,
+        name: newAddonData.name.trim(),
+        price: newAddonData.price,
+        enabled: true,
+        type: newAddonData.type
+      };
+      setAddOns([...addOns, newAddon]);
+      setIsAddAddonOpen(false);
+      setNewAddonData({ name: "", price: 0, type: "Card" });
+      toast.success(`Added ${newAddonData.name} to add-ons`);
+    }
   };
 
   const handleToggleAddOn = (id: number) => {
@@ -95,7 +158,7 @@ const AdminSettings = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Admin Settings</h1>
+        <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
       <Tabs defaultValue="branding">
@@ -299,7 +362,34 @@ const AdminSettings = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button onClick={handleAddCarrier}>Add Carrier</Button>
+                  <Dialog open={isAddCarrierOpen} onOpenChange={setIsAddCarrierOpen}>
+                    <DialogTrigger asChild>
+                      <Button>Add Carrier</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Carrier</DialogTitle>
+                        <DialogDescription>
+                          Add a new shipping carrier to your options.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="carrier-name">Carrier Name</Label>
+                          <Input
+                            id="carrier-name"
+                            value={newCarrierName}
+                            onChange={(e) => setNewCarrierName(e.target.value)}
+                            placeholder="Enter carrier name"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddCarrierOpen(false)}>Cancel</Button>
+                        <Button onClick={handleAddCarrier}>Add Carrier</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
@@ -342,6 +432,52 @@ const AdminSettings = () => {
                   ))}
                 </div>
               </div>
+              
+              {/* Edit Box Size Dialog */}
+              <Dialog open={isEditBoxOpen} onOpenChange={setIsEditBoxOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit Box Size</DialogTitle>
+                    <DialogDescription>
+                      Update the details for this shipping box size.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-box-name">Box Name</Label>
+                      <Input
+                        id="edit-box-name"
+                        value={editBoxData.name}
+                        onChange={(e) => setEditBoxData({...editBoxData, name: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-box-dimensions">Dimensions</Label>
+                      <Input
+                        id="edit-box-dimensions"
+                        value={editBoxData.dimensions}
+                        onChange={(e) => setEditBoxData({...editBoxData, dimensions: e.target.value})}
+                        placeholder='e.g. "10" x 8" x 6"'
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-box-price">Price ($)</Label>
+                      <Input
+                        id="edit-box-price"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={editBoxData.price}
+                        onChange={(e) => setEditBoxData({...editBoxData, price: parseFloat(e.target.value) || 0})}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEditBoxOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveBoxEdit}>Save Changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline">Reset to Defaults</Button>
@@ -371,7 +507,7 @@ const AdminSettings = () => {
                       <div>
                         <p className="font-medium">{addon.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          ${addon.price.toFixed(2)}
+                          {addon.type} - ${addon.price.toFixed(2)}
                         </p>
                       </div>
                       <Switch 
@@ -383,13 +519,82 @@ const AdminSettings = () => {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => toast.info("Add new add-on functionality to be implemented")}
-              >
-                + Add New Item
-              </Button>
+              <Dialog open={isAddAddonOpen} onOpenChange={setIsAddAddonOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Plus className="mr-2 h-4 w-4" /> Add New Item
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Add-on Item</DialogTitle>
+                    <DialogDescription>
+                      Create a new add-on item for gift packages.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="addon-name">Item Name</Label>
+                      <Input 
+                        id="addon-name"
+                        value={newAddonData.name}
+                        onChange={(e) => setNewAddonData({...newAddonData, name: e.target.value})}
+                        placeholder="Enter item name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="addon-price">Price ($)</Label>
+                      <Input
+                        id="addon-price"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={newAddonData.price || ''}
+                        onChange={(e) => setNewAddonData({...newAddonData, price: parseFloat(e.target.value) || 0})}
+                        placeholder="Enter price"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="addon-type">Item Type</Label>
+                      <Select
+                        value={newAddonData.type}
+                        onValueChange={(value) => setNewAddonData({...newAddonData, type: value})}
+                      >
+                        <SelectTrigger id="addon-type">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Card">Card</SelectItem>
+                          <SelectItem value="Packaging">Packaging</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                          <SelectItem value="Accessory">Accessory</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="addon-image">Image (Optional)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="addon-image"
+                          type="file"
+                          className="flex-1"
+                        />
+                        <Button variant="outline" size="icon">
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Recommended image size: 300x300 pixels
+                      </p>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsAddAddonOpen(false)}>Cancel</Button>
+                    <Button onClick={handleAddAddon}>Add Item</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardContent>
             <CardFooter className="flex justify-between">
               <Button variant="outline">Reset to Defaults</Button>
@@ -515,4 +720,4 @@ const AdminSettings = () => {
   );
 };
 
-export default AdminSettings;
+export default Settings;

@@ -20,6 +20,8 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
 
 // Order status types
 type OrderStatus = "delivered" | "in-transit" | "processing" | "pending";
@@ -92,6 +94,7 @@ const TrackOrders = () => {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders);
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   
   // Update order status
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
@@ -100,6 +103,7 @@ const TrackOrders = () => {
     );
     setOrders(updatedOrders);
     filterOrders(updatedOrders);
+    toast.success(`Order ${orderId} status updated to ${newStatus}`);
   };
 
   // Filter orders based on selected filters
@@ -109,6 +113,18 @@ const TrackOrders = () => {
     if (date) {
       result = result.filter(order => 
         order.shipDate.toDateString() === date.toDateString()
+      );
+    }
+    
+    if (dateRange?.from) {
+      result = result.filter(order => 
+        order.shipDate >= dateRange.from
+      );
+    }
+    
+    if (dateRange?.to) {
+      result = result.filter(order => 
+        order.shipDate <= dateRange.to
       );
     }
     
@@ -133,6 +149,7 @@ const TrackOrders = () => {
   // Reset filters
   const resetFilters = () => {
     setDate(undefined);
+    setDateRange(undefined);
     setSelectedCarrier("all");
     setSelectedStatus("all");
     setSearch("");
@@ -142,7 +159,7 @@ const TrackOrders = () => {
   // Apply filters when any filter changes
   React.useEffect(() => {
     filterOrders();
-  }, [date, selectedCarrier, selectedStatus, search]);
+  }, [date, dateRange, selectedCarrier, selectedStatus, search]);
 
   return (
     <div className="space-y-6">
@@ -151,32 +168,42 @@ const TrackOrders = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/20 p-4 rounded-lg">
-        {/* Date Filter */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Ship Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Select date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+        {/* Date Range Filter */}
+        <div className="space-y-2 md:col-span-2">
+          <label className="text-sm font-medium">Ship Date Range</label>
+          <div className="grid gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateRange?.from && !dateRange?.to && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from || dateRange?.to ? (
+                    <>
+                      {dateRange.from ? format(dateRange.from, "MMM d, yyyy") : "From Start"}
+                      {" - "}
+                      {dateRange.to ? format(dateRange.to, "MMM d, yyyy") : "To End"}
+                    </>
+                  ) : (
+                    <span>Select date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
         
         {/* Carrier Filter */}
@@ -214,7 +241,7 @@ const TrackOrders = () => {
         </div>
         
         {/* Search */}
-        <div className="space-y-2">
+        <div className="space-y-2 md:col-span-3">
           <label className="text-sm font-medium">Search by Order ID</label>
           <div className="flex space-x-2">
             <Input 
@@ -223,10 +250,13 @@ const TrackOrders = () => {
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1"
             />
-            <Button variant="outline" onClick={resetFilters}>
-              Reset
-            </Button>
           </div>
+        </div>
+        
+        <div className="flex justify-end items-end">
+          <Button variant="outline" onClick={resetFilters}>
+            Reset Filters
+          </Button>
         </div>
       </div>
 

@@ -38,6 +38,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import {
@@ -51,6 +57,9 @@ import {
   Filter,
   Edit,
   FolderOpen,
+  Trash2,
+  Send,
+  Info,
 } from 'lucide-react';
 import {
   Pagination,
@@ -62,6 +71,13 @@ import {
 } from "@/components/ui/pagination";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Mock data for dispatches
 const mockDispatches = [
@@ -69,6 +85,7 @@ const mockDispatches = [
     id: 'DSP-10001',
     packageName: 'Premium Employee Gift',
     recipient: 'John Doe',
+    address: '123 Main St, Suite 400, San Francisco, CA 94105',
     clientName: 'Acme Corp',
     carrier: 'FedEx',
     trackingNumber: '12345678901',
@@ -82,6 +99,7 @@ const mockDispatches = [
     id: 'DSP-10002',
     packageName: 'Client Appreciation',
     recipient: 'Jane Smith',
+    address: '456 Market Ave, Chicago, IL 60601',
     clientName: 'Tech Innovations',
     carrier: 'UPS',
     trackingNumber: '98765432109',
@@ -95,6 +113,7 @@ const mockDispatches = [
     id: 'DSP-10003',
     packageName: 'New Client Welcome',
     recipient: 'Robert Johnson',
+    address: '789 Broadway, New York, NY 10001',
     clientName: 'Global Consulting',
     carrier: 'DHL',
     trackingNumber: '55566677788',
@@ -108,6 +127,7 @@ const mockDispatches = [
     id: 'DSP-10004',
     packageName: 'Executive Appreciation',
     recipient: 'Emily Wilson',
+    address: '555 Peachtree St, Atlanta, GA 30308',
     clientName: 'Metro Finance',
     carrier: 'USPS',
     trackingNumber: '44433322211',
@@ -121,6 +141,7 @@ const mockDispatches = [
     id: 'DSP-10005',
     packageName: 'Year-End Bonus Gift',
     recipient: 'Michelle Taylor',
+    address: '9876 Ocean Ave, Miami, FL 33139',
     clientName: 'Health First',
     carrier: 'FedEx',
     trackingNumber: '11122233344',
@@ -175,6 +196,8 @@ const DeliveryManagement = () => {
   const [openFilters, setOpenFilters] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [dispatchToDelete, setDispatchToDelete] = useState<string | null>(null);
 
   // Filtered dispatches
   const filteredDispatches = dispatches.filter(dispatch => {
@@ -215,8 +238,7 @@ const DeliveryManagement = () => {
       )
     );
     
-    setOpenUpdateModal(false);
-    setSelectedDispatch(null);
+    toast.success(`Status updated to ${statusLabels[newStatus]}`);
   };
 
   const handlePersonnelAssignment = (dispatchId: string, personnelName: string) => {
@@ -225,6 +247,27 @@ const DeliveryManagement = () => {
         dispatch.id === dispatchId ? { ...dispatch, assignedTo: personnelName } : dispatch
       )
     );
+    
+    toast.success(`Assigned to ${personnelName}`);
+  };
+  
+  const handleEditDispatch = (dispatch: typeof mockDispatches[0]) => {
+    setSelectedDispatch(dispatch);
+    setOpenUpdateModal(true);
+  };
+  
+  const handleDeleteDispatch = (dispatchId: string) => {
+    setDispatchToDelete(dispatchId);
+    setConfirmDeleteOpen(true);
+  };
+  
+  const confirmDeleteDispatch = () => {
+    if (dispatchToDelete) {
+      setDispatches(dispatches.filter(dispatch => dispatch.id !== dispatchToDelete));
+      toast.success("Dispatch deleted successfully");
+      setConfirmDeleteOpen(false);
+      setDispatchToDelete(null);
+    }
   };
 
   const resetFilters = () => {
@@ -403,6 +446,7 @@ const DeliveryManagement = () => {
               <TableHead>Dispatch ID</TableHead>
               <TableHead>Package Name</TableHead>
               <TableHead>Recipient</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Carrier</TableHead>
               <TableHead>Dispatch Date</TableHead>
@@ -417,13 +461,34 @@ const DeliveryManagement = () => {
                 <TableCell className="font-medium">{dispatch.id}</TableCell>
                 <TableCell>{dispatch.packageName}</TableCell>
                 <TableCell>{dispatch.recipient}</TableCell>
+                <TableCell className="max-w-xs truncate" title={dispatch.address}>
+                  {dispatch.address}
+                </TableCell>
                 <TableCell>{dispatch.clientName}</TableCell>
                 <TableCell>{dispatch.carrier}</TableCell>
                 <TableCell>{format(new Date(dispatch.dispatchDate), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
-                  <Badge className={statusColors[dispatch.status]}>
-                    {statusLabels[dispatch.status]}
-                  </Badge>
+                  <Select 
+                    value={dispatch.status}
+                    onValueChange={(value) => handleStatusChange(dispatch.id, value)}
+                  >
+                    <SelectTrigger className="h-8 w-[110px]">
+                      <SelectValue>
+                        <Badge className={statusColors[dispatch.status]}>
+                          {statusLabels[dispatch.status]}
+                        </Badge>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(statusLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          <Badge className={statusColors[value]}>
+                            {label}
+                          </Badge>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>
                   <Select 
@@ -443,23 +508,72 @@ const DeliveryManagement = () => {
                   </Select>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedDispatch(dispatch);
-                        setOpenUpdateModal(true);
-                      }}
-                    >
-                      <Edit size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <FolderOpen size={16} />
-                    </Button>
+                  <div className="flex justify-end gap-1">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditDispatch(dispatch)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit dispatch</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteDispatch(dispatch.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete dispatch</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Dispatch package</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </TableCell>
               </TableRow>
@@ -525,6 +639,14 @@ const DeliveryManagement = () => {
                         <span className="text-sm font-medium">Recipient</span>
                       </div>
                       <p className="text-sm">{selectedDispatch.recipient}</p>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <MapPin size={14} className="text-gray-500" />
+                        <span className="text-sm font-medium">Address</span>
+                      </div>
+                      <p className="text-sm">{selectedDispatch.address}</p>
                     </div>
                     
                     <div>
@@ -595,7 +717,10 @@ const DeliveryManagement = () => {
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpenUpdateModal(false)}>Cancel</Button>
                 <Button 
-                  onClick={() => handleStatusChange(selectedDispatch.id, 'in-transit')}
+                  onClick={() => {
+                    handleStatusChange(selectedDispatch.id, 'in-transit');
+                    setOpenUpdateModal(false);
+                  }}
                   className="bg-linden-blue hover:bg-linden-blue/90"
                 >
                   Update Status
@@ -603,6 +728,25 @@ const DeliveryManagement = () => {
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Confirm Delete Dialog */}
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to delete this dispatch? This action cannot be undone.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteDispatch}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

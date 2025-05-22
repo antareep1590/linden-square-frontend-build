@@ -31,6 +31,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Label } from '@/components/ui/label';
 import { DateRange } from "react-day-picker";
+import { toast } from "sonner";
 
 type PaymentStatus = "paid" | "pending";
 
@@ -99,15 +100,39 @@ const mockInvoices: Invoice[] = [
   }
 ];
 
+// Mock completed deliveries data
+const mockCompletedDeliveries = [
+  { 
+    id: "DEL-10001", 
+    clientName: "Acme Corporation", 
+    completedDate: new Date("2023-12-01"),
+    recipientCount: 20,
+    shipping: 120.50
+  },
+  { 
+    id: "DEL-10002", 
+    clientName: "Widget Industries", 
+    completedDate: new Date("2023-12-05"),
+    recipientCount: 12,
+    shipping: 88.75
+  },
+  { 
+    id: "DEL-10003", 
+    clientName: "Globex Corporation", 
+    completedDate: new Date("2023-12-10"),
+    recipientCount: 30,
+    shipping: 180.25
+  }
+];
+
 const Invoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>(mockInvoices);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [isGenerateInvoiceOpen, setIsGenerateInvoiceOpen] = useState(false);
+  const [isGenerateFromDeliveryOpen, setIsGenerateFromDeliveryOpen] = useState(false);
+  const [selectedDelivery, setSelectedDelivery] = useState<string>("");
   const [newInvoiceData, setNewInvoiceData] = useState({
     clientName: "",
     giftCount: 0,
@@ -122,10 +147,12 @@ const Invoices = () => {
         ? { ...invoice, paymentStatus: "paid" } 
         : invoice
     ));
+    
+    toast.success("Payment processed successfully");
   };
   
   // Handle new invoice changes
-  const handleNewInvoiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleNewInvoiceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewInvoiceData({
       ...newInvoiceData,
@@ -157,6 +184,37 @@ const Invoices = () => {
       kittingFee: 0,
       shipping: 0
     });
+    
+    toast.success("New invoice generated successfully");
+  };
+  
+  // Generate invoice from completed delivery
+  const handleGenerateInvoiceFromDelivery = () => {
+    if (selectedDelivery) {
+      const delivery = mockCompletedDeliveries.find(d => d.id === selectedDelivery);
+      
+      if (delivery) {
+        const kittingFee = delivery.recipientCount * 5; // Assuming $5 kitting fee per recipient
+        const total = kittingFee + delivery.shipping + (delivery.recipientCount * 40);
+        
+        const newInvoice: Invoice = {
+          id: `INV-${new Date().getFullYear()}-${(invoices.length + 1).toString().padStart(3, '0')}`,
+          date: new Date(),
+          giftCount: delivery.recipientCount,
+          kittingFee: kittingFee,
+          shipping: delivery.shipping,
+          total: total,
+          paymentStatus: "pending",
+          clientName: delivery.clientName
+        };
+        
+        setInvoices([newInvoice, ...invoices]);
+        setIsGenerateFromDeliveryOpen(false);
+        setSelectedDelivery("");
+        
+        toast.success(`Invoice generated from delivery ${delivery.id}`);
+      }
+    }
   };
 
   // Filter invoices based on search, date range, and status
@@ -176,7 +234,7 @@ const Invoices = () => {
   // Reset all filters
   const resetFilters = () => {
     setSearchTerm("");
-    setDateRange({from: undefined, to: undefined});
+    setDateRange(undefined);
     setSelectedStatus("all");
   };
 
@@ -184,95 +242,184 @@ const Invoices = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Invoices & Payments</h1>
-        <Dialog open={isGenerateInvoiceOpen} onOpenChange={setIsGenerateInvoiceOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Generate Invoice
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Generate New Invoice</DialogTitle>
-              <DialogDescription>
-                Create a new invoice for a completed order or delivery.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientName">Client</Label>
-                <Select name="clientName" onValueChange={(value) => {
-                  setNewInvoiceData({...newInvoiceData, clientName: value});
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Acme Corporation">Acme Corporation</SelectItem>
-                    <SelectItem value="Widget Industries">Widget Industries</SelectItem>
-                    <SelectItem value="Globex Corporation">Globex Corporation</SelectItem>
-                    <SelectItem value="Massive Dynamic">Massive Dynamic</SelectItem>
-                    <SelectItem value="Umbrella Corporation">Umbrella Corporation</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          <Dialog open={isGenerateFromDeliveryOpen} onOpenChange={setIsGenerateFromDeliveryOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                From Delivery
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Generate Invoice from Delivery</DialogTitle>
+                <DialogDescription>
+                  Create a new invoice based on a completed delivery.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="giftCount">Number of Gifts</Label>
-                  <Input
-                    id="giftCount"
-                    name="giftCount"
-                    type="number"
-                    min="1"
-                    value={newInvoiceData.giftCount.toString()}
-                    onChange={handleNewInvoiceChange}
-                  />
+                  <Label>Select Completed Delivery</Label>
+                  <Select value={selectedDelivery} onValueChange={setSelectedDelivery}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a delivery" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockCompletedDeliveries.map(delivery => (
+                        <SelectItem key={delivery.id} value={delivery.id}>
+                          {delivery.id} - {delivery.clientName} ({delivery.recipientCount} recipients)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {selectedDelivery && (
+                  <div className="space-y-4 border rounded-md p-4 bg-muted/20">
+                    <h4 className="font-medium">Delivery Summary</h4>
+                    {(() => {
+                      const delivery = mockCompletedDeliveries.find(d => d.id === selectedDelivery);
+                      const kittingFee = delivery ? delivery.recipientCount * 5 : 0;
+                      const total = delivery ? kittingFee + delivery.shipping + (delivery.recipientCount * 40) : 0;
+                      
+                      return delivery ? (
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Client:</span>
+                            <span className="font-medium">{delivery.clientName}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Completion Date:</span>
+                            <span>{format(delivery.completedDate, "MMM d, yyyy")}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Recipient Count:</span>
+                            <span>{delivery.recipientCount}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Gift Total:</span>
+                            <span>${(delivery.recipientCount * 40).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Kitting Fee:</span>
+                            <span>${kittingFee.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Shipping:</span>
+                            <span>${delivery.shipping.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between font-medium">
+                            <span>Total Amount:</span>
+                            <span>${total.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsGenerateFromDeliveryOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={handleGenerateInvoiceFromDelivery}
+                  disabled={!selectedDelivery}
+                >
+                  Generate Invoice
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isGenerateInvoiceOpen} onOpenChange={setIsGenerateInvoiceOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                New Invoice
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Generate New Invoice</DialogTitle>
+                <DialogDescription>
+                  Create a new invoice for a completed order or delivery.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Client</Label>
+                  <Select name="clientName" onValueChange={(value) => {
+                    setNewInvoiceData({...newInvoiceData, clientName: value});
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Acme Corporation">Acme Corporation</SelectItem>
+                      <SelectItem value="Widget Industries">Widget Industries</SelectItem>
+                      <SelectItem value="Globex Corporation">Globex Corporation</SelectItem>
+                      <SelectItem value="Massive Dynamic">Massive Dynamic</SelectItem>
+                      <SelectItem value="Umbrella Corporation">Umbrella Corporation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="giftCount">Number of Gifts</Label>
+                    <Input
+                      id="giftCount"
+                      name="giftCount"
+                      type="number"
+                      min="1"
+                      value={newInvoiceData.giftCount.toString()}
+                      onChange={handleNewInvoiceChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="kittingFee">Kitting Fee ($)</Label>
+                    <Input
+                      id="kittingFee"
+                      name="kittingFee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={newInvoiceData.kittingFee.toString()}
+                      onChange={handleNewInvoiceChange}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="kittingFee">Kitting Fee ($)</Label>
+                  <Label htmlFor="shipping">Shipping ($)</Label>
                   <Input
-                    id="kittingFee"
-                    name="kittingFee"
+                    id="shipping"
+                    name="shipping"
                     type="number"
                     min="0"
                     step="0.01"
-                    value={newInvoiceData.kittingFee.toString()}
+                    value={newInvoiceData.shipping.toString()}
                     onChange={handleNewInvoiceChange}
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="shipping">Shipping ($)</Label>
-                <Input
-                  id="shipping"
-                  name="shipping"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newInvoiceData.shipping.toString()}
-                  onChange={handleNewInvoiceChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Total</Label>
-                <div className="py-2 px-3 bg-muted rounded-md font-medium">
-                  ${(newInvoiceData.kittingFee + newInvoiceData.shipping + (newInvoiceData.giftCount * 40)).toFixed(2)}
+                <div className="space-y-2">
+                  <Label>Total</Label>
+                  <div className="py-2 px-3 bg-muted rounded-md font-medium">
+                    ${(newInvoiceData.kittingFee + newInvoiceData.shipping + (newInvoiceData.giftCount * 40)).toFixed(2)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Gift price calculated at $40 per unit</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Gift price calculated at $40 per unit</p>
               </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsGenerateInvoiceOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={handleGenerateInvoice}
-                disabled={!newInvoiceData.clientName || newInvoiceData.giftCount <= 0}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Generate Invoice
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsGenerateInvoiceOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={handleGenerateInvoice}
+                  disabled={!newInvoiceData.clientName || newInvoiceData.giftCount <= 0}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate Invoice
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/20 p-4 rounded-lg">
