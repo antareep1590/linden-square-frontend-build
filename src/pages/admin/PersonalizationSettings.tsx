@@ -74,6 +74,15 @@ const mockPersonalizationOptions = [
   },
 ];
 
+// Define the PersonalizationOption type explicitly
+type PersonalizationOption = {
+  id: number;
+  type: string;
+  characterLimit: number;
+  previewFormat: string;
+  enabled: boolean;
+};
+
 // Schema for personalization form validation
 const personalizationFormSchema = z.object({
   type: z.string().min(3, { message: "Type must be at least 3 characters." }),
@@ -85,10 +94,10 @@ const personalizationFormSchema = z.object({
 type PersonalizationFormValues = z.infer<typeof personalizationFormSchema>;
 
 const PersonalizationSettings = () => {
-  const [personalizationOptions, setPersonalizationOptions] = useState(mockPersonalizationOptions);
+  const [personalizationOptions, setPersonalizationOptions] = useState<PersonalizationOption[]>(mockPersonalizationOptions);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [previewOption, setPreviewOption] = useState<typeof mockPersonalizationOptions[0] | null>(null);
+  const [previewOption, setPreviewOption] = useState<PersonalizationOption | null>(null);
 
   const form = useForm<PersonalizationFormValues>({
     resolver: zodResolver(personalizationFormSchema),
@@ -111,9 +120,12 @@ const PersonalizationSettings = () => {
       setEditingId(null);
     } else {
       // Add new option
-      const newOption = {
+      const newOption: PersonalizationOption = {
         id: personalizationOptions.length + 1,
-        ...data,
+        type: data.type,
+        characterLimit: data.characterLimit,
+        previewFormat: data.previewFormat,
+        enabled: data.enabled,
       };
       setPersonalizationOptions([...personalizationOptions, newOption]);
     }

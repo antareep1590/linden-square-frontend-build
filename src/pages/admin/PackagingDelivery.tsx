@@ -190,6 +190,17 @@ const giftBoxFormSchema = z.object({
 
 type GiftBoxFormValues = z.infer<typeof giftBoxFormSchema>;
 
+// Define the GiftBox type explicitly based on mockGiftBoxes structure
+type GiftBox = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  personalizationOptions: string[];
+  isActive: boolean;
+};
+
 // Schema for delivery form validation
 const deliveryFormSchema = z.object({
   recipientId: z.string().min(1, { message: "Please select a recipient." }),
@@ -204,7 +215,7 @@ type DeliveryFormValues = z.infer<typeof deliveryFormSchema>;
 
 const PackagingDelivery = () => {
   const [activeTab, setActiveTab] = useState("gift-boxes");
-  const [giftBoxes, setGiftBoxes] = useState(mockGiftBoxes);
+  const [giftBoxes, setGiftBoxes] = useState<GiftBox[]>(mockGiftBoxes);
   const [packages, setPackages] = useState(mockPackages);
   const [openAddGiftBox, setOpenAddGiftBox] = useState(false);
   const [editingBoxId, setEditingBoxId] = useState<number | null>(null);
@@ -247,10 +258,14 @@ const PackagingDelivery = () => {
       setEditingBoxId(null);
     } else {
       // Add new gift box
-      const newGiftBox = {
+      const newGiftBox: GiftBox = {
         id: giftBoxes.length + 1,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        personalizationOptions: data.personalizationOptions,
+        isActive: data.isActive,
         image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9", // Default image
-        ...data,
       };
       setGiftBoxes([...giftBoxes, newGiftBox]);
     }
