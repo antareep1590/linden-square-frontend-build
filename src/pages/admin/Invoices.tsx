@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ const mockClients = [
 ];
 
 // Mock invoice data
-const mockInvoices = [
+const mockInvoices: Invoice[] = [
   {
     id: "INV-2023-001",
     clientId: "client-1",

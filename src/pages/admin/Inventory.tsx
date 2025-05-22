@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { 
   Select,
@@ -25,8 +23,19 @@ import { Label } from "@/components/ui/label";
 import { Archive, Pencil, Plus, RefreshCcw, X } from "lucide-react";
 import { toast } from "sonner";
 
+type InventoryStatus = "active" | "inactive";
+
+type InventoryItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  reorderThreshold: number;
+  lastRefilledDate: Date;
+  status: InventoryStatus;
+};
+
 // Mock inventory data
-const mockInventory = [
+const mockInventory: InventoryItem[] = [
   {
     id: "1",
     name: "Artisan Chocolates",
@@ -76,15 +85,6 @@ const mockInventory = [
     status: "inactive"
   }
 ];
-
-type InventoryItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  reorderThreshold: number;
-  lastRefilledDate: Date;
-  status: "active" | "inactive";
-};
 
 const AdminInventory = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory);

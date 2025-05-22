@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { 
   DropdownMenu,
@@ -28,7 +26,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
-  User,
+  User as UserIcon,
   UserPlus,
   MoreHorizontal,
   Shield,
@@ -51,7 +49,7 @@ import {
 } from "@/components/ui/pagination";
 
 // Mock user data
-const mockUsers = [
+const mockUsers: User[] = [
   {
     id: "1",
     name: "John Smith",
@@ -267,7 +265,7 @@ const UserManagement = () => {
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                      <UserIcon className="h-4 w-4" />
                       {user.name}
                     </div>
                   </TableCell>
