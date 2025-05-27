@@ -9,8 +9,14 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Truck } from "lucide-react";
+import { Calendar as CalendarIcon, Truck, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -75,16 +81,73 @@ const initialOrders: Order[] = [
 const getStatusBadgeStyle = (status: OrderStatus) => {
   switch (status) {
     case "delivered":
-      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
     case "in-transit":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      return "bg-blue-100 text-blue-700 border-blue-200";
     case "processing":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      return "bg-amber-100 text-amber-700 border-amber-200";
     case "pending":
-      return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+      return "bg-gray-100 text-gray-700 border-gray-200";
     default:
       return "";
   }
+};
+
+// Enhanced Status Dropdown Component for Track Orders
+const TrackingStatusDropdown = ({ currentStatus, onStatusChange, orderId }: {
+  currentStatus: OrderStatus;
+  onStatusChange: (id: string, status: OrderStatus) => void;
+  orderId: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const statusOptions: { value: OrderStatus; label: string }[] = [
+    { value: "pending", label: "Pending" },
+    { value: "processing", label: "Processing" },
+    { value: "in-transit", label: "In Transit" },
+    { value: "delivered", label: "Delivered" }
+  ];
+
+  const handleStatusSelect = (newStatus: OrderStatus) => {
+    onStatusChange(orderId, newStatus);
+    setIsOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-8 w-auto px-3 justify-between rounded-lg shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 bg-white"
+        >
+          <Badge className={`${getStatusBadgeStyle(currentStatus)} border px-2 py-1 font-medium`}>
+            {currentStatus === "in-transit" ? "In Transit" : 
+             currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+          </Badge>
+          <ChevronDown className={`ml-2 h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-40 p-1 bg-white border border-gray-200 shadow-lg rounded-lg animate-in fade-in-0 zoom-in-95 duration-200"
+        align="start"
+      >
+        {statusOptions.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            onClick={() => handleStatusSelect(option.value)}
+            className="px-3 py-2 cursor-pointer rounded-md hover:bg-gray-50 transition-colors duration-150 focus:bg-gray-50"
+          >
+            <div className="flex items-center justify-between w-full">
+              <Badge className={`${getStatusBadgeStyle(option.value)} border px-2 py-1 text-xs font-medium`}>
+                {option.label}
+              </Badge>
+              {currentStatus === option.value && <Check className="h-3 w-3 text-gray-600" />}
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 const TrackOrders = () => {
@@ -296,27 +359,11 @@ const TrackOrders = () => {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value: OrderStatus) => handleStatusChange(order.id, value)}
-                    >
-                      <SelectTrigger className="w-32 h-8">
-                        <SelectValue>
-                          <div className="flex items-center">
-                            <Badge className={cn("mr-2", getStatusBadgeStyle(order.status))} variant="outline">
-                              {order.status === "in-transit" ? "In Transit" : 
-                               order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="in-transit">In Transit</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <TrackingStatusDropdown
+                      currentStatus={order.status}
+                      onStatusChange={handleStatusChange}
+                      orderId={order.id}
+                    />
                   </TableCell>
                 </TableRow>
               ))

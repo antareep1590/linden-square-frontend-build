@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -27,6 +26,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Card,
   CardContent,
   CardHeader,
@@ -38,12 +43,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import {
@@ -60,6 +59,8 @@ import {
   Trash2,
   Send,
   Info,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import {
   Pagination,
@@ -163,11 +164,60 @@ const mockPersonnel = [
 
 // Status color mapping
 const statusColors: Record<string, string> = {
-  'delivered': 'bg-green-500',
-  'in-transit': 'bg-blue-500',
-  'dispatched': 'bg-amber-500',
-  'delayed': 'bg-red-500',
-  'returned': 'bg-gray-500',
+  'delivered': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'in-transit': 'bg-blue-100 text-blue-700 border-blue-200',
+  'dispatched': 'bg-amber-100 text-amber-700 border-amber-200',
+  'delayed': 'bg-red-100 text-red-700 border-red-200',
+  'returned': 'bg-gray-100 text-gray-700 border-gray-200',
+};
+
+// Enhanced Status Dropdown Component
+const StatusDropdown = ({ currentStatus, onStatusChange, dispatchId }: {
+  currentStatus: string;
+  onStatusChange: (id: string, status: string) => void;
+  dispatchId: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleStatusSelect = (newStatus: string) => {
+    onStatusChange(dispatchId, newStatus);
+    setIsOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-8 w-auto px-3 justify-between rounded-lg shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 bg-white"
+        >
+          <Badge className={`${statusColors[currentStatus]} border px-2 py-1 font-medium`}>
+            {statusLabels[currentStatus]}
+          </Badge>
+          <ChevronDown className={`ml-2 h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-40 p-1 bg-white border border-gray-200 shadow-lg rounded-lg animate-in fade-in-0 zoom-in-95 duration-200"
+        align="start"
+      >
+        {Object.entries(statusLabels).map(([value, label]) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={() => handleStatusSelect(value)}
+            className="px-3 py-2 cursor-pointer rounded-md hover:bg-gray-50 transition-colors duration-150 focus:bg-gray-50"
+          >
+            <div className="flex items-center justify-between w-full">
+              <Badge className={`${statusColors[value]} border px-2 py-1 text-xs font-medium`}>
+                {label}
+              </Badge>
+              {currentStatus === value && <Check className="h-3 w-3 text-gray-600" />}
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 // Status display names
@@ -446,7 +496,7 @@ const DeliveryManagement = () => {
               <TableHead>Dispatch ID</TableHead>
               <TableHead>Package Name</TableHead>
               <TableHead>Recipient</TableHead>
-              <TableHead>Address</TableHead>
+              <TableHead>Delivery Address</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Carrier</TableHead>
               <TableHead>Dispatch Date</TableHead>
@@ -468,27 +518,11 @@ const DeliveryManagement = () => {
                 <TableCell>{dispatch.carrier}</TableCell>
                 <TableCell>{format(new Date(dispatch.dispatchDate), 'MMM d, yyyy')}</TableCell>
                 <TableCell>
-                  <Select 
-                    value={dispatch.status}
-                    onValueChange={(value) => handleStatusChange(dispatch.id, value)}
-                  >
-                    <SelectTrigger className="h-8 w-[110px]">
-                      <SelectValue>
-                        <Badge className={statusColors[dispatch.status]}>
-                          {statusLabels[dispatch.status]}
-                        </Badge>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(statusLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          <Badge className={statusColors[value]}>
-                            {label}
-                          </Badge>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <StatusDropdown
+                    currentStatus={dispatch.status}
+                    onStatusChange={handleStatusChange}
+                    dispatchId={dispatch.id}
+                  />
                 </TableCell>
                 <TableCell>
                   <Select 
@@ -516,6 +550,7 @@ const DeliveryManagement = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditDispatch(dispatch)}
+                            className="h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -533,6 +568,7 @@ const DeliveryManagement = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteDispatch(dispatch.id)}
+                            className="h-8 w-8 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -549,6 +585,7 @@ const DeliveryManagement = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8 rounded-md hover:bg-blue-50 hover:text-blue-600 transition-colors"
                           >
                             <Send className="h-4 w-4" />
                           </Button>
@@ -565,6 +602,7 @@ const DeliveryManagement = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8 rounded-md hover:bg-gray-100 transition-colors"
                           >
                             <Info className="h-4 w-4" />
                           </Button>

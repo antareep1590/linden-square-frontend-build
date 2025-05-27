@@ -5,7 +5,16 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Archive } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Archive, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 // Mock inventory data
 const mockInventory = [
@@ -46,10 +55,24 @@ const mockInventory = [
   }
 ];
 
+interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  reorderThreshold: number;
+  lastRefilledDate: Date;
+}
+
 const Inventory = () => {
   const [inventory, setInventory] = useState(mockInventory);
   const [searchTerm, setSearchTerm] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: "",
+    quantity: "",
+    reorderThreshold: ""
+  });
 
   // Filter inventory based on search term
   const filteredInventory = inventory.filter(item =>
@@ -70,10 +93,94 @@ const Inventory = () => {
     return quantity < threshold;
   };
 
+  const handleAddItem = () => {
+    if (!newItem.name || !newItem.quantity || !newItem.reorderThreshold) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    const newInventoryItem: InventoryItem = {
+      id: (inventory.length + 1).toString(),
+      name: newItem.name,
+      quantity: parseInt(newItem.quantity),
+      reorderThreshold: parseInt(newItem.reorderThreshold),
+      lastRefilledDate: new Date()
+    };
+
+    setInventory([...inventory, newInventoryItem]);
+    setNewItem({ name: "", quantity: "", reorderThreshold: "" });
+    setIsAddModalOpen(false);
+    toast.success("Inventory item added successfully");
+  };
+
+  const resetForm = () => {
+    setNewItem({ name: "", quantity: "", reorderThreshold: "" });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Inventory Management</h1>
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Inventory
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Inventory Item</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="itemName">Item Name</Label>
+                <Input
+                  id="itemName"
+                  placeholder="Enter item name"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Initial Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    placeholder="0"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="threshold">Reorder Threshold</Label>
+                  <Input
+                    id="threshold"
+                    type="number"
+                    placeholder="0"
+                    value={newItem.reorderThreshold}
+                    onChange={(e) => setNewItem({ ...newItem, reorderThreshold: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  resetForm();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleAddItem}>
+                Add Item
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-muted/20 p-4 rounded-lg">
