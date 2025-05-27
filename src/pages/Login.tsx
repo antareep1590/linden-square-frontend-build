@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
+import { ArrowLeft } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -19,9 +20,24 @@ const Login: React.FC = () => {
     navigate('/admin/dashboard');
   };
 
+  const handleBackToHome = () => {
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8">
+        <div className="mb-4">
+          <Button 
+            variant="ghost" 
+            onClick={handleBackToHome}
+            className="text-linden-blue hover:text-linden-blue/80"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+        </div>
+        
         <div className="mb-8">
           <LindenSquareLogo size="large" />
         </div>
