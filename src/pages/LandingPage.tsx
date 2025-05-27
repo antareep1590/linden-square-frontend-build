@@ -14,8 +14,8 @@ const LandingPage = () => {
     element?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleGetStarted = () => {
-    navigate('/');
+  const handleLoginClick = () => {
+    navigate('/login');
   };
 
   return (
@@ -39,7 +39,7 @@ const LandingPage = () => {
                 Features
               </button>
               <Button 
-                onClick={handleGetStarted}
+                onClick={handleLoginClick}
                 className="bg-linden-blue hover:bg-linden-blue/90"
               >
                 Login
@@ -198,7 +198,7 @@ const LandingPage = () => {
           <p className="text-xl text-blue-100 mb-8">Join thousands of companies creating meaningful connections through gifts</p>
           <Button 
             size="lg"
-            onClick={handleGetStarted}
+            onClick={handleLoginClick}
             className="bg-linden-gold hover:bg-linden-gold/90 text-linden-blue text-lg px-8 py-3"
           >
             Login to Your Account

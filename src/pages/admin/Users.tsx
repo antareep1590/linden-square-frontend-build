@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -46,6 +45,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from "sonner";
+import AddUserModal from '@/components/AddUserModal';
 
 interface UserData {
   id: string;
@@ -135,6 +135,7 @@ const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
 
   // Filter users
@@ -181,11 +182,25 @@ const UserManagement = () => {
     setStatusFilter('All');
   };
 
+  const handleAddUser = (newUserData: any) => {
+    const newUser: UserData = {
+      id: (users.length + 1).toString(),
+      ...newUserData,
+      lastLogin: null,
+      createdAt: new Date(),
+    };
+    
+    setUsers([...users, newUser]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Management</h1>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setIsAddModalOpen(true)}
+        >
           <Plus className="h-4 w-4" />
           Add New User
         </Button>
@@ -428,6 +443,13 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add User Modal */}
+      <AddUserModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onUserAdded={handleAddUser}
+      />
     </div>
   );
 };

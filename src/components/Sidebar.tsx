@@ -28,7 +28,7 @@ type MenuItem = {
 // Client menu items
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Client', path: '/customers', icon: <Users size={20} /> },
+  { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
   { name: 'Select Gifts', path: '/select-gifts', icon: <Gift size={20} /> },
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },
