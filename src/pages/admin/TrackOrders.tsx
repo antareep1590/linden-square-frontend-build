@@ -26,6 +26,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Card,
   CardContent,
   CardHeader,
@@ -45,6 +51,8 @@ import {
   User,
   Calendar,
   Package,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -60,6 +68,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 // Mock data for orders
 const mockOrders = [
@@ -178,6 +187,60 @@ const carriers = ['All', 'FedEx', 'UPS', 'DHL', 'USPS'];
 // Clients
 const clients = ['All', 'Acme Corp', 'Tech Innovations', 'Global Consulting', 'Metro Finance', 'Health First'];
 
+// Modern Status Dropdown Component
+const ModernStatusDropdown = ({ currentStatus, onStatusChange, orderId }: {
+  currentStatus: string;
+  onStatusChange: (id: string, status: string) => void;
+  orderId: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const statusOptions = Object.keys(statusLabels).map(status => ({
+    value: status,
+    label: statusLabels[status]
+  }));
+
+  const handleStatusSelect = (newStatus: string) => {
+    onStatusChange(orderId, newStatus);
+    setIsOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-9 w-auto px-3 justify-between rounded-full shadow-sm border border-gray-200/60 hover:border-gray-300 hover:shadow-md transition-all duration-300 bg-white/80 backdrop-blur-sm"
+        >
+          <Badge className={`${statusColors[currentStatus]} text-white border-0 px-3 py-1 font-medium text-xs rounded-full`}>
+            {statusLabels[currentStatus]}
+          </Badge>
+          <ChevronDown className={`ml-2 h-3 w-3 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent 
+        className="w-44 p-2 bg-white/95 backdrop-blur-md border border-gray-200/60 shadow-xl rounded-xl animate-in fade-in-0 zoom-in-95 duration-300"
+        align="start"
+      >
+        {statusOptions.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            onClick={() => handleStatusSelect(option.value)}
+            className="px-3 py-2.5 cursor-pointer rounded-lg hover:bg-gray-50/80 transition-colors duration-200 focus:bg-gray-50/80 group"
+          >
+            <div className="flex items-center justify-between w-full">
+              <Badge className={`${statusColors[option.value]} text-white border-0 px-3 py-1 text-xs font-medium rounded-full group-hover:shadow-sm transition-shadow duration-200`}>
+                {option.label}
+              </Badge>
+              {currentStatus === option.value && <Check className="h-3.5 w-3.5 text-gray-600" />}
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 const TrackOrders = () => {
   const [orders, setOrders] = useState(mockOrders);
   const [selectedOrder, setSelectedOrder] = useState<typeof mockOrders[0] | null>(null);
@@ -235,6 +298,7 @@ const TrackOrders = () => {
       })
     );
     setOpenUpdateModal(false);
+    toast.success(`Order ${orderId} status updated to ${statusLabels[newStatus]}`);
   };
 
   const handleAddTrackingNumber = () => {
@@ -261,6 +325,7 @@ const TrackOrders = () => {
       );
       setNewTrackingNumber('');
       setSelectedTab('details');
+      toast.success('Tracking number updated successfully');
     }
   };
 
@@ -400,9 +465,11 @@ const TrackOrders = () => {
                   }
                 </TableCell>
                 <TableCell>
-                  <Badge className={statusColors[order.status]}>
-                    {statusLabels[order.status]}
-                  </Badge>
+                  <ModernStatusDropdown
+                    currentStatus={order.status}
+                    onStatusChange={handleStatusUpdate}
+                    orderId={order.id}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -543,7 +610,7 @@ const TrackOrders = () => {
                                   href={selectedOrder.trackingUrl} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
-                                  className="text-sm text-linden-blue hover:underline flex items-center gap-1 mt-1"
+                                  className="text-sm text-blue-600 hover:underline flex items-center gap-1 mt-1"
                                 >
                                   View tracking <ExternalLink size={12} />
                                 </a>
@@ -575,7 +642,7 @@ const TrackOrders = () => {
                               )}
                               
                               {/* Event dot */}
-                              <div className="absolute top-1.5 left-0 w-5 h-5 rounded-full border-2 border-linden-blue bg-white"></div>
+                              <div className="absolute top-1.5 left-0 w-5 h-5 rounded-full border-2 border-blue-600 bg-white"></div>
                               
                               <div className="pl-8">
                                 <p className="text-sm text-gray-500">
@@ -670,7 +737,7 @@ const TrackOrders = () => {
                       
                       <div className="space-y-2">
                         <Label>New Status</Label>
-                        <Select defaultValue={selectedOrder.status}>
+                        <Select defaultValue={selectedOrder.status} onValueChange={(value) => handleStatusUpdate(selectedOrder.id, value)}>
                           <SelectTrigger>
                             <SelectValue placeholder="Select new status" />
                           </SelectTrigger>
@@ -696,9 +763,6 @@ const TrackOrders = () => {
                         onClick={() => setSelectedTab('details')}
                       >
                         Cancel
-                      </Button>
-                      <Button onClick={() => handleStatusUpdate(selectedOrder.id, 'delivered')}>
-                        Update Status
                       </Button>
                     </CardFooter>
                   </Card>
