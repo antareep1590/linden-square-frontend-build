@@ -35,17 +35,19 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Search, PlusCircle, Upload, Pencil, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Mock client data
-const clients = [
-  { id: 1, name: 'Acme Corporation', email: 'contact@acmecorp.com', phone: '(555) 123-4567', status: 'active' },
-  { id: 2, name: 'Widget Industries', email: 'info@widgetind.com', phone: '(555) 234-5678', status: 'active' },
-  { id: 3, name: 'Globex Corporation', email: 'admin@globex.com', phone: '(555) 345-6789', status: 'inactive' },
-  { id: 4, name: 'Massive Dynamic', email: 'hello@massivedynamic.com', phone: '(555) 456-7890', status: 'active' },
-  { id: 5, name: 'Umbrella Corporation', email: 'support@umbrella.com', phone: '(555) 567-8901', status: 'inactive' },
+const initialClients = [
+  { id: 1, name: 'Acme Corporation', email: 'contact@acmecorp.com', phone: '(555) 123-4567', status: 'active', address: '123 Business Ave, Suite 100', company: 'Acme Corp', notes: 'Premium client' },
+  { id: 2, name: 'Widget Industries', email: 'info@widgetind.com', phone: '(555) 234-5678', status: 'active', address: '456 Industry Blvd', company: 'Widget Industries', notes: 'Regular orders' },
+  { id: 3, name: 'Globex Corporation', email: 'admin@globex.com', phone: '(555) 345-6789', status: 'inactive', address: '789 Corporate Way', company: 'Globex Corp', notes: 'On hold' },
+  { id: 4, name: 'Massive Dynamic', email: 'hello@massivedynamic.com', phone: '(555) 456-7890', status: 'active', address: '321 Dynamic St', company: 'Massive Dynamic', notes: 'High volume client' },
+  { id: 5, name: 'Umbrella Corporation', email: 'support@umbrella.com', phone: '(555) 567-8901', status: 'inactive', address: '654 Umbrella Plaza', company: 'Umbrella Corp', notes: 'Inactive since 2023' },
 ];
 
 const AdminCustomers: React.FC = () => {
+  const [clients, setClients] = useState(initialClients);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('nameAZ');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -57,6 +59,8 @@ const AdminCustomers: React.FC = () => {
     company: '',
     notes: ''
   });
+  const [editingClient, setEditingClient] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // Filter clients based on search query and status
   const filteredClients = clients.filter(client => {
@@ -89,6 +93,14 @@ const AdminCustomers: React.FC = () => {
     const { name, value } = e.target;
     setNewClientData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Handler for editing client form
+  const handleEditClientChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setEditingClient((prev: any) => ({ ...prev, [name]: value }));
+  };
   
   // Reset Filters
   const resetFilters = () => {
@@ -111,6 +123,24 @@ const AdminCustomers: React.FC = () => {
       company: '',
       notes: ''
     });
+    toast.success("Client added successfully");
+  };
+
+  // Handle edit client
+  const handleEditClient = (client: any) => {
+    setEditingClient(client);
+    setIsEditModalOpen(true);
+  };
+
+  // Handle save edited client
+  const handleSaveEditedClient = () => {
+    const updatedClients = clients.map(client => 
+      client.id === editingClient.id ? editingClient : client
+    );
+    setClients(updatedClients);
+    setIsEditModalOpen(false);
+    setEditingClient(null);
+    toast.success("Client updated successfully");
   };
 
   return (
@@ -268,6 +298,111 @@ const AdminCustomers: React.FC = () => {
           </Dialog>
         </div>
       </div>
+
+      {/* Edit Client Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[550px] p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Edit Client</DialogTitle>
+            <DialogDescription>
+              Update the client's information below.
+            </DialogDescription>
+          </DialogHeader>
+          {editingClient && (
+            <div className="grid gap-6 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-company">Company Name</Label>
+                  <Input
+                    id="edit-company"
+                    name="company"
+                    value={editingClient.company}
+                    onChange={handleEditClientChange}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Contact Name</Label>
+                  <Input
+                    id="edit-name"
+                    name="name"
+                    value={editingClient.name}
+                    onChange={handleEditClientChange}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Contact Email</Label>
+                  <Input
+                    id="edit-email"
+                    name="email"
+                    type="email"
+                    value={editingClient.email}
+                    onChange={handleEditClientChange}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Phone Number</Label>
+                  <Input
+                    id="edit-phone"
+                    name="phone"
+                    value={editingClient.phone}
+                    onChange={handleEditClientChange}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select value={editingClient.status} onValueChange={(value) => setEditingClient({...editingClient, status: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Textarea
+                  id="edit-address"
+                  name="address"
+                  value={editingClient.address}
+                  onChange={handleEditClientChange}
+                  className="w-full"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Textarea
+                  id="edit-notes"
+                  name="notes"
+                  value={editingClient.notes}
+                  onChange={handleEditClientChange}
+                  className="w-full"
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEditedClient}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-muted/20 p-4 rounded-lg">
         <div className="relative w-full md:w-64">
@@ -340,7 +475,7 @@ const AdminCustomers: React.FC = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClient(client)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>

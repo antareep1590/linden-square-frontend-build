@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,10 +15,6 @@ const LandingPage = () => {
     element?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
-
   const handleBookDemo = () => {
     // For now, redirect to login - in future this could open a demo booking modal
     navigate('/login');
@@ -29,12 +24,12 @@ const LandingPage = () => {
     {
       title: "Less Admin, More Connection",
       description: "Streamline your gifting process and focus on what matters most - building relationships.",
-      icon: <Heart className="h-8 w-8 text-linden-gold" />
+      icon: <Heart className="h-8 w-8 text-amber-600" />
     },
     {
       title: "Real-Time Shipping, Zero Guesswork",
       description: "Track every package with precision and keep your recipients informed every step of the way.",
-      icon: <MapPin className="h-8 w-8 text-linden-blue" />
+      icon: <MapPin className="h-8 w-8 text-slate-700" />
     },
     {
       title: "Delightfully Easy for Your Recipients",
@@ -44,7 +39,7 @@ const LandingPage = () => {
     {
       title: "We Handle Fulfillment, You Get the Thanks",
       description: "Professional packaging and reliable delivery while you take credit for the thoughtful gesture.",
-      icon: <Star className="h-8 w-8 text-linden-gold" />
+      icon: <Star className="h-8 w-8 text-amber-600" />
     }
   ];
 
@@ -263,7 +258,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Value Proposition Carousel */}
+      {/* Value Proposition Carousel - Enhanced with better padding and colors */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
@@ -275,13 +270,13 @@ const LandingPage = () => {
               <CarouselContent>
                 {valuePropositions.map((prop, index) => (
                   <CarouselItem key={index}>
-                    <Card className="border-0 shadow-lg bg-white">
-                      <CardContent className="p-16 text-center">
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-white">
+                      <CardContent className="p-20 text-center">
                         <div className="mb-8">
                           {prop.icon}
                         </div>
-                        <h3 className="text-3xl font-bold text-linden-blue mb-6">{prop.title}</h3>
-                        <p className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">{prop.description}</p>
+                        <h3 className="text-3xl font-bold text-slate-700 mb-6">{prop.title}</h3>
+                        <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">{prop.description}</p>
                       </CardContent>
                     </Card>
                   </CarouselItem>

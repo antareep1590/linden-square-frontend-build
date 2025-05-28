@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -89,8 +96,13 @@ const categories = [
 const AdminInventory = () => {
   const [inventory, setInventory] = useState(mockInventory);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [quantityFilter, setQuantityFilter] = useState("all");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [newItem, setNewItem] = useState({
     name: "",
     category: "",
@@ -99,11 +111,29 @@ const AdminInventory = () => {
     unitCost: ""
   });
 
-  // Filter inventory based on search term
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter inventory based on all filters
+  const filteredInventory = inventory.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    
+    let matchesStatus = true;
+    if (statusFilter === "low") {
+      matchesStatus = item.quantity < item.reorderThreshold;
+    } else if (statusFilter === "in-stock") {
+      matchesStatus = item.quantity >= item.reorderThreshold;
+    }
+    
+    let matchesQuantity = true;
+    if (quantityFilter === "low") {
+      matchesQuantity = item.quantity < 25;
+    } else if (quantityFilter === "medium") {
+      matchesQuantity = item.quantity >= 25 && item.quantity < 100;
+    } else if (quantityFilter === "high") {
+      matchesQuantity = item.quantity >= 100;
+    }
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesQuantity;
+  });
 
   // Format date to readable string
   const formatDate = (date: Date) => {
@@ -149,6 +179,23 @@ const AdminInventory = () => {
     toast.success("Inventory item added successfully");
   };
 
+  const handleEditItem = (item: InventoryItem) => {
+    setEditingItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditedItem = () => {
+    if (!editingItem) return;
+    
+    const updatedInventory = inventory.map(item => 
+      item.id === editingItem.id ? editingItem : item
+    );
+    setInventory(updatedInventory);
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+    toast.success("Inventory item updated successfully");
+  };
+
   const resetForm = () => {
     setNewItem({ name: "", category: "", quantity: "", reorderThreshold: "", unitCost: "" });
   };
@@ -156,6 +203,13 @@ const AdminInventory = () => {
   const handleDeleteItem = (id: string) => {
     setInventory(inventory.filter(item => item.id !== id));
     toast.success("Item deleted successfully");
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setCategoryFilter("all");
+    setStatusFilter("all");
+    setQuantityFilter("all");
   };
 
   return (
@@ -252,25 +306,160 @@ const AdminInventory = () => {
         </Dialog>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
-          <Input
-            placeholder="Search inventory by name or category..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Enhanced Filters Section */}
+      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="space-y-2">
+            <Label>Search by Name</Label>
+            <Input
+              placeholder="Search inventory..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="in-stock">In Stock</SelectItem>
+                <SelectItem value="low">Low Stock</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Quantity Range</Label>
+            <Select value={quantityFilter} onValueChange={setQuantityFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Quantities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Quantities</SelectItem>
+                <SelectItem value="low">Low (0-24)</SelectItem>
+                <SelectItem value="medium">Medium (25-99)</SelectItem>
+                <SelectItem value="high">High (100+)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-end">
+            <Button variant="outline" onClick={resetFilters} className="w-full">
+              Reset Filters
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="notifications"
-            checked={notificationsEnabled}
-            onCheckedChange={setNotificationsEnabled}
-          />
-          <Label htmlFor="notifications" className="font-medium">
-            Low Inventory Alerts
-          </Label>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="notifications"
+              checked={notificationsEnabled}
+              onCheckedChange={setNotificationsEnabled}
+            />
+            <Label htmlFor="notifications" className="font-medium">
+              Low Inventory Alerts
+            </Label>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredInventory.length} of {inventory.length} items
+          </p>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Inventory Item</DialogTitle>
+          </DialogHeader>
+          {editingItem && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-itemName">Item Name</Label>
+                <Input
+                  id="edit-itemName"
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({...editingItem, name: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Select value={editingItem.category} onValueChange={(value) => setEditingItem({...editingItem, category: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-quantity">Quantity</Label>
+                  <Input
+                    id="edit-quantity"
+                    type="number"
+                    value={editingItem.quantity}
+                    onChange={(e) => setEditingItem({...editingItem, quantity: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-threshold">Reorder Threshold</Label>
+                  <Input
+                    id="edit-threshold"
+                    type="number"
+                    value={editingItem.reorderThreshold}
+                    onChange={(e) => setEditingItem({...editingItem, reorderThreshold: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-unitCost">Unit Cost ($)</Label>
+                <Input
+                  id="edit-unitCost"
+                  type="number"
+                  step="0.01"
+                  value={editingItem.unitCost}
+                  onChange={(e) => setEditingItem({...editingItem, unitCost: parseFloat(e.target.value) || 0})}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEditedItem}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="rounded-md border">
         <Table>
@@ -327,7 +516,7 @@ const AdminInventory = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditItem(item)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -345,7 +534,7 @@ const AdminInventory = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-4">
-                  No inventory items found matching your search.
+                  No inventory items found matching your filters.
                 </TableCell>
               </TableRow>
             )}

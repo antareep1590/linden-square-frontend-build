@@ -18,8 +18,40 @@ import {
   Package, 
   Users, 
   Truck, 
-  AlertCircle 
+  AlertCircle,
+  DollarSign,
+  TrendingUp
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
+
+// Mock data for charts
+const deliveryTrends = [
+  { month: 'Jan', deliveries: 45 },
+  { month: 'Feb', deliveries: 52 },
+  { month: 'Mar', deliveries: 48 },
+  { month: 'Apr', deliveries: 61 },
+  { month: 'May', deliveries: 67 },
+  { month: 'Jun', deliveries: 72 }
+];
+
+const revenueData = [
+  { month: 'Jan', revenue: 12500 },
+  { month: 'Feb', revenue: 15200 },
+  { month: 'Mar', revenue: 14800 },
+  { month: 'Apr', revenue: 18900 },
+  { month: 'May', revenue: 22100 },
+  { month: 'Jun', revenue: 25400 }
+];
 
 // Mock data for latest activities
 const activities = [
@@ -37,8 +69,68 @@ const AdminDashboard: React.FC = () => {
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
       
-      {/* Dashboard Cards */}
+      {/* Enhanced Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Clients
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">148</div>
+            <p className="text-xs text-muted-foreground">
+              +8 new this month
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Pending Deliveries
+            </CardTitle>
+            <Truck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">86</div>
+            <p className="text-xs text-muted-foreground">
+              23 delivered today
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Inventory Stock Level
+            </CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1,247</div>
+            <p className="text-xs text-muted-foreground">
+              92% in stock
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Revenue This Month
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$25,400</div>
+            <p className="text-xs text-muted-foreground">
+              +15% from last month
+            </p>
+          </CardContent>
+        </Card>
+        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -96,6 +188,49 @@ const AdminDashboard: React.FC = () => {
             <p className="text-xs text-muted-foreground">
               Requires immediate attention
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Delivery Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={deliveryTrends}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="deliveries" stroke="#2563eb" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Revenue Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
+                <Bar dataKey="revenue" fill="#059669" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
