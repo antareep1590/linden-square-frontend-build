@@ -1,13 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
-import { ArrowRight, Upload, Gift, Truck, Users, BarChart3, Package, Shield } from 'lucide-react';
+import { ArrowRight, Upload, Gift, Truck, Users, BarChart3, Package, Shield, CheckCircle, Star, Clock, Heart, MapPin, CreditCard, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [activeValueProp, setActiveValueProp] = useState(0);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -18,31 +20,150 @@ const LandingPage = () => {
     navigate('/login');
   };
 
+  const handleBookDemo = () => {
+    // For now, redirect to login - in future this could open a demo booking modal
+    navigate('/login');
+  };
+
+  const valuePropositions = [
+    {
+      title: "Less Admin, More Connection",
+      description: "Streamline your gifting process and focus on what matters most - building relationships.",
+      icon: <Heart className="h-8 w-8 text-linden-gold" />
+    },
+    {
+      title: "Real-Time Shipping, Zero Guesswork",
+      description: "Track every package with precision and keep your recipients informed every step of the way.",
+      icon: <MapPin className="h-8 w-8 text-linden-blue" />
+    },
+    {
+      title: "Delightfully Easy for Your Recipients",
+      description: "Simple address collection and delivery preferences that your recipients will love.",
+      icon: <CheckCircle className="h-8 w-8 text-green-600" />
+    },
+    {
+      title: "We Handle Fulfillment, You Get the Thanks",
+      description: "Professional packaging and reliable delivery while you take credit for the thoughtful gesture.",
+      icon: <Star className="h-8 w-8 text-linden-gold" />
+    }
+  ];
+
+  const features = [
+    {
+      title: "Recipient Portal with Smart Address Collection",
+      description: "Automated address collection with preferences and delivery instructions",
+      icon: <Users className="h-6 w-6" />,
+      screenshot: true
+    },
+    {
+      title: "Customizable Gift Rules & Brand Controls",
+      description: "Set spending limits, approval workflows, and maintain brand consistency",
+      icon: <Shield className="h-6 w-6" />,
+      screenshot: true
+    },
+    {
+      title: "Real-Time Delivery Tracking",
+      description: "Complete visibility from order placement to doorstep delivery",
+      icon: <Truck className="h-6 w-6" />,
+      screenshot: true
+    },
+    {
+      title: "Inventory + Storage Management",
+      description: "Centralized inventory with automated reordering and storage solutions",
+      icon: <Package className="h-6 w-6" />,
+      screenshot: true
+    },
+    {
+      title: "Invoice & Payment Automation",
+      description: "Streamlined billing with automated invoicing and payment processing",
+      icon: <CreditCard className="h-6 w-6" />,
+      screenshot: true
+    },
+    {
+      title: "Dedicated Support & SLA Monitoring",
+      description: "Premium support with guaranteed response times and success metrics",
+      icon: <Headphones className="h-6 w-6" />,
+      screenshot: true
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "VP of Customer Success",
+      company: "TechCorp",
+      quote: "Linden Square transformed how we approach client relationships. The automation saves us hours while the personal touch strengthens our partnerships.",
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=64&h=64&fit=crop&crop=face"
+    },
+    {
+      name: "Michael Chen",
+      role: "Director of Operations",
+      company: "GrowthCo",
+      quote: "The real-time tracking and recipient portal eliminated all the logistics headaches. Our clients love the seamless experience.",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop&crop=face"
+    }
+  ];
+
+  const pricingTiers = [
+    {
+      name: "Basic",
+      description: "Perfect for small teams",
+      features: ["Up to 100 recipients/month", "Basic tracking", "Email support"],
+      cta: "Get Started"
+    },
+    {
+      name: "Growth",
+      description: "For scaling businesses",
+      features: ["Up to 1,000 recipients/month", "Advanced analytics", "Priority support", "Custom branding"],
+      cta: "Most Popular",
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      description: "For large organizations",
+      features: ["Unlimited recipients", "Dedicated account manager", "Custom integrations", "SLA guarantee"],
+      cta: "Custom Quote"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      {/* Sticky Header */}
+      <header className="border-b border-gray-100 bg-white/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4">
           <nav className="flex items-center justify-between">
             <LindenSquareLogo size="medium" />
             <div className="hidden md:flex items-center space-x-8">
               <button 
                 onClick={() => scrollToSection('how-it-works')}
-                className="text-gray-600 hover:text-linden-blue transition-colors"
+                className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
               >
                 How It Works
               </button>
               <button 
                 onClick={() => scrollToSection('features')}
-                className="text-gray-600 hover:text-linden-blue transition-colors"
+                className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
               >
                 Features
               </button>
+              <button 
+                onClick={() => scrollToSection('pricing')}
+                className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
+              >
+                Pricing
+              </button>
               <Button 
+                variant="outline"
                 onClick={handleLoginClick}
+                className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white"
+              >
+                Log in
+              </Button>
+              <Button 
+                onClick={handleBookDemo}
                 className="bg-linden-blue hover:bg-linden-blue/90"
               >
-                Login
+                Get Started
               </Button>
             </div>
           </nav>
@@ -50,57 +171,81 @@ const LandingPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-linden-lightblue to-white py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-linden-lightblue via-white to-linden-gold/10 py-24">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-5xl lg:text-6xl font-bold text-linden-blue leading-tight">
-                  Effortless Gifting.<br />
-                  <span className="text-linden-gold">Powerful Delivery.</span>
+              <div className="space-y-6">
+                <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+                  <span className="text-linden-blue">Gifting That Builds</span><br />
+                  <span className="text-linden-gold">Relationships,</span><br />
+                  <span className="text-gray-800">Not Just Boxes.</span>
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
-                  Corporate gifting made simple, scalable, and personal. Transform your client relationships with our premium gifting platform.
+                <p className="text-xl text-gray-600 leading-relaxed max-w-2xl">
+                  Linden Square is your smart partner for thoughtful, scalable corporate gifting that strengthens business relationships and drives growth.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
                   size="lg"
-                  onClick={() => scrollToSection('cta')}
-                  className="bg-linden-blue hover:bg-linden-blue/90 text-lg px-8 py-3"
+                  onClick={handleBookDemo}
+                  className="bg-linden-blue hover:bg-linden-blue/90 text-lg px-8 py-4 group"
                 >
-                  Get Started
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Book a Demo
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button 
                   variant="outline" 
                   size="lg"
-                  onClick={() => scrollToSection('how-it-works')}
-                  className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white text-lg px-8 py-3"
+                  onClick={() => scrollToSection('features')}
+                  className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white text-lg px-8 py-4"
                 >
-                  See How It Works
+                  Explore the Platform
                 </Button>
               </div>
             </div>
             <div className="relative">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                <div className="space-y-4">
+              <div className="bg-white rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
+                <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-linden-blue">Gift Dashboard</h3>
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <h3 className="text-xl font-semibold text-linden-blue">Gift Campaign Dashboard</h3>
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-linden-lightblue rounded-lg p-3 text-center">
-                      <Package className="h-6 w-6 mx-auto text-linden-blue mb-1" />
-                      <p className="text-xs text-linden-blue">Gifts</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Card className="p-4 bg-linden-lightblue border-0">
+                      <div className="text-center">
+                        <Package className="h-8 w-8 mx-auto text-linden-blue mb-2" />
+                        <p className="text-2xl font-bold text-linden-blue">247</p>
+                        <p className="text-xs text-linden-blue">Gifts Sent</p>
+                      </div>
+                    </Card>
+                    <Card className="p-4 bg-linden-gold/10 border-0">
+                      <div className="text-center">
+                        <Users className="h-8 w-8 mx-auto text-linden-gold mb-2" />
+                        <p className="text-2xl font-bold text-linden-gold">98%</p>
+                        <p className="text-xs text-linden-blue">Delivered</p>
+                      </div>
+                    </Card>
+                    <Card className="p-4 bg-green-50 border-0">
+                      <div className="text-center">
+                        <Heart className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                        <p className="text-2xl font-bold text-green-600">4.9</p>
+                        <p className="text-xs text-linden-blue">Rating</p>
+                      </div>
+                    </Card>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm text-gray-600">Premium Coffee Set</span>
+                      <span className="text-sm font-medium text-green-600">Delivered</span>
                     </div>
-                    <div className="bg-linden-gold/10 rounded-lg p-3 text-center">
-                      <Users className="h-6 w-6 mx-auto text-linden-gold mb-1" />
-                      <p className="text-xs text-linden-blue">Recipients</p>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <Truck className="h-6 w-6 mx-auto text-green-600 mb-1" />
-                      <p className="text-xs text-linden-blue">Delivery</p>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm text-gray-600">Custom Notebook Collection</span>
+                      <span className="text-sm font-medium text-blue-600">In Transit</span>
                     </div>
                   </div>
                 </div>
@@ -110,113 +255,244 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Value Proposition Carousel */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-linden-blue mb-4">Why Choose Linden Square?</h2>
+            <p className="text-xl text-gray-600">Discover what makes us different</p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {valuePropositions.map((prop, index) => (
+                  <CarouselItem key={index}>
+                    <Card className="border-0 shadow-lg">
+                      <CardContent className="p-12 text-center">
+                        <div className="mb-6">
+                          {prop.icon}
+                        </div>
+                        <h3 className="text-2xl font-bold text-linden-blue mb-4">{prop.title}</h3>
+                        <p className="text-lg text-gray-600 leading-relaxed">{prop.description}</p>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 bg-gray-50">
+      <section id="how-it-works" className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-linden-blue mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600">Three simple steps to corporate gifting success</p>
+            <p className="text-xl text-gray-600">Three simple steps to gifting success</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center group">
-              <div className="bg-white rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <Upload className="h-10 w-10 text-linden-blue" />
+              <div className="bg-linden-lightblue rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <Upload className="h-12 w-12 text-linden-blue" />
               </div>
-              <h3 className="text-xl font-semibold text-linden-blue mb-3">1. Upload Recipients</h3>
-              <p className="text-gray-600">Easily import your recipient list with our bulk upload feature</p>
+              <h3 className="text-2xl font-semibold text-linden-blue mb-4">Upload Your Recipients</h3>
+              <p className="text-gray-600 text-lg">Easily import your recipient list with our intelligent bulk upload system</p>
             </div>
             <div className="text-center group">
-              <div className="bg-white rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <Gift className="h-10 w-10 text-linden-gold" />
+              <div className="bg-linden-gold/10 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <Gift className="h-12 w-12 text-linden-gold" />
               </div>
-              <h3 className="text-xl font-semibold text-linden-blue mb-3">2. Select Gifts & Personalize</h3>
-              <p className="text-gray-600">Choose from our curated catalog and add personal touches</p>
+              <h3 className="text-2xl font-semibold text-linden-blue mb-4">Choose Your Gifts & Customize</h3>
+              <p className="text-gray-600 text-lg">Select from our curated catalog and add personal touches that matter</p>
             </div>
             <div className="text-center group">
-              <div className="bg-white rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
-                <Truck className="h-10 w-10 text-green-600" />
+              <div className="bg-green-50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <Truck className="h-12 w-12 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-linden-blue mb-3">3. We Pack & Deliver</h3>
-              <p className="text-gray-600">Sit back while we handle packaging and delivery worldwide</p>
+              <h3 className="text-2xl font-semibold text-linden-blue mb-4">We Ship. You Celebrate.</h3>
+              <p className="text-gray-600 text-lg">Relax while we handle professional packaging and worldwide delivery</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-linden-blue mb-4">Powerful Features</h2>
+            <h2 className="text-4xl font-bold text-linden-blue mb-4">All-in-One Gifting Platform</h2>
             <p className="text-xl text-gray-600">Everything you need for successful corporate gifting</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
-              <CardContent className="p-6 text-center">
-                <div className="bg-linden-lightblue rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Upload className="h-8 w-8 text-linden-blue" />
-                </div>
-                <h3 className="text-lg font-semibold text-linden-blue mb-2">Bulk Uploads & Personalization</h3>
-                <p className="text-gray-600 text-sm">Import thousands of recipients and personalize each gift</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
-              <CardContent className="p-6 text-center">
-                <div className="bg-linden-gold/10 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <BarChart3 className="h-8 w-8 text-linden-gold" />
-                </div>
-                <h3 className="text-lg font-semibold text-linden-blue mb-2">Live Order Tracking</h3>
-                <p className="text-gray-600 text-sm">Real-time visibility into every shipment and delivery</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
-              <CardContent className="p-6 text-center">
-                <div className="bg-green-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Package className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-linden-blue mb-2">Inventory & Invoicing Made Easy</h3>
-                <p className="text-gray-600 text-sm">Automated inventory management and streamlined billing</p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow border-0 shadow-md">
-              <CardContent className="p-6 text-center">
-                <div className="bg-blue-50 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <Shield className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-linden-blue mb-2">Client Portal for Full Control</h3>
-                <p className="text-gray-600 text-sm">Give clients complete visibility and control over their campaigns</p>
-              </CardContent>
-            </Card>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg group">
+                <CardContent className="p-8">
+                  <div className="mb-6">
+                    <div className="bg-linden-lightblue rounded-full w-16 h-16 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      {React.cloneElement(feature.icon, { className: "h-8 w-8 text-linden-blue" })}
+                    </div>
+                    {feature.screenshot && (
+                      <div className="bg-gray-100 rounded-lg h-32 mb-4 flex items-center justify-center">
+                        <BarChart3 className="h-8 w-8 text-gray-400" />
+                        <span className="text-xs text-gray-400 ml-2">Dashboard Preview</span>
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold text-linden-blue mb-3">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="cta" className="py-20 bg-gradient-to-r from-linden-blue to-linden-blue/90">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">Ready to simplify your corporate gifting?</h2>
-          <p className="text-xl text-blue-100 mb-8">Join thousands of companies creating meaningful connections through gifts</p>
+      {/* Social Proof Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-linden-blue mb-4">Trusted by Modern Brands</h2>
+            <p className="text-xl text-gray-600">Join hundreds of companies transforming their gifting strategy</p>
+          </div>
+          
+          {/* Client Logos Placeholder */}
+          <div className="flex justify-center items-center space-x-12 mb-16 opacity-60">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="bg-gray-200 rounded-lg h-12 w-32 flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Client Logo</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Testimonials */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="border-0 shadow-lg">
+                <CardContent className="p-8">
+                  <div className="flex items-start space-x-4">
+                    <img 
+                      src={testimonial.avatar} 
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="text-gray-600 mb-4 italic">"{testimonial.quote}"</p>
+                      <div>
+                        <p className="font-semibold text-linden-blue">{testimonial.name}</p>
+                        <p className="text-sm text-gray-500">{testimonial.role}, {testimonial.company}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-linden-blue mb-4">Transparent, Flexible Pricing</h2>
+            <p className="text-xl text-gray-600">No storage markups. No hidden carrier fees.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {pricingTiers.map((tier, index) => (
+              <Card key={index} className={`border-0 shadow-lg relative ${tier.popular ? 'ring-2 ring-linden-gold' : ''}`}>
+                {tier.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-linden-gold text-white px-4 py-1 rounded-full text-sm font-medium">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-2xl font-bold text-linden-blue mb-2">{tier.name}</h3>
+                  <p className="text-gray-600 mb-6">{tier.description}</p>
+                  <ul className="space-y-3 mb-8">
+                    {tier.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className={`w-full ${tier.popular ? 'bg-linden-gold hover:bg-linden-gold/90' : 'bg-linden-blue hover:bg-linden-blue/90'}`}
+                    onClick={tier.name === 'Enterprise' ? handleBookDemo : handleLoginClick}
+                  >
+                    {tier.cta}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="py-20 bg-gradient-to-r from-linden-blue via-linden-blue/95 to-linden-blue relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 animate-bounce">
+            <Gift className="h-8 w-8 text-white" />
+          </div>
+          <div className="absolute top-32 right-20 animate-bounce delay-100">
+            <Package className="h-6 w-6 text-white" />
+          </div>
+          <div className="absolute bottom-20 left-1/4 animate-bounce delay-200">
+            <Heart className="h-10 w-10 text-white" />
+          </div>
+        </div>
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <h2 className="text-4xl font-bold text-white mb-6">Ready to Streamline Your Corporate Gifting?</h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of companies creating meaningful connections through thoughtful, scalable gifting
+          </p>
           <Button 
             size="lg"
             onClick={handleLoginClick}
-            className="bg-linden-gold hover:bg-linden-gold/90 text-linden-blue text-lg px-8 py-3"
+            className="bg-linden-gold hover:bg-linden-gold/90 text-linden-blue text-lg px-12 py-4 font-semibold"
           >
-            Login to Your Account
+            Log In to Your Account
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-12">
+      <footer className="bg-white border-t border-gray-200 py-12">
         <div className="container mx-auto px-6">
-          <div className="text-center">
-            <LindenSquareLogo size="medium" className="mb-6" />
-            <div className="text-gray-500 text-sm">
-              &copy; 2025 Linden Square | 
-              <a href="#" className="hover:text-linden-blue ml-1">Terms</a> | 
-              <a href="#" className="hover:text-linden-blue ml-1">Privacy Policy</a>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="md:col-span-2">
+              <LindenSquareLogo size="medium" className="mb-4" />
+              <p className="text-gray-600 max-w-md">
+                Transforming corporate relationships through thoughtful, scalable gifting solutions.
+              </p>
             </div>
+            <div>
+              <h4 className="font-semibold text-linden-blue mb-4">Company</h4>
+              <ul className="space-y-2 text-gray-600">
+                <li><a href="#" className="hover:text-linden-blue transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-linden-blue transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-linden-blue transition-colors">Contact Us</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-linden-blue mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-600">
+                <li><a href="#" className="hover:text-linden-blue transition-colors">Terms & Conditions</a></li>
+                <li><a href="#" className="hover:text-linden-blue transition-colors">Privacy Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+            <p className="text-gray-500 text-sm">
+              &copy; 2025 Linden Square. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
