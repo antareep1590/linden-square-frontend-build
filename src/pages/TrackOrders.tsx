@@ -1,38 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon, Truck, ChevronDown, Check } from "lucide-react";
+import { Calendar as CalendarIcon, Truck, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
+import { deliveryStatusService, DeliveryStatus } from "@/services/deliveryStatusService";
+import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Order status types
 type OrderStatus = "delivered" | "in-transit" | "processing" | "pending";
 
-// Order interface
 interface Order {
   id: string;
   recipientCount: number;
@@ -42,7 +26,6 @@ interface Order {
   status: OrderStatus;
 }
 
-// Mock order data
 const initialOrders: Order[] = [
   {
     id: "ORD-2023-1001",
@@ -93,63 +76,6 @@ const getStatusBadgeStyle = (status: OrderStatus) => {
   }
 };
 
-// Enhanced Status Dropdown Component for Track Orders
-const TrackingStatusDropdown = ({ currentStatus, onStatusChange, orderId }: {
-  currentStatus: OrderStatus;
-  onStatusChange: (id: string, status: OrderStatus) => void;
-  orderId: string;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const statusOptions: { value: OrderStatus; label: string }[] = [
-    { value: "pending", label: "Pending" },
-    { value: "processing", label: "Processing" },
-    { value: "in-transit", label: "In Transit" },
-    { value: "delivered", label: "Delivered" }
-  ];
-
-  const handleStatusSelect = (newStatus: OrderStatus) => {
-    onStatusChange(orderId, newStatus);
-    setIsOpen(false);
-  };
-
-  return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-8 w-auto px-3 justify-between rounded-lg shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 bg-white"
-        >
-          <Badge className={`${getStatusBadgeStyle(currentStatus)} border px-2 py-1 font-medium`}>
-            {currentStatus === "in-transit" ? "In Transit" : 
-             currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
-          </Badge>
-          <ChevronDown className={`ml-2 h-3 w-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        className="w-40 p-1 bg-white border border-gray-200 shadow-lg rounded-lg animate-in fade-in-0 zoom-in-95 duration-200"
-        align="start"
-      >
-        {statusOptions.map((option) => (
-          <DropdownMenuItem
-            key={option.value}
-            onClick={() => handleStatusSelect(option.value)}
-            className="px-3 py-2 cursor-pointer rounded-md hover:bg-gray-50 transition-colors duration-150 focus:bg-gray-50"
-          >
-            <div className="flex items-center justify-between w-full">
-              <Badge className={`${getStatusBadgeStyle(option.value)} border px-2 py-1 text-xs font-medium`}>
-                {option.label}
-              </Badge>
-              {currentStatus === option.value && <Check className="h-3 w-3 text-gray-600" />}
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
 const TrackOrders = () => {
   const [date, setDate] = useState<Date>();
   const [selectedCarrier, setSelectedCarrier] = useState<string>("all");
@@ -158,16 +84,39 @@ const TrackOrders = () => {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(initialOrders);
   const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  
-  // Update order status
-  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
-    const updatedOrders = orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    );
-    setOrders(updatedOrders);
-    filterOrders(updatedOrders);
-    toast.success(`Order ${orderId} status updated to ${newStatus}`);
-  };
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  // Subscribe to delivery status updates
+  useEffect(() => {
+    const unsubscribe = deliveryStatusService.subscribe((update) => {
+      setOrders(prev => prev.map(order => {
+        if (order.id === update.orderId) {
+          // Map delivery status to order status
+          let orderStatus: OrderStatus;
+          switch (update.status) {
+            case 'shipped':
+            case 'in-transit':
+            case 'out-for-delivery':
+              orderStatus = 'in-transit';
+              break;
+            case 'delivered':
+              orderStatus = 'delivered';
+              break;
+            case 'processing':
+              orderStatus = 'processing';
+              break;
+            default:
+              orderStatus = 'pending';
+          }
+          return { ...order, status: orderStatus };
+        }
+        return order;
+      }));
+    });
+
+    return unsubscribe;
+  }, []);
 
   // Filter orders based on selected filters
   const filterOrders = (ordersList = orders) => {
@@ -220,9 +169,14 @@ const TrackOrders = () => {
   };
 
   // Apply filters when any filter changes
-  React.useEffect(() => {
+  useEffect(() => {
     filterOrders();
-  }, [date, dateRange, selectedCarrier, selectedStatus, search]);
+  }, [date, dateRange, selectedCarrier, selectedStatus, search, orders]);
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -333,6 +287,7 @@ const TrackOrders = () => {
               <TableHead>Carrier</TableHead>
               <TableHead>Tracking Link</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -359,17 +314,34 @@ const TrackOrders = () => {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <TrackingStatusDropdown
-                      currentStatus={order.status}
-                      onStatusChange={handleStatusChange}
-                      orderId={order.id}
-                    />
+                    <Badge className={`${getStatusBadgeStyle(order.status)} border px-2 py-1 font-medium`}>
+                      {order.status === "in-transit" ? "In Transit" : 
+                       order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleViewDetails(order)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View Details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4">
+                <TableCell colSpan={7} className="text-center py-4">
                   No orders found matching your filters.
                 </TableCell>
               </TableRow>
@@ -377,6 +349,12 @@ const TrackOrders = () => {
           </TableBody>
         </Table>
       </div>
+
+      <OrderDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        order={selectedOrder}
+      />
     </div>
   );
 };
