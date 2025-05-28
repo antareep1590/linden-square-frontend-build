@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +18,10 @@ const LandingPage = () => {
 
   const handleBookDemo = () => {
     // For now, redirect to login - in future this could open a demo booking modal
+    navigate('/login');
+  };
+
+  const handleLoginClick = () => {
     navigate('/login');
   };
 
