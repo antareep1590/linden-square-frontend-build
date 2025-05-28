@@ -32,7 +32,6 @@ const MyProfile = () => {
   };
 
   const handleProfileSave = () => {
-    // Here you would typically save to backend
     console.log('Saving profile:', profileData);
     toast.success("Profile updated successfully");
   };
@@ -46,7 +45,6 @@ const MyProfile = () => {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    // Here you would typically save to backend
     console.log('Updating password');
     toast.success("Password updated successfully");
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });

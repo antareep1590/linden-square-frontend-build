@@ -27,6 +27,7 @@ import AdminInventory from "./pages/admin/Inventory";
 import AdminInvoices from "./pages/admin/Invoices";
 import AdminSettings from "./pages/admin/Settings";
 import UserManagement from "./pages/admin/Users";
+import MyProfile from "./pages/admin/MyProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="invoices" element={<AdminInvoices />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="my-profile" element={<MyProfile />} />
           </Route>
           
           {/* Catch-all route */}

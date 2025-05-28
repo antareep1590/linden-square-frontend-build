@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -76,6 +75,8 @@ import * as z from "zod";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import CarrierAssigneeStep from "@/components/packaging/CarrierAssigneeStep";
+import { deliveryStatusService } from "@/services/deliveryStatusService";
 
 // Mock data for Gift Boxes
 const mockGiftBoxes = [
@@ -221,6 +222,8 @@ const PackagingDelivery = () => {
   const [editingBoxId, setEditingBoxId] = useState<number | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<typeof mockPackages[0] | null>(null);
   const [deliveryStep, setDeliveryStep] = useState(1);
+  const [selectedCarrier, setSelectedCarrier] = useState("");
+  const [selectedAssignee, setSelectedAssignee] = useState("");
 
   // Form for Gift Box
   const giftBoxForm = useForm<GiftBoxFormValues>({
@@ -298,8 +301,8 @@ const PackagingDelivery = () => {
 
   const onDeliverySubmit = (data: DeliveryFormValues) => {
     console.log("Delivery data:", data);
-    // In a real application, you would submit this data to your API
-    // Then update the package status
+    console.log("Carrier:", selectedCarrier);
+    console.log("Assignee:", selectedAssignee);
     
     if (selectedPackage) {
       setPackages(
@@ -307,16 +310,27 @@ const PackagingDelivery = () => {
           pkg.id === selectedPackage.id ? { ...pkg, status: "dispatched" } : pkg
         )
       );
+
+      // Update status via service to sync with Track Orders
+      deliveryStatusService.updateStatus(
+        selectedPackage.id.toString(),
+        "dispatched",
+        selectedAssignee
+      );
     }
     
     setSelectedPackage(null);
     setDeliveryStep(1);
+    setSelectedCarrier("");
+    setSelectedAssignee("");
     deliveryForm.reset();
   };
 
   const handleCancelDelivery = () => {
     setSelectedPackage(null);
     setDeliveryStep(1);
+    setSelectedCarrier("");
+    setSelectedAssignee("");
     deliveryForm.reset();
   };
 
@@ -647,9 +661,13 @@ const PackagingDelivery = () => {
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${deliveryStep === 1 ? 'bg-linden-blue text-white' : 'bg-gray-200'}`}>
                   1
                 </div>
-                <div className={`h-0.5 flex-1 ${deliveryStep === 2 ? 'bg-linden-blue' : 'bg-gray-200'}`}></div>
+                <div className={`h-0.5 flex-1 ${deliveryStep >= 2 ? 'bg-linden-blue' : 'bg-gray-200'}`}></div>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${deliveryStep === 2 ? 'bg-linden-blue text-white' : 'bg-gray-200'}`}>
                   2
+                </div>
+                <div className={`h-0.5 flex-1 ${deliveryStep >= 3 ? 'bg-linden-blue' : 'bg-gray-200'}`}></div>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${deliveryStep === 3 ? 'bg-linden-blue text-white' : 'bg-gray-200'}`}>
+                  3
                 </div>
               </div>
               
@@ -780,7 +798,7 @@ const PackagingDelivery = () => {
                         </Button>
                       </div>
                     </div>
-                  ) : (
+                  ) : deliveryStep === 2 ? (
                     <div className="space-y-6">
                       <div>
                         <h3 className="text-lg font-medium mb-4">Delivery Notes & Add-ons</h3>
@@ -905,6 +923,34 @@ const PackagingDelivery = () => {
                           <ArrowLeft size={16} /> Back
                         </Button>
                         
+                        <Button 
+                          type="button" 
+                          onClick={() => setDeliveryStep(3)} 
+                          className="gap-2"
+                        >
+                          Continue <ArrowRight size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <CarrierAssigneeStep
+                        selectedCarrier={selectedCarrier}
+                        selectedAssignee={selectedAssignee}
+                        onCarrierChange={setSelectedCarrier}
+                        onAssigneeChange={setSelectedAssignee}
+                      />
+                      
+                      <div className="flex justify-between">
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          onClick={() => setDeliveryStep(2)} 
+                          className="gap-2"
+                        >
+                          <ArrowLeft size={16} /> Back
+                        </Button>
+                        
                         <div className="flex gap-2">
                           <Button 
                             type="button" 
@@ -913,7 +959,11 @@ const PackagingDelivery = () => {
                           >
                             <XCircle size={16} /> Hold for Review
                           </Button>
-                          <Button type="submit" className="gap-2 bg-linden-blue hover:bg-linden-blue/90">
+                          <Button 
+                            type="submit" 
+                            className="gap-2 bg-linden-blue hover:bg-linden-blue/90"
+                            disabled={!selectedCarrier || !selectedAssignee}
+                          >
                             <CheckCircle size={16} /> Confirm & Dispatch
                           </Button>
                         </div>

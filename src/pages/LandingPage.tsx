@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +16,6 @@ const LandingPage = () => {
   };
 
   const handleBookDemo = () => {
-    // For now, redirect to login - in future this could open a demo booking modal
     navigate('/login');
   };
 
@@ -93,21 +91,21 @@ const LandingPage = () => {
       role: "VP of Customer Success",
       company: "TechCorp",
       quote: "Linden Square transformed how we approach client relationships. The automation saves us hours while the personal touch strengthens our partnerships.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face&auto=format"
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
     },
     {
       name: "Michael Chen",
       role: "Director of Operations",
       company: "GrowthCo",
       quote: "The real-time tracking and recipient portal eliminated all the logistics headaches. Our clients love the seamless experience.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face&auto=format"
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
     },
     {
       name: "Emily Rodriguez",
       role: "Marketing Manager",
       company: "StartupX",
       quote: "Setting up campaigns is incredibly intuitive. The analytics help us understand what gifts resonate best with our audience.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face&auto=format"
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
     }
   ];
 
@@ -275,12 +273,12 @@ const LandingPage = () => {
               <CarouselContent>
                 {valuePropositions.map((prop, index) => (
                   <CarouselItem key={index}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-white">
-                      <CardContent className="p-20 text-center">
-                        <div className="mb-8">
+                    <Card className="border-0 shadow-xl bg-gradient-to-br from-slate-50 via-white to-slate-100">
+                      <CardContent className="p-24 text-center">
+                        <div className="mb-10">
                           {prop.icon}
                         </div>
-                        <h3 className="text-3xl font-bold text-slate-700 mb-6">{prop.title}</h3>
+                        <h3 className="text-3xl font-bold text-slate-700 mb-8">{prop.title}</h3>
                         <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">{prop.description}</p>
                       </CardContent>
                     </Card>
@@ -389,7 +387,7 @@ const LandingPage = () => {
                     <img 
                       src={testimonial.avatar} 
                       alt={testimonial.name}
-                      className="w-16 h-16 rounded-full object-cover shadow-md"
+                      className="w-16 h-16 rounded-full object-cover shadow-md ring-2 ring-gray-100"
                     />
                     <div className="flex-1">
                       <p className="text-gray-600 mb-4 italic">"{testimonial.quote}"</p>
