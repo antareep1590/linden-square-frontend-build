@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -92,21 +93,21 @@ const LandingPage = () => {
       role: "VP of Customer Success",
       company: "TechCorp",
       quote: "Linden Square transformed how we approach client relationships. The automation saves us hours while the personal touch strengthens our partnerships.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
+      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face&auto=format"
     },
     {
       name: "Michael Chen",
       role: "Director of Operations",
       company: "GrowthCo",
       quote: "The real-time tracking and recipient portal eliminated all the logistics headaches. Our clients love the seamless experience.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face&auto=format"
     },
     {
       name: "Emily Rodriguez",
       role: "Marketing Manager",
       company: "StartupX",
       quote: "Setting up campaigns is incredibly intuitive. The analytics help us understand what gifts resonate best with our audience.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face&auto=format"
     }
   ];
 
@@ -274,8 +275,8 @@ const LandingPage = () => {
               <CarouselContent>
                 {valuePropositions.map((prop, index) => (
                   <CarouselItem key={index}>
-                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 via-blue-50 to-amber-50">
-                      <CardContent className="p-24 text-center">
+                    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50 to-white">
+                      <CardContent className="p-20 text-center">
                         <div className="mb-8">
                           {prop.icon}
                         </div>

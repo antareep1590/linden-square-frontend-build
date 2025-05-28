@@ -10,17 +10,34 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Plus, Download, Eye, Send } from "lucide-react";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
-import InvoiceDetailsModal from "@/components/invoices/InvoiceDetailsModal";
 
 interface Invoice {
   id: string;
@@ -93,8 +110,6 @@ const AdminInvoices = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
   const [newInvoice, setNewInvoice] = useState({
     customerName: '',
     customerEmail: '',
@@ -124,11 +139,6 @@ const AdminInvoices = () => {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
-  };
-
-  const handleViewInvoice = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-    setIsInvoiceDetailsOpen(true);
   };
 
   const handleGenerateInvoice = () => {
@@ -410,11 +420,7 @@ const AdminInvoices = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleViewInvoice(invoice)}
-                          >
+                          <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -463,12 +469,6 @@ const AdminInvoices = () => {
           <p className="text-gray-500">Try adjusting your search criteria or generate a new invoice.</p>
         </div>
       )}
-
-      <InvoiceDetailsModal
-        isOpen={isInvoiceDetailsOpen}
-        onClose={() => setIsInvoiceDetailsOpen(false)}
-        invoice={selectedInvoice}
-      />
     </div>
   );
 };
