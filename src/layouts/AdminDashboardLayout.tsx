@@ -42,6 +42,7 @@ const AdminDashboardLayout = () => {
     { name: 'Inventory', href: '/admin/inventory', icon: Package },
     { name: 'Invoices', href: '/admin/invoices', icon: FileText },
     { name: 'User Management', href: '/admin/users', icon: UserCog },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   const handleLogout = () => {

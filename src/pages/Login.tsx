@@ -56,7 +56,6 @@ const Login: React.FC = () => {
                   id="email" 
                   type="email" 
                   placeholder="name@company.com" 
-                  required 
                 />
               </div>
               
@@ -66,7 +65,6 @@ const Login: React.FC = () => {
                   id="password" 
                   type="password" 
                   placeholder="••••••••" 
-                  required 
                 />
               </div>
               
