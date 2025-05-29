@@ -480,9 +480,6 @@ const LandingPage = () => {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-1">
               <LindenSquareLogo size="medium" className="mb-4" />
-              <p className="text-gray-600 max-w-md">
-                Transforming corporate relationships through thoughtful, scalable gifting solutions.
-              </p>
             </div>
             <div>
               <h4 className="font-semibold text-linden-blue mb-4">Company</h4>

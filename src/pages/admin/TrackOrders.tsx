@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Eye, Package, Truck, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { deliveryStatusService, type DeliveryStatus } from "@/services/deliveryStatusService";
 
 // Mock data for orders
 const orders = [
@@ -71,20 +72,31 @@ const statusConfig = {
 };
 
 const AdminTrackOrders = () => {
+  const [ordersState, setOrdersState] = useState(orders);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const filteredOrders = orders.filter(order => {
+  // Subscribe to delivery status updates
+  useEffect(() => {
+    const unsubscribe = deliveryStatusService.subscribe((update) => {
+      setOrdersState(prevOrders => 
+        prevOrders.map(order => 
+          order.id === update.orderId 
+            ? { ...order, status: update.status }
+            : order
+        )
+      );
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const filteredOrders = ordersState.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.client.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
-
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    console.log(`Changing order ${orderId} status to ${newStatus}`);
-    // Here you would typically update the order status in your backend
-  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
@@ -141,70 +153,39 @@ const AdminTrackOrders = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order) => {
-              const StatusIcon = statusConfig[order.status as keyof typeof statusConfig].icon;
-              return (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.client}</TableCell>
-                  <TableCell className="max-w-xs truncate">{order.items}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <StatusIcon className="h-4 w-4" />
-                      <Badge className={`${statusConfig[order.status as keyof typeof statusConfig].color} text-white border-0`}>
-                        {statusConfig[order.status as keyof typeof statusConfig].label}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatDate(order.createdDate)}</TableCell>
-                  <TableCell>{formatDate(order.estimatedDelivery)}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {order.trackingNumber || "N/A"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>View Details</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Select 
-                              value={order.status} 
-                              onValueChange={(value) => handleStatusChange(order.id, value)}
-                            >
-                              <SelectTrigger className="w-24 h-8">
-                                <Package className="h-4 w-4" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="processing">Processing</SelectItem>
-                                <SelectItem value="shipped">Shipped</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Change Status</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {filteredOrders.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell className="font-medium">{order.id}</TableCell>
+                <TableCell>{order.client}</TableCell>
+                <TableCell className="max-w-xs truncate">{order.items}</TableCell>
+                <TableCell>
+                  <Badge className={`${statusConfig[order.status as keyof typeof statusConfig].color} text-white border-0`}>
+                    {statusConfig[order.status as keyof typeof statusConfig].label}
+                  </Badge>
+                </TableCell>
+                <TableCell>{formatDate(order.createdDate)}</TableCell>
+                <TableCell>{formatDate(order.estimatedDelivery)}</TableCell>
+                <TableCell className="font-mono text-sm">
+                  {order.trackingNumber || "N/A"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View Details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

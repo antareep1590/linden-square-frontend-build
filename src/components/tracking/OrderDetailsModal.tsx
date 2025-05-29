@@ -96,8 +96,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Status</span>
-                <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
-                  {getStatusIcon(order.status)}
+                <Badge className={`${getStatusColor(order.status)}`}>
                   {order.status === "in-transit" ? "In Transit" : 
                    order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                 </Badge>
