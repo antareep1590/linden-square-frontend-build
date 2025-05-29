@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -91,7 +92,7 @@ const LandingPage = () => {
       role: "VP of Customer Success",
       company: "TechCorp",
       quote: "Linden Square transformed how we approach client relationships. The automation saves us hours while the personal touch strengthens our partnerships.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612c353?w=150&h=150&fit=crop&crop=face&auto=format&q=80"
+      avatar: "/lovable-uploads/8c92ffaf-d69e-4208-84c4-cb23767a0a90.png"
     },
     {
       name: "Michael Chen",

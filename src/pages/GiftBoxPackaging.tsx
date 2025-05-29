@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Package, Truck, Calendar, Plus, Minus } from 'lucide-react';
+import { Check, Package, Truck, Calendar, Plus, Minus, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import GiftBoxAssignmentModal from '@/components/GiftBoxAssignmentModal';
 
 interface PackagingOption {
   id: string;
@@ -13,6 +14,16 @@ interface PackagingOption {
   price: number;
   image: string;
   features: string[];
+}
+
+interface Gift {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  rating: number;
+  image: string;
+  description: string;
 }
 
 const packagingOptions: PackagingOption[] = [
@@ -66,16 +77,70 @@ const packagingOptions: PackagingOption[] = [
   }
 ];
 
+// Mock selected gifts data - in real app this would come from previous step
+const mockSelectedGifts = new Map([
+  ['1', 3], // Premium Coffee Set - 3 units
+  ['2', 2], // Luxury Notebook - 2 units
+  ['3', 1], // Wellness Kit - 1 unit
+  ['4', 4], // Gourmet Chocolate Box - 4 units
+]);
+
+const mockAvailableGifts: Gift[] = [
+  {
+    id: '1',
+    name: 'Premium Coffee Set',
+    price: 45.99,
+    category: 'Beverages',
+    rating: 4.8,
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=200&fit=crop',
+    description: 'Artisanal coffee blend with ceramic mug'
+  },
+  {
+    id: '2',
+    name: 'Luxury Notebook',
+    price: 29.99,
+    category: 'Office',
+    rating: 4.6,
+    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=200&fit=crop',
+    description: 'Leather-bound journal with gold accents'
+  },
+  {
+    id: '3',
+    name: 'Wellness Kit',
+    price: 67.99,
+    category: 'Health',
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop',
+    description: 'Essential oils and aromatherapy accessories'
+  },
+  {
+    id: '4',
+    name: 'Gourmet Chocolate Box',
+    price: 39.99,
+    category: 'Food',
+    rating: 4.7,
+    image: 'https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=300&h=200&fit=crop',
+    description: 'Assorted premium chocolates'
+  }
+];
+
 const GiftBoxPackaging = () => {
   const navigate = useNavigate();
   const [selectedPackaging, setSelectedPackaging] = useState<Map<string, number>>(new Map());
   const [deliveryDate, setDeliveryDate] = useState<string>('');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [currentPackageId, setCurrentPackageId] = useState<string>('');
+  const [giftAssignments, setGiftAssignments] = useState<Map<string, Map<string, number>>>(new Map());
 
   const updatePackagingQuantity = (packagingId: string, newQuantity: number) => {
     const newSelection = new Map(selectedPackaging);
     if (newQuantity <= 0) {
       newSelection.delete(packagingId);
+      // Remove assignments for this package
+      const newAssignments = new Map(giftAssignments);
+      newAssignments.delete(packagingId);
+      setGiftAssignments(newAssignments);
     } else {
       newSelection.set(packagingId, newQuantity);
     }
@@ -101,6 +166,27 @@ const GiftBoxPackaging = () => {
     return total.toFixed(2);
   };
 
+  const handleAssignGifts = (packageId: string) => {
+    setCurrentPackageId(packageId);
+    setShowAssignmentModal(true);
+  };
+
+  const handleConfirmAssignment = (packageId: string, assignments: Map<string, number>) => {
+    const newAssignments = new Map(giftAssignments);
+    newAssignments.set(packageId, assignments);
+    setGiftAssignments(newAssignments);
+  };
+
+  const getAssignedItemsCount = (packageId: string) => {
+    const assignments = giftAssignments.get(packageId);
+    if (!assignments) return 0;
+    return Array.from(assignments.values()).reduce((sum, quantity) => sum + quantity, 0);
+  };
+
+  const getCurrentAssignments = (packageId: string) => {
+    return giftAssignments.get(packageId) || new Map();
+  };
+
   const handleContinue = () => {
     if (selectedPackaging.size > 0) {
       navigate('/invoices');
@@ -120,6 +206,24 @@ const GiftBoxPackaging = () => {
         <p>Choose how you'd like your gifts to be packaged and delivered.</p>
       </div>
 
+      {/* Selected Gifts Summary */}
+      <div className="bg-linden-lightblue p-4 rounded-lg">
+        <h3 className="font-semibold mb-2">Selected Gifts to Package:</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {Array.from(mockSelectedGifts.entries()).map(([giftId, quantity]) => {
+            const gift = mockAvailableGifts.find(g => g.id === giftId);
+            return (
+              <div key={giftId} className="text-sm">
+                <span className="font-medium">{gift?.name}</span>
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {quantity}x
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Packaging Options */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Select Packaging Style</h2>
@@ -127,6 +231,7 @@ const GiftBoxPackaging = () => {
           {packagingOptions.map((option) => {
             const quantity = getPackagingQuantity(option.id);
             const isSelected = quantity > 0;
+            const assignedItems = getAssignedItemsCount(option.id);
             
             return (
               <Card 
@@ -148,6 +253,13 @@ const GiftBoxPackaging = () => {
                         <div className="bg-linden-blue rounded-full p-1">
                           <Check className="h-4 w-4 text-white" />
                         </div>
+                      </div>
+                    )}
+                    {assignedItems > 0 && (
+                      <div className="absolute top-2 left-2">
+                        <Badge className="bg-linden-gold text-linden-blue">
+                          {assignedItems} items
+                        </Badge>
                       </div>
                     )}
                   </div>
@@ -175,27 +287,40 @@ const GiftBoxPackaging = () => {
                     {/* Quantity Controls */}
                     {isSelected && (
                       <div 
-                        className="flex items-center justify-center gap-3 pt-3 border-t"
+                        className="space-y-3 pt-3 border-t"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <div className="flex items-center justify-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updatePackagingQuantity(option.id, Math.max(0, quantity - 1))}
+                            className="w-8 h-8 p-0"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="font-medium text-lg min-w-[2ch] text-center">
+                            {quantity}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updatePackagingQuantity(option.id, quantity + 1)}
+                            className="w-8 h-8 p-0"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        {/* Assign Gifts Button */}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updatePackagingQuantity(option.id, Math.max(0, quantity - 1))}
-                          className="w-8 h-8 p-0"
+                          onClick={() => handleAssignGifts(option.id)}
+                          className="w-full flex items-center gap-2"
                         >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="font-medium text-lg min-w-[2ch] text-center">
-                          {quantity}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updatePackagingQuantity(option.id, quantity + 1)}
-                          className="w-8 h-8 p-0"
-                        >
-                          <Plus className="h-3 w-3" />
+                          <Settings className="h-4 w-4" />
+                          Assign Gifts {assignedItems > 0 && `(${assignedItems} assigned)`}
                         </Button>
                       </div>
                     )}
@@ -281,6 +406,18 @@ const GiftBoxPackaging = () => {
           Continue to Review & Pay ({getTotalSelectedItems()} packages)
         </Button>
       </div>
+
+      {/* Gift Assignment Modal */}
+      <GiftBoxAssignmentModal
+        isOpen={showAssignmentModal}
+        onClose={() => setShowAssignmentModal(false)}
+        packageId={currentPackageId}
+        packageName={packagingOptions.find(p => p.id === currentPackageId)?.name || ''}
+        selectedGifts={mockSelectedGifts}
+        availableGifts={mockAvailableGifts}
+        onAssignGifts={handleConfirmAssignment}
+        currentAssignments={getCurrentAssignments(currentPackageId)}
+      />
     </div>
   );
 };
