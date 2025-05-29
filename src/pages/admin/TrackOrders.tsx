@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Eye, Package, Truck, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { deliveryStatusService, type DeliveryStatus } from "@/services/deliveryStatusService";
+import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
 
 // Mock data for orders
 const orders = [
@@ -23,7 +24,11 @@ const orders = [
     status: "processing",
     createdDate: "2023-11-01",
     estimatedDelivery: "2023-11-08",
-    trackingNumber: "1Z999AA1234567890"
+    trackingNumber: "1Z999AA1234567890",
+    recipientCount: 25,
+    shipDate: new Date("2023-11-02"),
+    carrier: "FedEx",
+    trackingLink: "https://www.fedex.com/tracking"
   },
   {
     id: "ORD-2023-002", 
@@ -32,7 +37,11 @@ const orders = [
     status: "shipped",
     createdDate: "2023-10-28",
     estimatedDelivery: "2023-11-03",
-    trackingNumber: "1Z999BB1234567891"
+    trackingNumber: "1Z999BB1234567891",
+    recipientCount: 50,
+    shipDate: new Date("2023-10-29"),
+    carrier: "UPS",
+    trackingLink: "https://www.ups.com/tracking"
   },
   {
     id: "ORD-2023-003",
@@ -41,7 +50,11 @@ const orders = [
     status: "delivered",
     createdDate: "2023-10-20",
     estimatedDelivery: "2023-10-27",
-    trackingNumber: "1Z999CC1234567892"
+    trackingNumber: "1Z999CC1234567892",
+    recipientCount: 40,
+    shipDate: new Date("2023-10-21"),
+    carrier: "USPS",
+    trackingLink: "https://tools.usps.com/go/TrackConfirmAction"
   },
   {
     id: "ORD-2023-004",
@@ -50,7 +63,11 @@ const orders = [
     status: "pending",
     createdDate: "2023-11-02",
     estimatedDelivery: "2023-11-10",
-    trackingNumber: ""
+    trackingNumber: "",
+    recipientCount: 15,
+    shipDate: new Date("2023-11-03"),
+    carrier: "DHL",
+    trackingLink: "https://www.dhl.com/tracking"
   },
   {
     id: "ORD-2023-005",
@@ -59,7 +76,11 @@ const orders = [
     status: "cancelled",
     createdDate: "2023-10-15",
     estimatedDelivery: "",
-    trackingNumber: ""
+    trackingNumber: "",
+    recipientCount: 100,
+    shipDate: new Date("2023-10-16"),
+    carrier: "FedEx",
+    trackingLink: "https://www.fedex.com/tracking"
   }
 ];
 
@@ -75,6 +96,8 @@ const AdminTrackOrders = () => {
   const [ordersState, setOrdersState] = useState(orders);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Subscribe to delivery status updates
   useEffect(() => {
@@ -105,6 +128,20 @@ const AdminTrackOrders = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleViewDetails = (order) => {
+    // Map the order to the expected format
+    const mappedOrder = {
+      id: order.id,
+      recipientCount: order.recipientCount,
+      shipDate: order.shipDate,
+      carrier: order.carrier,
+      trackingLink: order.trackingLink,
+      status: order.status === 'shipped' ? 'in-transit' : order.status
+    };
+    setSelectedOrder(mappedOrder);
+    setIsDetailsModalOpen(true);
   };
 
   return (
@@ -173,7 +210,11 @@ const AdminTrackOrders = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleViewDetails(order)}
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -197,6 +238,12 @@ const AdminTrackOrders = () => {
           <p className="text-gray-500">Try adjusting your search criteria.</p>
         </div>
       )}
+
+      <OrderDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        order={selectedOrder}
+      />
     </div>
   );
 };

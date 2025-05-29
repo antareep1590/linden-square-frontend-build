@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Package, Truck, Calendar } from 'lucide-react';
+import { Check, Package, Truck, Calendar, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface PackagingOption {
@@ -68,21 +68,44 @@ const packagingOptions: PackagingOption[] = [
 
 const GiftBoxPackaging = () => {
   const navigate = useNavigate();
-  const [selectedPackaging, setSelectedPackaging] = useState<string>('');
+  const [selectedPackaging, setSelectedPackaging] = useState<Map<string, number>>(new Map());
   const [deliveryDate, setDeliveryDate] = useState<string>('');
   const [specialInstructions, setSpecialInstructions] = useState<string>('');
 
-  const handlePackagingSelect = (packagingId: string) => {
-    setSelectedPackaging(packagingId);
+  const updatePackagingQuantity = (packagingId: string, newQuantity: number) => {
+    const newSelection = new Map(selectedPackaging);
+    if (newQuantity <= 0) {
+      newSelection.delete(packagingId);
+    } else {
+      newSelection.set(packagingId, newQuantity);
+    }
+    setSelectedPackaging(newSelection);
+  };
+
+  const getPackagingQuantity = (packagingId: string) => {
+    return selectedPackaging.get(packagingId) || 0;
+  };
+
+  const getTotalSelectedItems = () => {
+    return Array.from(selectedPackaging.values()).reduce((sum, quantity) => sum + quantity, 0);
+  };
+
+  const getTotalCost = () => {
+    let total = 0;
+    selectedPackaging.forEach((quantity, packagingId) => {
+      const option = packagingOptions.find(opt => opt.id === packagingId);
+      if (option) {
+        total += option.price * quantity;
+      }
+    });
+    return total.toFixed(2);
   };
 
   const handleContinue = () => {
-    if (selectedPackaging) {
+    if (selectedPackaging.size > 0) {
       navigate('/invoices');
     }
   };
-
-  const selectedOption = packagingOptions.find(option => option.id === selectedPackaging);
 
   return (
     <div className="space-y-6">
@@ -101,58 +124,91 @@ const GiftBoxPackaging = () => {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Select Packaging Style</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {packagingOptions.map((option) => (
-            <Card 
-              key={option.id}
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                selectedPackaging === option.id ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
-              }`}
-              onClick={() => handlePackagingSelect(option.id)}
-            >
-              <CardHeader className="p-0">
-                <div className="relative">
-                  <img 
-                    src={option.image} 
-                    alt={option.name}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  {selectedPackaging === option.id && (
-                    <div className="absolute top-2 right-2">
-                      <div className="bg-linden-blue rounded-full p-1">
-                        <Check className="h-4 w-4 text-white" />
+          {packagingOptions.map((option) => {
+            const quantity = getPackagingQuantity(option.id);
+            const isSelected = quantity > 0;
+            
+            return (
+              <Card 
+                key={option.id}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                  isSelected ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
+                }`}
+                onClick={() => updatePackagingQuantity(option.id, quantity > 0 ? 0 : 1)}
+              >
+                <CardHeader className="p-0">
+                  <div className="relative">
+                    <img 
+                      src={option.image} 
+                      alt={option.name}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                    {isSelected && (
+                      <div className="absolute top-2 right-2">
+                        <div className="bg-linden-blue rounded-full p-1">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
                       </div>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg">{option.name}</CardTitle>
+                      <span className="text-lg font-bold text-linden-blue">
+                        ${option.price}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{option.name}</CardTitle>
-                    <span className="text-lg font-bold text-linden-blue">
-                      ${option.price}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm text-gray-600">{option.description}</p>
-                  
-                  <div className="space-y-1">
-                    {option.features.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-green-600" />
-                        <span className="text-xs text-gray-600">{feature}</span>
+                    
+                    <p className="text-sm text-gray-600">{option.description}</p>
+                    
+                    <div className="space-y-1">
+                      {option.features.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Check className="h-3 w-3 text-green-600" />
+                          <span className="text-xs text-gray-600">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quantity Controls */}
+                    {isSelected && (
+                      <div 
+                        className="flex items-center justify-center gap-3 pt-3 border-t"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updatePackagingQuantity(option.id, Math.max(0, quantity - 1))}
+                          className="w-8 h-8 p-0"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="font-medium text-lg min-w-[2ch] text-center">
+                          {quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updatePackagingQuantity(option.id, quantity + 1)}
+                          className="w-8 h-8 p-0"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
       {/* Delivery Options */}
-      {selectedPackaging && (
+      {selectedPackaging.size > 0 && (
         <div className="space-y-4 bg-gray-50 p-6 rounded-lg">
           <h2 className="text-lg font-semibold">Delivery Details</h2>
           
@@ -180,17 +236,32 @@ const GiftBoxPackaging = () => {
 
           {/* Summary */}
           <div className="border-t pt-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-linden-blue" />
-                <div>
-                  <p className="font-medium">{selectedOption?.name}</p>
-                  <p className="text-sm text-gray-600">{selectedOption?.description}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-linden-blue">${selectedOption?.price}</p>
-                <p className="text-xs text-gray-500">per recipient</p>
+            <div className="space-y-3">
+              <h3 className="font-semibold">Packaging Summary</h3>
+              {Array.from(selectedPackaging.entries()).map(([packagingId, quantity]) => {
+                const option = packagingOptions.find(opt => opt.id === packagingId);
+                if (!option) return null;
+                
+                return (
+                  <div key={packagingId} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-linden-blue" />
+                      <div>
+                        <p className="font-medium">{option.name} x {quantity}</p>
+                        <p className="text-sm text-gray-600">{option.description}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-linden-blue">${(option.price * quantity).toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">${option.price} each</p>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              <div className="border-t pt-3 flex justify-between items-center">
+                <span className="font-semibold">Total Packaging Cost:</span>
+                <span className="text-xl font-bold text-linden-blue">${getTotalCost()}</span>
               </div>
             </div>
           </div>
@@ -204,10 +275,10 @@ const GiftBoxPackaging = () => {
         </Button>
         <Button 
           onClick={handleContinue}
-          disabled={!selectedPackaging}
+          disabled={selectedPackaging.size === 0}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
-          Continue to Review & Pay
+          Continue to Review & Pay ({getTotalSelectedItems()} packages)
         </Button>
       </div>
     </div>

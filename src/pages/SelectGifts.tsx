@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Heart, Star, ShoppingCart } from 'lucide-react';
+import { Search, Heart, Star, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import AdvancedFiltersModal from '@/components/AdvancedFiltersModal';
 
 interface Gift {
   id: string;
@@ -77,10 +78,17 @@ const gifts: Gift[] = [
 
 const SelectGifts = () => {
   const navigate = useNavigate();
-  const [selectedGifts, setSelectedGifts] = useState<Set<string>>(new Set());
+  const [selectedGifts, setSelectedGifts] = useState<Map<string, number>>(new Map());
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
+  const [advancedFilters, setAdvancedFilters] = useState({
+    categories: [],
+    priceRange: [0, 100],
+    occasions: [],
+    availability: 'all',
+    rating: [0, 5]
+  });
 
   const categories = ['all', 'Beverages', 'Office', 'Health', 'Food', 'Technology', 'Home'];
   const priceRanges = [
@@ -100,18 +108,34 @@ const SelectGifts = () => {
       else if (priceRange === '30-60') matchesPrice = gift.price >= 30 && gift.price <= 60;
       else if (priceRange === '60+') matchesPrice = gift.price > 60;
     }
+
+    // Apply advanced filters
+    const matchesAdvancedCategory = advancedFilters.categories.length === 0 || 
+      advancedFilters.categories.includes(gift.category);
+    const matchesAdvancedPrice = gift.price >= advancedFilters.priceRange[0] && 
+      gift.price <= advancedFilters.priceRange[1];
+    const matchesAdvancedRating = gift.rating >= advancedFilters.rating[0];
     
-    return matchesSearch && matchesCategory && matchesPrice;
+    return matchesSearch && matchesCategory && matchesPrice && 
+           matchesAdvancedCategory && matchesAdvancedPrice && matchesAdvancedRating;
   });
 
-  const toggleGiftSelection = (giftId: string) => {
-    const newSelection = new Set(selectedGifts);
-    if (newSelection.has(giftId)) {
+  const updateGiftQuantity = (giftId: string, newQuantity: number) => {
+    const newSelection = new Map(selectedGifts);
+    if (newQuantity <= 0) {
       newSelection.delete(giftId);
     } else {
-      newSelection.add(giftId);
+      newSelection.set(giftId, newQuantity);
     }
     setSelectedGifts(newSelection);
+  };
+
+  const getGiftQuantity = (giftId: string) => {
+    return selectedGifts.get(giftId) || 0;
+  };
+
+  const getTotalSelectedItems = () => {
+    return Array.from(selectedGifts.values()).reduce((sum, quantity) => sum + quantity, 0);
   };
 
   const handleContinue = () => {
@@ -120,12 +144,16 @@ const SelectGifts = () => {
     }
   };
 
+  const handleAdvancedFiltersApply = (filters: any) => {
+    setAdvancedFilters(filters);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Select Gifts</h1>
         <Badge variant="outline" className="text-sm">
-          {selectedGifts.size} selected
+          {getTotalSelectedItems()} items selected
         </Badge>
       </div>
 
@@ -167,68 +195,98 @@ const SelectGifts = () => {
           </SelectContent>
         </Select>
         
-        <Button variant="outline" className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          More Filters
-        </Button>
+        <AdvancedFiltersModal 
+          onFiltersApply={handleAdvancedFiltersApply}
+          currentFilters={advancedFilters}
+        />
       </div>
 
       {/* Gift Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredGifts.map((gift) => (
-          <Card 
-            key={gift.id} 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-              selectedGifts.has(gift.id) ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
-            }`}
-            onClick={() => toggleGiftSelection(gift.id)}
-          >
-            <CardHeader className="p-0">
-              <div className="relative">
-                <img 
-                  src={gift.image} 
-                  alt={gift.name}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <div className="absolute top-2 right-2">
-                  <Button
-                    variant={selectedGifts.has(gift.id) ? "default" : "secondary"}
-                    size="sm"
-                    className="rounded-full w-8 h-8 p-0"
-                  >
-                    {selectedGifts.has(gift.id) ? (
-                      <ShoppingCart className="h-4 w-4" />
-                    ) : (
-                      <Heart className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{gift.name}</CardTitle>
-                  <Badge variant="secondary" className="text-xs">
-                    {gift.category}
-                  </Badge>
-                </div>
-                
-                <p className="text-sm text-gray-600">{gift.description}</p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium">{gift.rating}</span>
+        {filteredGifts.map((gift) => {
+          const quantity = getGiftQuantity(gift.id);
+          const isSelected = quantity > 0;
+          
+          return (
+            <Card 
+              key={gift.id} 
+              className={`transition-all duration-200 hover:shadow-lg ${
+                isSelected ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
+              }`}
+            >
+              <CardHeader className="p-0">
+                <div className="relative">
+                  <img 
+                    src={gift.image} 
+                    alt={gift.name}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                  <div className="absolute top-2 right-2">
+                    <Button
+                      variant={isSelected ? "default" : "secondary"}
+                      size="sm"
+                      className="rounded-full w-8 h-8 p-0"
+                      onClick={() => updateGiftQuantity(gift.id, quantity > 0 ? 0 : 1)}
+                    >
+                      {isSelected ? (
+                        <ShoppingCart className="h-4 w-4" />
+                      ) : (
+                        <Heart className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
-                  <span className="text-lg font-bold text-linden-blue">
-                    ${gift.price}
-                  </span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{gift.name}</CardTitle>
+                    <Badge variant="secondary" className="text-xs">
+                      {gift.category}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">{gift.description}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">{gift.rating}</span>
+                    </div>
+                    <span className="text-lg font-bold text-linden-blue">
+                      ${gift.price}
+                    </span>
+                  </div>
+
+                  {/* Quantity Controls */}
+                  {isSelected && (
+                    <div className="flex items-center justify-center gap-3 pt-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateGiftQuantity(gift.id, Math.max(0, quantity - 1))}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-medium text-lg min-w-[2ch] text-center">
+                        {quantity}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateGiftQuantity(gift.id, quantity + 1)}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Continue Button */}
@@ -238,7 +296,7 @@ const SelectGifts = () => {
           disabled={selectedGifts.size === 0}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
-          Continue to Personalization ({selectedGifts.size} items)
+          Continue to Personalization ({getTotalSelectedItems()} items)
         </Button>
       </div>
     </div>
