@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 
 interface TopbarProps {
   isAdmin?: boolean;
@@ -27,6 +27,14 @@ const Topbar: React.FC<TopbarProps> = ({ isAdmin = false }) => {
   const handleLogout = () => {
     // For now, just redirect to login page
     navigate('/');
+  };
+
+  const handleProfile = () => {
+    if (isAdmin) {
+      navigate('/admin/my-profile');
+    } else {
+      navigate('/profile');
+    }
   };
 
   return (
@@ -48,13 +56,9 @@ const Topbar: React.FC<TopbarProps> = ({ isAdmin = false }) => {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem onClick={handleProfile} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">

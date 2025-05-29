@@ -1,81 +1,86 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient } from 'react-query';
+import { Toaster } from 'sonner';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Customers from "./pages/Customers";
-import SelectGifts from "./pages/SelectGifts";
-import AddPersonalization from "./pages/AddPersonalization";
-import GiftBoxPackaging from "./pages/GiftBoxPackaging";
-import TrackOrders from "./pages/TrackOrders";
-import Inventory from "./pages/Inventory";
-import Invoices from "./pages/Invoices";
-import DashboardLayout from "./layouts/DashboardLayout";
-import AdminDashboardLayout from "./layouts/AdminDashboardLayout";
-import AdminDashboard from "./pages/admin/Dashboard";
-import AdminCustomers from "./pages/admin/Customers";
-import GiftCatalog from "./pages/admin/GiftCatalog";
-import PersonalizationSettings from "./pages/admin/PersonalizationSettings";
-import PackagingDelivery from "./pages/admin/PackagingDelivery";
-import DeliveryManagement from "./pages/admin/DeliveryManagement";
-import AdminTrackOrders from "./pages/admin/TrackOrders";
-import AdminInventory from "./pages/admin/Inventory";
-import AdminInvoices from "./pages/admin/Invoices";
-import AdminSettings from "./pages/admin/Settings";
-import UserManagement from "./pages/admin/Users";
-import MyProfile from "./pages/admin/MyProfile";
-import NotFound from "./pages/NotFound";
+// Import pages
+import LandingPage from '@/pages/LandingPage';
+import Login from '@/pages/Login';
+import NotFound from '@/pages/NotFound';
 
-const queryClient = new QueryClient();
+// Client pages
+import Dashboard from '@/pages/Dashboard';
+import Customers from '@/pages/Customers';
+import SelectGifts from '@/pages/SelectGifts';
+import AddPersonalization from '@/pages/AddPersonalization';
+import GiftBoxPackaging from '@/pages/GiftBoxPackaging';
+import TrackOrders from '@/pages/TrackOrders';
+import Invoices from '@/pages/Invoices';
+import Inventory from '@/pages/Inventory';
+import UploadRecipient from '@/pages/UploadRecipient';
+import Profile from '@/pages/Profile';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+// Admin pages
+import AdminDashboard from '@/pages/admin/Dashboard';
+import AdminCustomers from '@/pages/admin/Customers';
+import Users from '@/pages/admin/Users';
+import PersonalizationSettings from '@/pages/admin/PersonalizationSettings';
+import PackagingDelivery from '@/pages/admin/PackagingDelivery';
+import DeliveryManagement from '@/pages/admin/DeliveryManagement';
+import AdminTrackOrders from '@/pages/admin/TrackOrders';
+import AdminInventory from '@/pages/admin/Inventory';
+import AdminInvoices from '@/pages/admin/Invoices';
+import AdminSettings from '@/pages/admin/Settings';
+import MyProfile from '@/pages/admin/MyProfile';
+
+// Layouts
+import DashboardLayout from '@/layouts/DashboardLayout';
+import AdminDashboardLayout from '@/layouts/AdminDashboardLayout';
+
+// Placeholder page
+import PlaceholderPage from '@/pages/PlaceholderPage';
+
+function App() {
+  return (
+    <QueryClient>
       <BrowserRouter>
+        <Toaster />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/not-found" element={<NotFound />} />
           
-          {/* Client Dashboard Routes */}
-          <Route path="/" element={<DashboardLayout />}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="select-gifts" element={<SelectGifts />} />
-            <Route path="add-personalization" element={<AddPersonalization />} />
-            <Route path="packaging" element={<GiftBoxPackaging />} />
-            <Route path="track-orders" element={<TrackOrders />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="invoices" element={<Invoices />} />
-          </Route>
+          {/* Client Routes */}
+          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+          <Route path="/customers" element={<DashboardLayout><Customers /></DashboardLayout>} />
+          <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
+          <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></SelectGifts>} />
+          <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></AddPersonalization>} />
+          <Route path="/packaging" element={<DashboardLayout><GiftBoxPackaging /></DashboardLayout>} />
+          <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></TrackOrders>} />
+          <Route path="/invoices" element={<DashboardLayout><Invoices /></Invoices>} />
+          <Route path="/inventory" element={<DashboardLayout><Inventory /></Inventory>} />
+          <Route path="/upload-recipient" element={<DashboardLayout><UploadRecipient /></UploadRecipient>} />
           
-          {/* Admin Dashboard Routes */}
-          <Route path="/admin" element={<AdminDashboardLayout />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="gift-catalog" element={<GiftCatalog />} />
-            <Route path="personalization" element={<PersonalizationSettings />} />
-            <Route path="packaging" element={<PackagingDelivery />} />
-            <Route path="delivery" element={<DeliveryManagement />} />
-            <Route path="track-orders" element={<AdminTrackOrders />} />
-            <Route path="inventory" element={<AdminInventory />} />
-            <Route path="invoices" element={<AdminInvoices />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="my-profile" element={<MyProfile />} />
-          </Route>
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
+          <Route path="/admin/customers" element={<AdminDashboardLayout><AdminCustomers /></AdminCustomers>} />
+          <Route path="/admin/users" element={<AdminDashboardLayout><Users /></AdminDashboardLayout>} />
+          <Route path="/admin/gift-catalog" element={<AdminDashboardLayout><PlaceholderPage title="Gift Catalog" /></AdminDashboardLayout>} />
+          <Route path="/admin/personalization" element={<AdminDashboardLayout><PersonalizationSettings /></AdminPersonalizationSettings>} />
+          <Route path="/admin/packaging" element={<AdminDashboardLayout><PackagingDelivery /></AdminDashboardLayout>} />
+          <Route path="/admin/delivery" element={<AdminDashboardLayout><DeliveryManagement /></AdminDashboardLayout>} />
+          <Route path="/admin/track-orders" element={<AdminDashboardLayout><AdminTrackOrders /></AdminTrackOrders>} />
+          <Route path="/admin/inventory" element={<AdminDashboardLayout><AdminInventory /></AdminInventory>} />
+          <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminInvoices>} />
+          <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminSettings>} />
+          <Route path="/admin/my-profile" element={<AdminDashboardLayout><MyProfile /></AdminMyProfile>} />
           
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClient>
+  );
+}
 
 export default App;

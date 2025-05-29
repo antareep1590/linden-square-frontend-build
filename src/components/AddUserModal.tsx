@@ -29,8 +29,7 @@ interface NewUserData {
   name: string;
   email: string;
   phone: string;
-  company: string;
-  role: 'Admin' | 'Client' | 'Manager';
+  role: 'Admin' | 'Manager';
   status: 'Active' | 'Inactive' | 'Pending';
 }
 
@@ -39,8 +38,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
     name: '',
     email: '',
     phone: '',
-    company: '',
-    role: 'Client',
+    role: 'Manager',
     status: 'Active',
   });
 
@@ -48,7 +46,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
     e.preventDefault();
     
     // Basic validation
-    if (!formData.name || !formData.email || !formData.company) {
+    if (!formData.name || !formData.email) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -61,15 +59,14 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
     }
 
     onUserAdded(formData);
-    toast.success("User added successfully");
+    toast.success("Team member added successfully");
     
     // Reset form
     setFormData({
       name: '',
       email: '',
       phone: '',
-      company: '',
-      role: 'Client',
+      role: 'Manager',
       status: 'Active',
     });
     
@@ -84,7 +81,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>Add Team Member</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
@@ -123,21 +120,10 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="company">Company *</Label>
-              <Input
-                id="company"
-                value={formData.company}
-                onChange={(e) => handleInputChange('company', e.target.value)}
-                placeholder="Enter company name"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
               <Select 
                 value={formData.role} 
-                onValueChange={(value: 'Admin' | 'Client' | 'Manager') => 
+                onValueChange={(value: 'Admin' | 'Manager') => 
                   handleInputChange('role', value)
                 }
               >
@@ -145,7 +131,6 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Client">Client</SelectItem>
                   <SelectItem value="Manager">Manager</SelectItem>
                   <SelectItem value="Admin">Admin</SelectItem>
                 </SelectContent>
@@ -181,7 +166,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose, onUserAdde
               Cancel
             </Button>
             <Button type="submit">
-              Add User
+              Add Team Member
             </Button>
           </DialogFooter>
         </form>

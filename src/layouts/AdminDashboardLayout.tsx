@@ -33,7 +33,8 @@ const AdminDashboardLayout = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { name: 'Customers', href: '/admin/customers', icon: Users },
+    { name: 'Team', href: '/admin/users', icon: UserCog },
+    { name: 'Client Management', href: '/admin/customers', icon: Users },
     { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
     { name: 'Personalization', href: '/admin/personalization', icon: Settings },
     { name: 'Packaging & Delivery', href: '/admin/packaging', icon: Package },
@@ -41,7 +42,6 @@ const AdminDashboardLayout = () => {
     { name: 'Track Orders', href: '/admin/track-orders', icon: BarChart3 },
     { name: 'Inventory', href: '/admin/inventory', icon: Package },
     { name: 'Invoices', href: '/admin/invoices', icon: FileText },
-    { name: 'User Management', href: '/admin/users', icon: UserCog },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
@@ -100,9 +100,7 @@ const AdminDashboardLayout = () => {
       <div className="flex-1 flex flex-col">
         {/* Top Bar */}
         <header className="bg-white border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-            
+          <div className="flex items-center justify-end">
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

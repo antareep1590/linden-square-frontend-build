@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -39,11 +38,11 @@ import { toast } from 'sonner';
 
 // Mock client data
 const initialClients = [
-  { id: 1, name: 'Acme Corporation', email: 'contact@acmecorp.com', phone: '(555) 123-4567', status: 'active', address: '123 Business Ave, Suite 100', company: 'Acme Corp', notes: 'Premium client' },
-  { id: 2, name: 'Widget Industries', email: 'info@widgetind.com', phone: '(555) 234-5678', status: 'active', address: '456 Industry Blvd', company: 'Widget Industries', notes: 'Regular orders' },
-  { id: 3, name: 'Globex Corporation', email: 'admin@globex.com', phone: '(555) 345-6789', status: 'inactive', address: '789 Corporate Way', company: 'Globex Corp', notes: 'On hold' },
-  { id: 4, name: 'Massive Dynamic', email: 'hello@massivedynamic.com', phone: '(555) 456-7890', status: 'active', address: '321 Dynamic St', company: 'Massive Dynamic', notes: 'High volume client' },
-  { id: 5, name: 'Umbrella Corporation', email: 'support@umbrella.com', phone: '(555) 567-8901', status: 'inactive', address: '654 Umbrella Plaza', company: 'Umbrella Corp', notes: 'Inactive since 2023' },
+  { id: 1, name: 'John Smith', email: 'contact@acmecorp.com', phone: '(555) 123-4567', status: 'active', address: '123 Business Ave, Suite 100', company: 'Acme Corp', notes: 'Premium client' },
+  { id: 2, name: 'Sarah Johnson', email: 'info@widgetind.com', phone: '(555) 234-5678', status: 'active', address: '456 Industry Blvd', company: 'Widget Industries', notes: 'Regular orders' },
+  { id: 3, name: 'Michael Brown', email: 'admin@globex.com', phone: '(555) 345-6789', status: 'inactive', address: '789 Corporate Way', company: 'Globex Corp', notes: 'On hold' },
+  { id: 4, name: 'Emily Wilson', email: 'hello@massivedynamic.com', phone: '(555) 456-7890', status: 'active', address: '321 Dynamic St', company: 'Massive Dynamic', notes: 'High volume client' },
+  { id: 5, name: 'David Chen', email: 'support@umbrella.com', phone: '(555) 567-8901', status: 'inactive', address: '654 Umbrella Plaza', company: 'Umbrella Corp', notes: 'Inactive since 2023' },
 ];
 
 const AdminCustomers: React.FC = () => {
@@ -448,6 +447,7 @@ const AdminCustomers: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Client Name</TableHead>
+              <TableHead>Company Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Status</TableHead>
@@ -458,6 +458,7 @@ const AdminCustomers: React.FC = () => {
             {sortedClients.map((client) => (
               <TableRow key={client.id} className="hover:bg-muted/50">
                 <TableCell className="font-medium">{client.name}</TableCell>
+                <TableCell>{client.company}</TableCell>
                 <TableCell>{client.email}</TableCell>
                 <TableCell>{client.phone}</TableCell>
                 <TableCell>

@@ -51,10 +51,9 @@ interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Client' | 'Manager';
+  role: 'Admin' | 'Manager';
   status: 'Active' | 'Inactive' | 'Pending';
   lastLogin: Date | null;
-  company: string;
   phone: string;
   createdAt: Date;
 }
@@ -62,64 +61,38 @@ interface UserData {
 const mockUsers: UserData[] = [
   {
     id: '1',
-    name: 'John Smith',
-    email: 'john.smith@acmecorp.com',
-    role: 'Client',
-    status: 'Active',
-    lastLogin: new Date('2025-05-25T14:30:00'),
-    company: 'Acme Corp',
-    phone: '+1 (555) 123-4567',
-    createdAt: new Date('2025-01-15T09:00:00'),
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah.j@techinnovations.com',
-    role: 'Client',
-    status: 'Active',
-    lastLogin: new Date('2025-05-26T10:15:00'),
-    company: 'Tech Innovations',
-    phone: '+1 (555) 987-6543',
-    createdAt: new Date('2025-02-20T11:30:00'),
-  },
-  {
-    id: '3',
-    name: 'Michael Brown',
-    email: 'mbrown@globalconsulting.com',
-    role: 'Client',
-    status: 'Inactive',
-    lastLogin: new Date('2025-05-10T16:45:00'),
-    company: 'Global Consulting',
-    phone: '+1 (555) 456-7890',
-    createdAt: new Date('2025-03-05T14:20:00'),
-  },
-  {
-    id: '4',
-    name: 'Emily Wilson',
-    email: 'emily.wilson@metrofinance.com',
-    role: 'Manager',
-    status: 'Active',
-    lastLogin: new Date('2025-05-27T08:00:00'),
-    company: 'Metro Finance',
-    phone: '+1 (555) 321-0987',
-    createdAt: new Date('2025-01-10T10:15:00'),
-  },
-  {
-    id: '5',
     name: 'David Chen',
     email: 'admin@lindensquare.com',
     role: 'Admin',
     status: 'Active',
     lastLogin: new Date('2025-05-27T09:30:00'),
-    company: 'Linden Square',
     phone: '+1 (555) 111-2222',
     createdAt: new Date('2024-12-01T12:00:00'),
+  },
+  {
+    id: '2',
+    name: 'Emily Wilson',
+    email: 'emily.wilson@lindensquare.com',
+    role: 'Manager',
+    status: 'Active',
+    lastLogin: new Date('2025-05-27T08:00:00'),
+    phone: '+1 (555) 321-0987',
+    createdAt: new Date('2025-01-10T10:15:00'),
+  },
+  {
+    id: '3',
+    name: 'Sarah Martinez',
+    email: 'sarah.martinez@lindensquare.com',
+    role: 'Manager',
+    status: 'Inactive',
+    lastLogin: new Date('2025-05-10T16:45:00'),
+    phone: '+1 (555) 456-7890',
+    createdAt: new Date('2025-03-05T14:20:00'),
   },
 ];
 
 const roleColors = {
   Admin: 'bg-purple-500',
-  Client: 'bg-blue-500',
   Manager: 'bg-green-500',
 };
 
@@ -138,11 +111,9 @@ const UserManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
 
-  // Filter users
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.company.toLowerCase().includes(searchQuery.toLowerCase());
+                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === 'All' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'All' || user.status === statusFilter;
     
@@ -196,13 +167,13 @@ const UserManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management</h1>
+        <h1 className="text-2xl font-bold">Team</h1>
         <Button 
           className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="h-4 w-4" />
-          Add New User
+          Add Team Member
         </Button>
       </div>
 
@@ -212,7 +183,7 @@ const UserManagement = () => {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search users by name, email, or company..."
+              placeholder="Search users by name or email..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -229,7 +200,6 @@ const UserManagement = () => {
               <SelectItem value="All">All Roles</SelectItem>
               <SelectItem value="Admin">Admin</SelectItem>
               <SelectItem value="Manager">Manager</SelectItem>
-              <SelectItem value="Client">Client</SelectItem>
             </SelectContent>
           </Select>
           
@@ -257,7 +227,6 @@ const UserManagement = () => {
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>Company</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Login</TableHead>
@@ -279,7 +248,6 @@ const UserManagement = () => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{user.company}</TableCell>
                 <TableCell>
                   <Badge className={`${roleColors[user.role]} text-white border-0`}>
                     {user.role}
@@ -348,7 +316,7 @@ const UserManagement = () => {
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit Team Member</DialogTitle>
           </DialogHeader>
           
           {editingUser && (
@@ -382,19 +350,10 @@ const UserManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="edit-company">Company</Label>
-                <Input
-                  id="edit-company"
-                  value={editingUser.company}
-                  onChange={(e) => setEditingUser({ ...editingUser, company: e.target.value })}
-                />
-              </div>
-              
-              <div className="space-y-2">
                 <Label htmlFor="edit-role">Role</Label>
                 <Select 
                   value={editingUser.role} 
-                  onValueChange={(value: 'Admin' | 'Client' | 'Manager') => 
+                  onValueChange={(value: 'Admin' | 'Manager') => 
                     setEditingUser({ ...editingUser, role: value })
                   }
                 >
@@ -404,7 +363,6 @@ const UserManagement = () => {
                   <SelectContent>
                     <SelectItem value="Admin">Admin</SelectItem>
                     <SelectItem value="Manager">Manager</SelectItem>
-                    <SelectItem value="Client">Client</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -438,7 +396,7 @@ const UserManagement = () => {
               Cancel
             </Button>
             <Button onClick={handleUpdateUser}>
-              Update User
+              Update Team Member
             </Button>
           </DialogFooter>
         </DialogContent>
