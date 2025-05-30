@@ -24,7 +24,7 @@ interface PersonalizedGift {
   note: string;
 }
 
-// Sample data with actual images
+// Sample data with matching images and names
 const samplePersonalizedGifts: PersonalizedGift[] = [
   {
     id: "1",
@@ -36,7 +36,7 @@ const samplePersonalizedGifts: PersonalizedGift[] = [
   },
   {
     id: "2",
-    name: "Artisan Coffee Set",
+    name: "Premium Coffee Set",
     image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=200&fit=crop",
     recipient: "John Doe",
     message: "",
@@ -44,9 +44,17 @@ const samplePersonalizedGifts: PersonalizedGift[] = [
   },
   {
     id: "3",
-    name: "Self-Care Kit",
+    name: "Wellness Kit",
     image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop",
     recipient: "Alice Johnson",
+    message: "",
+    note: "",
+  },
+  {
+    id: "4",
+    name: "Luxury Notebook",
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=200&fit=crop",
+    recipient: "Michael Brown",
     message: "",
     note: "",
   }

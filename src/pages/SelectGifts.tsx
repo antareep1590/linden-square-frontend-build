@@ -1,21 +1,17 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Heart, Star, ShoppingCart, Plus, Minus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import AdvancedFiltersModal from '@/components/AdvancedFiltersModal';
+import { Check, ShoppingCart, Star } from 'lucide-react';
 
 interface Gift {
   id: string;
   name: string;
+  image: string;
   price: number;
   category: string;
   rating: number;
-  image: string;
   description: string;
 }
 
@@ -23,196 +19,130 @@ const gifts: Gift[] = [
   {
     id: '1',
     name: 'Premium Coffee Set',
-    price: 45.99,
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop',
+    price: 49.99,
     category: 'Beverages',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=200&fit=crop',
-    description: 'Artisanal coffee blend with ceramic mug'
+    description: 'Artisan coffee selection with premium brewing accessories',
   },
   {
     id: '2',
     name: 'Luxury Notebook',
+    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=300&fit=crop',
     price: 29.99,
-    category: 'Office',
+    category: 'Stationery',
     rating: 4.6,
-    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=200&fit=crop',
-    description: 'Leather-bound journal with gold accents'
+    description: 'Handcrafted leather notebook with premium paper',
   },
   {
     id: '3',
     name: 'Wellness Kit',
-    price: 67.99,
+    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=300&fit=crop',
+    price: 79.99,
     category: 'Health',
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop',
-    description: 'Essential oils and aromatherapy accessories'
+    description: 'Complete wellness package with aromatherapy essentials',
   },
   {
     id: '4',
     name: 'Gourmet Chocolate Box',
+    image: 'https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=400&h=300&fit=crop',
     price: 39.99,
     category: 'Food',
     rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=300&h=200&fit=crop',
-    description: 'Assorted premium chocolates'
+    description: 'Hand-selected premium chocolates from around the world',
   },
   {
     id: '5',
-    name: 'Tech Accessories Bundle',
-    price: 85.99,
+    name: 'Tech Accessories Kit',
+    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+    price: 89.99,
     category: 'Technology',
     rating: 4.5,
-    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=300&h=200&fit=crop',
-    description: 'Wireless charger, cables, and organizer'
+    description: 'Essential tech accessories for the modern professional',
   },
   {
     id: '6',
-    name: 'Artisan Candle Set',
-    price: 52.99,
-    category: 'Home',
-    rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=300&h=200&fit=crop',
-    description: 'Hand-poured soy candles with natural scents'
-  }
+    name: 'Artisan Tea Collection',
+    image: 'https://images.unsplash.com/photo-1597524661902-94d854b57796?w=400&h=300&fit=crop',
+    price: 34.99,
+    category: 'Beverages',
+    rating: 4.6,
+    description: 'Curated selection of premium teas from renowned gardens',
+  },
 ];
 
+const categories = ['All', 'Beverages', 'Stationery', 'Health', 'Food', 'Technology'];
+
 const SelectGifts = () => {
-  const navigate = useNavigate();
-  const [selectedGifts, setSelectedGifts] = useState<Map<string, number>>(new Map());
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
-  const [advancedFilters, setAdvancedFilters] = useState({
-    categories: [],
-    priceRange: [0, 100],
-    occasions: [],
-    availability: 'all',
-    rating: [0, 5]
-  });
+  const [selectedGifts, setSelectedGifts] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['all', 'Beverages', 'Office', 'Health', 'Food', 'Technology', 'Home'];
-  const priceRanges = [
-    { value: 'all', label: 'All Prices' },
-    { value: '0-30', label: 'Under $30' },
-    { value: '30-60', label: '$30 - $60' },
-    { value: '60+', label: '$60+' }
-  ];
-
-  const filteredGifts = gifts.filter(gift => {
-    const matchesSearch = gift.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || gift.category === categoryFilter;
-    
-    let matchesPrice = true;
-    if (priceRange !== 'all') {
-      if (priceRange === '0-30') matchesPrice = gift.price < 30;
-      else if (priceRange === '30-60') matchesPrice = gift.price >= 30 && gift.price <= 60;
-      else if (priceRange === '60+') matchesPrice = gift.price > 60;
-    }
-
-    // Apply advanced filters
-    const matchesAdvancedCategory = advancedFilters.categories.length === 0 || 
-      advancedFilters.categories.includes(gift.category);
-    const matchesAdvancedPrice = gift.price >= advancedFilters.priceRange[0] && 
-      gift.price <= advancedFilters.priceRange[1];
-    const matchesAdvancedRating = gift.rating >= advancedFilters.rating[0];
-    
-    return matchesSearch && matchesCategory && matchesPrice && 
-           matchesAdvancedCategory && matchesAdvancedPrice && matchesAdvancedRating;
-  });
-
-  const updateGiftQuantity = (giftId: string, newQuantity: number) => {
-    const newSelection = new Map(selectedGifts);
-    if (newQuantity <= 0) {
+  const toggleGiftSelection = (giftId: string) => {
+    const newSelection = new Set(selectedGifts);
+    if (newSelection.has(giftId)) {
       newSelection.delete(giftId);
     } else {
-      newSelection.set(giftId, newQuantity);
+      newSelection.add(giftId);
     }
     setSelectedGifts(newSelection);
   };
 
-  const getGiftQuantity = (giftId: string) => {
-    return selectedGifts.get(giftId) || 0;
-  };
+  const filteredGifts = selectedCategory === 'All' 
+    ? gifts 
+    : gifts.filter(gift => gift.category === selectedCategory);
 
-  const getTotalSelectedItems = () => {
-    return Array.from(selectedGifts.values()).reduce((sum, quantity) => sum + quantity, 0);
-  };
-
-  const handleContinue = () => {
-    if (selectedGifts.size > 0) {
-      navigate('/add-personalization');
-    }
-  };
-
-  const handleAdvancedFiltersApply = (filters: any) => {
-    setAdvancedFilters(filters);
+  const getTotalCost = () => {
+    return Array.from(selectedGifts).reduce((total, giftId) => {
+      const gift = gifts.find(g => g.id === giftId);
+      return total + (gift?.price || 0);
+    }, 0);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Select Gifts</h1>
-        <Badge variant="outline" className="text-sm">
-          {getTotalSelectedItems()} items selected
-        </Badge>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Select Gifts</h1>
+          <p className="text-gray-500">
+            Choose from our curated collection of premium gifts for your recipients.
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500">
+            {selectedGifts.size} gift(s) selected
+          </p>
+          <p className="text-2xl font-bold text-linden-blue">${getTotalCost().toFixed(2)}</p>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search gifts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map(category => (
-              <SelectItem key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        <Select value={priceRange} onValueChange={setPriceRange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Price Range" />
-          </SelectTrigger>
-          <SelectContent>
-            {priceRanges.map(range => (
-              <SelectItem key={range.value} value={range.value}>
-                {range.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        <AdvancedFiltersModal 
-          onFiltersApply={handleAdvancedFiltersApply}
-          currentFilters={advancedFilters}
-        />
+      {/* Category Filter */}
+      <div className="flex gap-2 flex-wrap">
+        {categories.map((category) => (
+          <Button
+            key={category}
+            variant={selectedCategory === category ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory(category)}
+            className={selectedCategory === category ? "bg-linden-blue hover:bg-linden-blue/90" : ""}
+          >
+            {category}
+          </Button>
+        ))}
       </div>
 
       {/* Gift Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredGifts.map((gift) => {
-          const quantity = getGiftQuantity(gift.id);
-          const isSelected = quantity > 0;
+          const isSelected = selectedGifts.has(gift.id);
           
           return (
             <Card 
               key={gift.id} 
-              className={`transition-all duration-200 hover:shadow-lg ${
+              className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${
                 isSelected ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
               }`}
+              onClick={() => toggleGiftSelection(gift.id)}
             >
               <CardHeader className="p-0">
                 <div className="relative">
@@ -222,18 +152,16 @@ const SelectGifts = () => {
                     className="w-full h-48 object-cover rounded-t-lg"
                   />
                   <div className="absolute top-2 right-2">
-                    <Button
-                      variant={isSelected ? "default" : "secondary"}
-                      size="sm"
-                      className="rounded-full w-8 h-8 p-0"
-                      onClick={() => updateGiftQuantity(gift.id, quantity > 0 ? 0 : 1)}
-                    >
-                      {isSelected ? (
-                        <ShoppingCart className="h-4 w-4" />
-                      ) : (
-                        <Heart className="h-4 w-4" />
-                      )}
-                    </Button>
+                    {isSelected && (
+                      <div className="bg-linden-blue text-white rounded-full w-8 h-8 flex items-center justify-center">
+                        <Check className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {gift.category}
+                    </Badge>
                   </div>
                 </div>
               </CardHeader>
@@ -241,47 +169,31 @@ const SelectGifts = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg">{gift.name}</CardTitle>
-                    <Badge variant="secondary" className="text-xs">
-                      {gift.category}
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-gray-600">{gift.rating}</span>
+                    </div>
                   </div>
                   
                   <p className="text-sm text-gray-600">{gift.description}</p>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium">{gift.rating}</span>
-                    </div>
                     <span className="text-lg font-bold text-linden-blue">
                       ${gift.price}
                     </span>
+                    <Button
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGiftSelection(gift.id);
+                      }}
+                      className={isSelected ? "bg-linden-blue hover:bg-linden-blue/90" : ""}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-1" />
+                      {isSelected ? 'Selected' : 'Select'}
+                    </Button>
                   </div>
-
-                  {/* Quantity Controls */}
-                  {isSelected && (
-                    <div className="flex items-center justify-center gap-3 pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateGiftQuantity(gift.id, Math.max(0, quantity - 1))}
-                        className="w-8 h-8 p-0"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="font-medium text-lg min-w-[2ch] text-center">
-                        {quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => updateGiftQuantity(gift.id, quantity + 1)}
-                        className="w-8 h-8 p-0"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -289,16 +201,25 @@ const SelectGifts = () => {
         })}
       </div>
 
-      {/* Continue Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleContinue}
-          disabled={selectedGifts.size === 0}
-          className="bg-linden-blue hover:bg-linden-blue/90"
-        >
-          Continue to Personalization ({getTotalSelectedItems()} items)
-        </Button>
-      </div>
+      {/* Summary */}
+      {selectedGifts.size > 0 && (
+        <Card className="bg-gray-50">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-medium">Selected Gifts</h3>
+                <p className="text-sm text-gray-500">
+                  {selectedGifts.size} gift(s) selected
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold">${getTotalCost().toFixed(2)}</p>
+                <Button className="mt-2">Continue to Personalization</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
