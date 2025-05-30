@@ -58,13 +58,13 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-linden-blue to-linden-blue/80 rounded-lg p-6 text-white">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600 text-lg">Welcome back to your Linden Square dashboard. Here's what's happening with your gift orders.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-white/90 text-lg">Welcome back to your Linden Square dashboard. Here's what's happening with your gift orders.</p>
         <div className="mt-4 flex gap-4">
           <Button className="bg-white text-linden-blue hover:bg-gray-100">
             Create New Order
           </Button>
-          <Button variant="outline" className="border-white text-gray-700 hover:bg-white/10">
+          <Button variant="outline" className="border-white text-white hover:bg-white/10">
             View All Orders
           </Button>
         </div>

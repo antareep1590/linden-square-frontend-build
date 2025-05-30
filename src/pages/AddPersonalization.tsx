@@ -24,12 +24,12 @@ interface PersonalizedGift {
   note: string;
 }
 
-// Sample data
+// Sample data with actual images
 const samplePersonalizedGifts: PersonalizedGift[] = [
   {
     id: "1",
     name: "Gourmet Chocolate Box",
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=300&h=200&fit=crop",
     recipient: "Jane Smith",
     message: "",
     note: "",
@@ -37,7 +37,7 @@ const samplePersonalizedGifts: PersonalizedGift[] = [
   {
     id: "2",
     name: "Artisan Coffee Set",
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=200&fit=crop",
     recipient: "John Doe",
     message: "",
     note: "",
@@ -45,7 +45,7 @@ const samplePersonalizedGifts: PersonalizedGift[] = [
   {
     id: "3",
     name: "Self-Care Kit",
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop",
     recipient: "Alice Johnson",
     message: "",
     note: "",
@@ -55,7 +55,7 @@ const samplePersonalizedGifts: PersonalizedGift[] = [
 const AddPersonalization = () => {
   const { toast } = useToast();
   const [gifts, setGifts] = useState<PersonalizedGift[]>(samplePersonalizedGifts);
-  const [expandedGift, setExpandedGift] = useState<string | null>("1"); // Default open the first gift
+  const [expandedGift, setExpandedGift] = useState<string | null>("1");
 
   // Handle updating a gift's personalization
   const handleGiftUpdate = (id: string, field: keyof PersonalizedGift, value: string) => {
@@ -84,7 +84,7 @@ const AddPersonalization = () => {
     <div className="flex flex-col space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold mb-1">Add Personalization</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Add Personalization</h1>
           <p className="text-gray-500">
             Customize each gift with personal messages for your recipients.
           </p>
@@ -111,7 +111,7 @@ const AddPersonalization = () => {
               <AccordionTrigger className="px-4 py-3 hover:no-underline">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 overflow-hidden rounded">
+                    <div className="w-16 h-16 overflow-hidden rounded-lg border">
                       <img 
                         src={gift.image} 
                         alt={gift.name} 
@@ -119,7 +119,7 @@ const AddPersonalization = () => {
                       />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium">{gift.name}</p>
+                      <p className="font-medium text-lg">{gift.name}</p>
                       <p className="text-sm text-gray-500">
                         {gift.recipient || "No recipient selected"}
                       </p>
@@ -216,7 +216,7 @@ const AddPersonalization = () => {
                         if (currentIndex < gifts.length - 1) {
                           setExpandedGift(gifts[currentIndex + 1].id);
                         } else {
-                          setExpandedGift(null); // Close if it's the last one
+                          setExpandedGift(null);
                         }
                       }}
                     >

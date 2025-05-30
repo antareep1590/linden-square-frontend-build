@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -57,9 +56,11 @@ const mockGifts = [
     price: 49.99,
     category: "Home",
     tags: ["aromatherapy", "luxury"],
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop",
     status: "active",
     visibility: "public",
+    description: "Premium soy candles with natural essential oils",
+    quantity: 25,
   },
   {
     id: 2,
@@ -67,9 +68,11 @@ const mockGifts = [
     price: 79.99,
     category: "Food & Drink",
     tags: ["alcohol", "gourmet"],
-    image: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843",
+    image: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=300&h=200&fit=crop",
     status: "active",
     visibility: "public",
+    description: "Carefully selected premium wine from renowned vineyards",
+    quantity: 15,
   },
   {
     id: 3,
@@ -125,6 +128,7 @@ const giftFormSchema = z.object({
   tags: z.string(),
   status: z.enum(["active", "inactive"]),
   visibility: z.enum(["public", "private"]),
+  quantity: z.coerce.number().min(0, { message: "Quantity must be 0 or greater." }),
 });
 
 type GiftFormValues = z.infer<typeof giftFormSchema>;
@@ -132,6 +136,8 @@ type GiftFormValues = z.infer<typeof giftFormSchema>;
 const GiftCatalog = () => {
   const [gifts, setGifts] = useState(mockGifts);
   const [openAddGift, setOpenAddGift] = useState(false);
+  const [openEditGift, setOpenEditGift] = useState(false);
+  const [editingGift, setEditingGift] = useState<any>(null);
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [filterStatus, setFilterStatus] = useState<string[]>([]);
@@ -148,28 +154,65 @@ const GiftCatalog = () => {
       tags: "",
       status: "active",
       visibility: "public",
+      quantity: 0,
     },
   });
 
   const onSubmit = (data: GiftFormValues) => {
-    // Convert comma-separated tags to array
     const tagsArray = data.tags.split(",").map(tag => tag.trim());
     
-    // Add new gift to the list
-    const newGift = {
-      id: gifts.length + 1,
-      name: data.name,
-      price: data.price,
-      category: data.category,
-      tags: tagsArray,
-      image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9", // Default image
-      status: data.status,
-      visibility: data.visibility,
-    };
+    if (editingGift) {
+      // Update existing gift
+      const updatedGift = {
+        ...editingGift,
+        name: data.name,
+        price: data.price,
+        category: data.category,
+        tags: tagsArray,
+        status: data.status,
+        visibility: data.visibility,
+        description: data.description,
+        quantity: data.quantity,
+      };
+      
+      setGifts(gifts.map(gift => gift.id === editingGift.id ? updatedGift : gift));
+      setOpenEditGift(false);
+      setEditingGift(null);
+    } else {
+      // Add new gift
+      const newGift = {
+        id: gifts.length + 1,
+        name: data.name,
+        price: data.price,
+        category: data.category,
+        tags: tagsArray,
+        image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop",
+        status: data.status,
+        visibility: data.visibility,
+        description: data.description,
+        quantity: data.quantity,
+      };
+      
+      setGifts([...gifts, newGift]);
+      setOpenAddGift(false);
+    }
     
-    setGifts([...gifts, newGift]);
-    setOpenAddGift(false);
     form.reset();
+  };
+
+  const handleEdit = (gift: any) => {
+    setEditingGift(gift);
+    form.reset({
+      name: gift.name,
+      category: gift.category,
+      price: gift.price,
+      description: gift.description,
+      tags: gift.tags.join(", "),
+      status: gift.status,
+      visibility: gift.visibility,
+      quantity: gift.quantity,
+    });
+    setOpenEditGift(true);
   };
 
   const handleDelete = (id: number) => {
@@ -177,16 +220,9 @@ const GiftCatalog = () => {
   };
 
   const filteredGifts = gifts.filter(gift => {
-    // Filter by price range
     const priceInRange = gift.price >= priceRange[0] && gift.price <= priceRange[1];
-    
-    // Filter by category
     const categoryMatch = selectedCategory === "All" || gift.category === selectedCategory;
-    
-    // Filter by status
     const statusMatch = filterStatus.length === 0 || filterStatus.includes(gift.status);
-    
-    // Filter by visibility
     const visibilityMatch = filterVisibility.length === 0 || filterVisibility.includes(gift.visibility);
     
     return priceInRange && categoryMatch && statusMatch && visibilityMatch;
@@ -195,7 +231,7 @@ const GiftCatalog = () => {
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gift Catalog</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Gift Catalog</h1>
         
         <div className="flex gap-2">
           <Popover open={openFilters} onOpenChange={setOpenFilters}>
@@ -464,6 +500,20 @@ const GiftCatalog = () => {
                     />
                   </div>
                   
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <FormItem>
                     <FormLabel>Image Upload</FormLabel>
                     <FormControl>
@@ -474,6 +524,163 @@ const GiftCatalog = () => {
                   
                   <DialogFooter>
                     <Button type="submit">Add Gift</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Gift Dialog */}
+          <Dialog open={openEditGift} onOpenChange={setOpenEditGift}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Edit Gift</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Gift name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.slice(1).map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price ($)</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Gift description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tags (comma separated)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="luxury, aromatherapy" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-between gap-4">
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
+                          <div className="space-y-0.5">
+                            <FormLabel>Active Status</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value === "active"}
+                              onCheckedChange={(checked) => field.onChange(checked ? "active" : "inactive")}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="visibility"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
+                          <div className="space-y-0.5">
+                            <FormLabel>Public Visibility</FormLabel>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value === "public"}
+                              onCheckedChange={(checked) => field.onChange(checked ? "public" : "private")}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormItem>
+                    <FormLabel>Image Upload</FormLabel>
+                    <FormControl>
+                      <Input type="file" accept="image/*" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                  
+                  <DialogFooter>
+                    <Button type="submit">Update Gift</Button>
                   </DialogFooter>
                 </form>
               </Form>
@@ -510,6 +717,7 @@ const GiftCatalog = () => {
                 ))}
               </div>
               <p className="text-sm text-gray-500 mb-2">Category: {gift.category}</p>
+              <p className="text-sm text-gray-500 mb-2">Quantity: {gift.quantity}</p>
               <p className="text-sm text-gray-500">
                 Status: <span className={gift.status === 'active' ? 'text-green-500' : 'text-gray-500'}>
                   {gift.status === 'active' ? 'Active' : 'Inactive'}
@@ -518,7 +726,7 @@ const GiftCatalog = () => {
             </CardContent>
             
             <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" onClick={() => handleEdit(gift)}>
                 <Edit size={16} />
               </Button>
               <Button 
