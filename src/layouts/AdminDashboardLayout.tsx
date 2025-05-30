@@ -26,7 +26,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LindenSquareLogo from '@/components/LindenSquareLogo';
 
-const AdminDashboardLayout = () => {
+interface AdminDashboardLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,7 +132,7 @@ const AdminDashboardLayout = () => {
 
         {/* Page Content */}
         <main className="flex-1 p-6">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
     </div>
