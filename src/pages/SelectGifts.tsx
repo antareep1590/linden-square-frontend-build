@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, ShoppingCart, Star } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Check, ShoppingCart, Star, Plus, Minus, Filter } from 'lucide-react';
 
 interface Gift {
   id: string;
@@ -13,6 +15,12 @@ interface Gift {
   category: string;
   rating: number;
   description: string;
+  tag?: string;
+}
+
+interface SelectedGift {
+  id: string;
+  quantity: number;
 }
 
 const gifts: Gift[] = [
@@ -24,6 +32,7 @@ const gifts: Gift[] = [
     category: 'Beverages',
     rating: 4.8,
     description: 'Artisan coffee selection with premium brewing accessories',
+    tag: 'premium',
   },
   {
     id: '2',
@@ -33,6 +42,7 @@ const gifts: Gift[] = [
     category: 'Stationery',
     rating: 4.6,
     description: 'Handcrafted leather notebook with premium paper',
+    tag: 'luxury',
   },
   {
     id: '3',
@@ -42,6 +52,7 @@ const gifts: Gift[] = [
     category: 'Health',
     rating: 4.9,
     description: 'Complete wellness package with aromatherapy essentials',
+    tag: 'wellness',
   },
   {
     id: '4',
@@ -51,6 +62,7 @@ const gifts: Gift[] = [
     category: 'Food',
     rating: 4.7,
     description: 'Hand-selected premium chocolates from around the world',
+    tag: 'gourmet',
   },
   {
     id: '5',
@@ -60,6 +72,7 @@ const gifts: Gift[] = [
     category: 'Technology',
     rating: 4.5,
     description: 'Essential tech accessories for the modern professional',
+    tag: 'modern',
   },
   {
     id: '6',
@@ -69,80 +82,146 @@ const gifts: Gift[] = [
     category: 'Beverages',
     rating: 4.6,
     description: 'Curated selection of premium teas from renowned gardens',
+    tag: 'artisan',
   },
 ];
 
 const categories = ['All', 'Beverages', 'Stationery', 'Health', 'Food', 'Technology'];
+const tags = ['All', 'premium', 'luxury', 'wellness', 'gourmet', 'modern', 'artisan'];
 
 const SelectGifts = () => {
-  const [selectedGifts, setSelectedGifts] = useState<Set<string>>(new Set());
+  const [selectedGifts, setSelectedGifts] = useState<Map<string, number>>(new Map());
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedTag, setSelectedTag] = useState('All');
+  const [priceRange, setPriceRange] = useState<number[]>([0, 100]);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const toggleGiftSelection = (giftId: string) => {
-    const newSelection = new Set(selectedGifts);
-    if (newSelection.has(giftId)) {
+  const updateGiftQuantity = (giftId: string, quantity: number) => {
+    const newSelection = new Map(selectedGifts);
+    if (quantity <= 0) {
       newSelection.delete(giftId);
     } else {
-      newSelection.add(giftId);
+      newSelection.set(giftId, quantity);
     }
     setSelectedGifts(newSelection);
   };
 
-  const filteredGifts = selectedCategory === 'All' 
-    ? gifts 
-    : gifts.filter(gift => gift.category === selectedCategory);
+  const filteredGifts = gifts.filter(gift => {
+    const categoryMatch = selectedCategory === 'All' || gift.category === selectedCategory;
+    const tagMatch = selectedTag === 'All' || gift.tag === selectedTag;
+    const priceMatch = gift.price >= priceRange[0] && gift.price <= priceRange[1];
+    return categoryMatch && tagMatch && priceMatch;
+  });
 
   const getTotalCost = () => {
-    return Array.from(selectedGifts).reduce((total, giftId) => {
+    return Array.from(selectedGifts.entries()).reduce((total, [giftId, quantity]) => {
       const gift = gifts.find(g => g.id === giftId);
-      return total + (gift?.price || 0);
+      return total + (gift?.price || 0) * quantity;
     }, 0);
+  };
+
+  const getTotalQuantity = () => {
+    return Array.from(selectedGifts.values()).reduce((total, quantity) => total + quantity, 0);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Select Gifts</h1>
-          <p className="text-gray-500">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Select Gifts</h1>
+          <p className="text-gray-600 text-lg">
             Choose from our curated collection of premium gifts for your recipients.
           </p>
         </div>
         <div className="text-right">
           <p className="text-sm text-gray-500">
-            {selectedGifts.size} gift(s) selected
+            {getTotalQuantity()} item(s) selected
           </p>
           <p className="text-2xl font-bold text-linden-blue">${getTotalCost().toFixed(2)}</p>
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={selectedCategory === category ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedCategory(category)}
-            className={selectedCategory === category ? "bg-linden-blue hover:bg-linden-blue/90" : ""}
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
+      {/* Enhanced Filters */}
+      <Card className="bg-gray-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">Filters</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Category Filter */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Category</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tag Filter */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Tag</label>
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tags.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Price Range Filter */}
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Price Range: ${priceRange[0]} - ${priceRange[1]}
+              </label>
+              <Slider
+                value={priceRange}
+                onValueChange={setPriceRange}
+                max={100}
+                min={0}
+                step={5}
+                className="mt-2"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Gift Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredGifts.map((gift) => {
-          const isSelected = selectedGifts.has(gift.id);
+          const quantity = selectedGifts.get(gift.id) || 0;
+          const isSelected = quantity > 0;
           
           return (
             <Card 
               key={gift.id} 
-              className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${
+              className={`transition-all duration-200 hover:shadow-lg ${
                 isSelected ? 'ring-2 ring-linden-blue bg-linden-lightblue' : ''
               }`}
-              onClick={() => toggleGiftSelection(gift.id)}
             >
               <CardHeader className="p-0">
                 <div className="relative">
@@ -154,7 +233,7 @@ const SelectGifts = () => {
                   <div className="absolute top-2 right-2">
                     {isSelected && (
                       <div className="bg-linden-blue text-white rounded-full w-8 h-8 flex items-center justify-center">
-                        <Check className="h-4 w-4" />
+                        <span className="text-sm font-bold">{quantity}</span>
                       </div>
                     )}
                   </div>
@@ -181,13 +260,39 @@ const SelectGifts = () => {
                     <span className="text-lg font-bold text-linden-blue">
                       ${gift.price}
                     </span>
+                    {gift.tag && (
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {gift.tag}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateGiftQuantity(gift.id, quantity - 1)}
+                        disabled={quantity <= 0}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-medium w-8 text-center">{quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateGiftQuantity(gift.id, quantity + 1)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
                     <Button
                       variant={isSelected ? "default" : "outline"}
                       size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGiftSelection(gift.id);
-                      }}
+                      onClick={() => updateGiftQuantity(gift.id, isSelected ? 0 : 1)}
                       className={isSelected ? "bg-linden-blue hover:bg-linden-blue/90" : ""}
                     >
                       <ShoppingCart className="h-4 w-4 mr-1" />
@@ -201,20 +306,28 @@ const SelectGifts = () => {
         })}
       </div>
 
+      {filteredGifts.length === 0 && (
+        <Card className="p-8 text-center">
+          <p className="text-gray-500">No gifts match your current filters. Try adjusting your criteria.</p>
+        </Card>
+      )}
+
       {/* Summary */}
-      {selectedGifts.size > 0 && (
+      {getTotalQuantity() > 0 && (
         <Card className="bg-gray-50">
           <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-medium">Selected Gifts</h3>
                 <p className="text-sm text-gray-500">
-                  {selectedGifts.size} gift(s) selected
+                  {getTotalQuantity()} item(s) selected
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold">${getTotalCost().toFixed(2)}</p>
-                <Button className="mt-2">Continue to Personalization</Button>
+                <Button className="mt-2 bg-linden-blue hover:bg-linden-blue/90">
+                  Continue to Personalization
+                </Button>
               </div>
             </div>
           </CardContent>
