@@ -40,12 +40,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
     { name: 'Team', href: '/admin/users', icon: UserCog },
     { name: 'Client Management', href: '/admin/customers', icon: Users },
     { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
-    { name: 'Personalization', href: '/admin/personalization', icon: Settings },
+    { name: 'Personalization Settings', href: '/admin/personalization', icon: Settings },
     { name: 'Packaging & Delivery', href: '/admin/packaging', icon: Package },
     { name: 'Delivery Management', href: '/admin/delivery', icon: Truck },
     { name: 'Track Orders', href: '/admin/track-orders', icon: BarChart3 },
-    { name: 'Inventory', href: '/admin/inventory', icon: Package },
-    { name: 'Invoices', href: '/admin/invoices', icon: FileText },
+    { name: 'Inventory Management', href: '/admin/inventory', icon: Package },
+    { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
@@ -60,7 +60,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className={`bg-white shadow-sm border-r transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'}`}>
+      <div className={`bg-white shadow-sm border-r transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'} flex-shrink-0`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-4 border-b">
@@ -101,7 +101,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
         <header className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-end">

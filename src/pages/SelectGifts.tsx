@@ -151,7 +151,7 @@ const SelectGifts = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Select Gifts</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Select Gifts</h1>
         <Badge variant="outline" className="text-sm">
           {getTotalSelectedItems()} items selected
         </Badge>

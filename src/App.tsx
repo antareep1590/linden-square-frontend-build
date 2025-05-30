@@ -25,6 +25,7 @@ import Profile from '@/pages/Profile';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import AdminCustomers from '@/pages/admin/Customers';
 import Users from '@/pages/admin/Users';
+import GiftCatalog from '@/pages/admin/GiftCatalog';
 import PersonalizationSettings from '@/pages/admin/PersonalizationSettings';
 import PackagingDelivery from '@/pages/admin/PackagingDelivery';
 import DeliveryManagement from '@/pages/admin/DeliveryManagement';
@@ -37,9 +38,6 @@ import MyProfile from '@/pages/admin/MyProfile';
 // Layouts
 import DashboardLayout from '@/layouts/DashboardLayout';
 import AdminDashboardLayout from '@/layouts/AdminDashboardLayout';
-
-// Placeholder page
-import PlaceholderPage from '@/pages/PlaceholderPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,7 +74,7 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
           <Route path="/admin/customers" element={<AdminDashboardLayout><AdminCustomers /></AdminDashboardLayout>} />
           <Route path="/admin/users" element={<AdminDashboardLayout><Users /></AdminDashboardLayout>} />
-          <Route path="/admin/gift-catalog" element={<AdminDashboardLayout><PlaceholderPage title="Gift Catalog" /></AdminDashboardLayout>} />
+          <Route path="/admin/gift-catalog" element={<AdminDashboardLayout><GiftCatalog /></AdminDashboardLayout>} />
           <Route path="/admin/personalization" element={<AdminDashboardLayout><PersonalizationSettings /></AdminDashboardLayout>} />
           <Route path="/admin/packaging" element={<AdminDashboardLayout><PackagingDelivery /></AdminDashboardLayout>} />
           <Route path="/admin/delivery" element={<AdminDashboardLayout><DeliveryManagement /></AdminDashboardLayout>} />

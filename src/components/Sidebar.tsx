@@ -33,7 +33,6 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
-  // Removed Inventory section for client interface
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
@@ -70,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
   return (
     <div 
       className={cn(
-        'h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col',
+        'h-screen bg-white border-r border-gray-200 transition-all duration-300 flex flex-col flex-shrink-0',
         collapsed ? 'w-20' : 'w-64'
       )}
     >
