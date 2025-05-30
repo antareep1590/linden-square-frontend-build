@@ -56,23 +56,21 @@ const mockOrders = [
 const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Dashboard</h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Welcome back! Here's an overview of your gift orders and activities.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Button className="bg-linden-blue hover:bg-linden-blue/90 text-white px-6 py-2">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Order
-            </Button>
-            <Button variant="outline" className="px-6 py-2">
-              <Eye className="h-4 w-4 mr-2" />
-              View All Orders
-            </Button>
-          </div>
+      {/* Standard Page Heading */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p className="text-lg text-gray-600 mb-6">
+          Welcome back to your Linden Square dashboard. Here's what's happening with your gift orders.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Button className="bg-linden-blue hover:bg-linden-blue/90 text-white px-6 py-2">
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Order
+          </Button>
+          <Button variant="outline" className="px-6 py-2">
+            <Eye className="h-4 w-4 mr-2" />
+            View All Orders
+          </Button>
         </div>
       </div>
       
@@ -148,11 +146,11 @@ const Dashboard: React.FC = () => {
         <CardHeader className="border-b border-gray-100 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Recent Orders</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Track and manage your latest gift orders</p>
+              <CardTitle className="text-xl font-semibold text-gray-900">Latest Bulk Orders</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Track and manage your recent gift orders</p>
             </div>
             <Button variant="outline" className="px-4 py-2">
-              View All
+              View All Orders
             </Button>
           </div>
         </CardHeader>
