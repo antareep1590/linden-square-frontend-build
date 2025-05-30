@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient } from 'react-query';
@@ -54,27 +55,27 @@ function App() {
           <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
           <Route path="/customers" element={<DashboardLayout><Customers /></DashboardLayout>} />
           <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-          <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></SelectGifts>} />
-          <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></AddPersonalization>} />
+          <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></DashboardLayout>} />
+          <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />
           <Route path="/packaging" element={<DashboardLayout><GiftBoxPackaging /></DashboardLayout>} />
-          <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></TrackOrders>} />
-          <Route path="/invoices" element={<DashboardLayout><Invoices /></Invoices>} />
-          <Route path="/inventory" element={<DashboardLayout><Inventory /></Inventory>} />
-          <Route path="/upload-recipient" element={<DashboardLayout><UploadRecipient /></UploadRecipient>} />
+          <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
+          <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
+          <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />
+          <Route path="/upload-recipient" element={<DashboardLayout><UploadRecipient /></DashboardLayout>} />
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
-          <Route path="/admin/customers" element={<AdminDashboardLayout><AdminCustomers /></AdminCustomers>} />
+          <Route path="/admin/customers" element={<AdminDashboardLayout><AdminCustomers /></AdminDashboardLayout>} />
           <Route path="/admin/users" element={<AdminDashboardLayout><Users /></AdminDashboardLayout>} />
           <Route path="/admin/gift-catalog" element={<AdminDashboardLayout><PlaceholderPage title="Gift Catalog" /></AdminDashboardLayout>} />
-          <Route path="/admin/personalization" element={<AdminDashboardLayout><PersonalizationSettings /></AdminPersonalizationSettings>} />
+          <Route path="/admin/personalization" element={<AdminDashboardLayout><PersonalizationSettings /></AdminDashboardLayout>} />
           <Route path="/admin/packaging" element={<AdminDashboardLayout><PackagingDelivery /></AdminDashboardLayout>} />
           <Route path="/admin/delivery" element={<AdminDashboardLayout><DeliveryManagement /></AdminDashboardLayout>} />
-          <Route path="/admin/track-orders" element={<AdminDashboardLayout><AdminTrackOrders /></AdminTrackOrders>} />
-          <Route path="/admin/inventory" element={<AdminDashboardLayout><AdminInventory /></AdminInventory>} />
-          <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminInvoices>} />
-          <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminSettings>} />
-          <Route path="/admin/my-profile" element={<AdminDashboardLayout><MyProfile /></AdminMyProfile>} />
+          <Route path="/admin/track-orders" element={<AdminDashboardLayout><AdminTrackOrders /></AdminDashboardLayout>} />
+          <Route path="/admin/inventory" element={<AdminDashboardLayout><AdminInventory /></AdminDashboardLayout>} />
+          <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminDashboardLayout>} />
+          <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminDashboardLayout>} />
+          <Route path="/admin/my-profile" element={<AdminDashboardLayout><MyProfile /></AdminDashboardLayout>} />
           
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
