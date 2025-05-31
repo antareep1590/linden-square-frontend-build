@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Gift, Users, Package, TrendingUp, Clock, AlertCircle, Plus, Eye } from 'lucide-react';
+import { Gift, Users, Package, TrendingUp, Clock, AlertCircle } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -58,20 +58,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gray-50 space-y-8">
       {/* Standard Page Heading */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-lg text-gray-600 mb-6">
-          Welcome back to your Linden Square dashboard. Here's what's happening with your gift orders.
-        </p>
-        <div className="flex flex-wrap gap-4">
-          <Button className="bg-linden-blue hover:bg-linden-blue/90 text-white px-6 py-2">
-            <Plus className="h-4 w-4 mr-2" />
-            Create New Order
-          </Button>
-          <Button variant="outline" className="px-6 py-2">
-            <Eye className="h-4 w-4 mr-2" />
-            View All Orders
-          </Button>
-        </div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
       </div>
       
       {/* Metrics Grid */}
@@ -212,30 +199,6 @@ const Dashboard: React.FC = () => {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card className="bg-white border-0 shadow-sm">
-        <CardHeader className="border-b border-gray-100 pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">Quick Actions</CardTitle>
-          <p className="text-sm text-gray-600">Get started with common tasks</p>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button className="h-24 flex flex-col items-center gap-3 bg-linden-blue hover:bg-linden-blue/90 text-white">
-              <Gift className="h-6 w-6" />
-              <span className="font-medium">Select New Gifts</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col items-center gap-3 border-gray-200 hover:bg-gray-50">
-              <Users className="h-6 w-6 text-gray-600" />
-              <span className="font-medium text-gray-700">Upload Recipients</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col items-center gap-3 border-gray-200 hover:bg-gray-50">
-              <Package className="h-6 w-6 text-gray-600" />
-              <span className="font-medium text-gray-700">Track Orders</span>
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
