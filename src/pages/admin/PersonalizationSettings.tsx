@@ -1,18 +1,20 @@
-
 import React, { useState } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import {
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { 
   Dialog,
   DialogContent,
   DialogHeader,
@@ -20,343 +22,190 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Pen, Plus, Eye } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Settings, 
+  Plus, 
+  Edit, 
+  Trash2,
+  Type,
+  Palette,
+  Image as ImageIcon,
+  Heart,
+  Star,
+  Gift
+} from "lucide-react";
 
-// Mock personalization options data
-const mockPersonalizationOptions = [
-  {
-    id: 1,
-    type: "Text Engraving",
-    characterLimit: 50,
-    previewFormat: "[Text] in elegant script font",
-    enabled: true,
-  },
-  {
-    id: 2,
-    type: "Logo Placement",
-    characterLimit: 0,
-    previewFormat: "Company logo on top left corner",
-    enabled: true,
-  },
-  {
-    id: 3,
-    type: "Handwritten Note",
-    characterLimit: 200,
-    previewFormat: "Custom message with signature",
-    enabled: true,
-  },
-  {
-    id: 4,
-    type: "Custom Date Stamp",
-    characterLimit: 10,
-    previewFormat: "MM/DD/YYYY format in roman numerals",
-    enabled: false,
-  },
-  {
-    id: 5,
-    type: "Recipient Name",
-    characterLimit: 30,
-    previewFormat: "Name in gold foil on gift tag",
-    enabled: true,
-  },
+interface Font {
+  id: string;
+  name: string;
+}
+
+interface Color {
+  id: string;
+  name: string;
+  hexCode: string;
+}
+
+interface Image {
+  id: string;
+  name: string;
+  url: string;
+}
+
+const mockFonts: Font[] = [
+  { id: "font-1", name: "Open Sans" },
+  { id: "font-2", name: "Roboto" },
+  { id: "font-3", name: "Lato" },
 ];
 
-// Define the PersonalizationOption type explicitly
-type PersonalizationOption = {
-  id: number;
-  type: string;
-  characterLimit: number;
-  previewFormat: string;
-  enabled: boolean;
-};
+const mockColors: Color[] = [
+  { id: "color-1", name: "Linden Blue", hexCode: "#2563EB" },
+  { id: "color-2", name: "Emerald Green", hexCode: "#10B981" },
+  { id: "color-3", name: "Sunset Orange", hexCode: "#F59E0B" },
+];
 
-// Schema for personalization form validation
-const personalizationFormSchema = z.object({
-  type: z.string().min(3, { message: "Type must be at least 3 characters." }),
-  characterLimit: z.coerce.number().int().nonnegative(),
-  previewFormat: z.string().min(5, { message: "Preview format must be at least 5 characters." }),
-  enabled: z.boolean().default(true),
-});
-
-type PersonalizationFormValues = z.infer<typeof personalizationFormSchema>;
+const mockImages: Image[] = [
+  { id: "image-1", name: "Abstract 1", url: "https://source.unsplash.com/300x200/?abstract" },
+  { id: "image-2", name: "Nature 1", url: "https://source.unsplash.com/300x200/?nature" },
+  { id: "image-3", name: "City 1", url: "https://source.unsplash.com/300x200/?city" },
+];
 
 const PersonalizationSettings = () => {
-  const [personalizationOptions, setPersonalizationOptions] = useState<PersonalizationOption[]>(mockPersonalizationOptions);
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [previewOption, setPreviewOption] = useState<PersonalizationOption | null>(null);
+  const [selectedFont, setSelectedFont] = useState<string | undefined>(mockFonts[0].id);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(mockColors[0].id);
+  const [customText, setCustomText] = useState("Thank You!");
+  const [isCustomTextEnabled, setIsCustomTextEnabled] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(mockImages[0].id);
+  const [isImageEnabled, setIsImageEnabled] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
 
-  const form = useForm<PersonalizationFormValues>({
-    resolver: zodResolver(personalizationFormSchema),
-    defaultValues: {
-      type: "",
-      characterLimit: 0,
-      previewFormat: "",
-      enabled: true,
-    },
-  });
-
-  const onSubmit = (data: PersonalizationFormValues) => {
-    if (editingId !== null) {
-      // Update existing option
-      setPersonalizationOptions(
-        personalizationOptions.map((option) =>
-          option.id === editingId ? { ...option, ...data } : option
-        )
-      );
-      setEditingId(null);
-    } else {
-      // Add new option
-      const newOption: PersonalizationOption = {
-        id: personalizationOptions.length + 1,
-        type: data.type,
-        characterLimit: data.characterLimit,
-        previewFormat: data.previewFormat,
-        enabled: data.enabled,
-      };
-      setPersonalizationOptions([...personalizationOptions, newOption]);
-    }
-    
-    setOpenAddDialog(false);
-    form.reset();
+  const handleFontChange = (fontId: string) => {
+    setSelectedFont(fontId);
   };
 
-  const handleEdit = (option: typeof mockPersonalizationOptions[0]) => {
-    setEditingId(option.id);
-    form.reset({
-      type: option.type,
-      characterLimit: option.characterLimit,
-      previewFormat: option.previewFormat,
-      enabled: option.enabled,
-    });
-    setOpenAddDialog(true);
+  const handleColorChange = (colorId: string) => {
+    setSelectedColor(colorId);
   };
 
-  const handleToggleEnabled = (id: number, enabled: boolean) => {
-    setPersonalizationOptions(
-      personalizationOptions.map((option) =>
-        option.id === id ? { ...option, enabled } : option
-      )
-    );
+  const handleTextChange = (text: string) => {
+    setCustomText(text);
   };
 
-  const handlePreview = (option: typeof mockPersonalizationOptions[0]) => {
-    setPreviewOption(option);
+  const handleImageChange = (imageId: string) => {
+    setSelectedImage(imageId);
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Personalization Settings</h1>
-        
-        <Dialog open={openAddDialog} onOpenChange={setOpenAddDialog}>
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-linden-blue hover:bg-linden-blue/90">
-              <Plus size={16} className="mr-2" /> Add Personalization Option
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Setting
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {editingId !== null ? "Edit Personalization Option" : "Add Personalization Option"}
-              </DialogTitle>
+              <DialogTitle>Add New Setting</DialogTitle>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Text Engraving" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="characterLimit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Character Limit (0 for no limit)</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="previewFormat"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preview Format</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Description of how it will appear" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                      <div className="space-y-0.5">
-                        <FormLabel>Enabled</FormLabel>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                
-                <DialogFooter>
-                  <Button type="submit">
-                    {editingId !== null ? "Save Changes" : "Add Option"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+            <div>
+              {/* Add form fields here */}
+            </div>
+            <DialogFooter>
+              <Button>Add Setting</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Character Limit</TableHead>
-              <TableHead>Preview Format</TableHead>
-              <TableHead>Enabled</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {personalizationOptions.map((option) => (
-              <TableRow key={option.id}>
-                <TableCell className="font-medium">{option.type}</TableCell>
-                <TableCell>
-                  {option.characterLimit > 0 ? option.characterLimit : "No limit"}
-                </TableCell>
-                <TableCell className="max-w-[300px] truncate">{option.previewFormat}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={option.enabled}
-                    onCheckedChange={(checked) => handleToggleEnabled(option.id, checked)}
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePreview(option)}
-                    >
-                      <Eye size={14} className="mr-1" /> Preview
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(option)}
-                    >
-                      <Pen size={14} className="mr-1" /> Edit
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Preview Modal */}
-      <Dialog open={!!previewOption} onOpenChange={() => setPreviewOption(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Preview: {previewOption?.type}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium">Status</Label>
-              <div className="mt-1">
-                {previewOption?.enabled ? 
-                  <Badge className="bg-green-500">Enabled</Badge> : 
-                  <Badge variant="outline">Disabled</Badge>
-                }
-              </div>
-            </div>
-            
-            <div>
-              <Label className="text-sm font-medium">Character Limit</Label>
-              <div className="mt-1 text-sm">
-                {previewOption?.characterLimit ? previewOption.characterLimit : "No limit"}
-              </div>
-            </div>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-sm text-gray-500 mb-2">Preview Format:</div>
-                <div className="font-medium">{previewOption?.previewFormat}</div>
-              </CardContent>
-            </Card>
-            
-            <div className="border rounded-md p-4 bg-gray-50">
-              <h4 className="text-sm font-medium mb-2">How it appears to clients:</h4>
-              <div className="p-3 bg-white border rounded">
-                <div className="flex items-center gap-2 mb-2">
-                  <Label htmlFor="previewInput" className="text-sm font-medium">
-                    {previewOption?.type}:
-                  </Label>
-                  {previewOption?.characterLimit ? (
-                    <Badge variant="outline" className="text-xs">
-                      Max {previewOption.characterLimit} characters
-                    </Badge>
-                  ) : null}
-                </div>
-                <Input 
-                  id="previewInput" 
-                  placeholder="Enter your personalization..." 
-                  className="mb-2"
-                  maxLength={previewOption?.characterLimit || undefined}
-                />
-                <div className="text-xs text-gray-500">{previewOption?.previewFormat}</div>
-              </div>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Text Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="customText">Enable Custom Text</Label>
+            <Switch
+              id="customText"
+              checked={isCustomTextEnabled}
+              onCheckedChange={setIsCustomTextEnabled}
+            />
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewOption(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Input
+            type="text"
+            placeholder="Enter custom text"
+            value={customText}
+            onChange={(e) => handleTextChange(e.target.value)}
+            disabled={!isCustomTextEnabled}
+          />
+          <Separator />
+          <div className="space-y-2">
+            <Label htmlFor="font">Select Font</Label>
+            <Select onValueChange={handleFontChange} defaultValue={selectedFont}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a font" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockFonts.map((font) => (
+                  <SelectItem key={font.id} value={font.id}>
+                    {font.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="color">Select Color</Label>
+            <Select onValueChange={handleColorChange} defaultValue={selectedColor}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a color" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockColors.map((color) => (
+                  <SelectItem key={color.id} value={color.id}>
+                    {color.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Image Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="enableImage">Enable Image</Label>
+            <Switch
+              id="enableImage"
+              checked={isImageEnabled}
+              onCheckedChange={setIsImageEnabled}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image">Select Image</Label>
+            <Select onValueChange={handleImageChange} defaultValue={selectedImage}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select an image" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockImages.map((image) => (
+                  <SelectItem key={image.id} value={image.id}>
+                    {image.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

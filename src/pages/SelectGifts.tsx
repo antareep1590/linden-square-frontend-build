@@ -1,11 +1,15 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Check, ShoppingCart, Star, Plus, Minus, Filter } from 'lucide-react';
+import { Filter, Search, ShoppingCart, Plus, Minus } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Gift {
   id: string;
@@ -127,12 +131,7 @@ const SelectGifts = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Select Gifts</h1>
-          <p className="text-gray-600 text-lg">
-            Choose from our curated collection of premium gifts for your recipients.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold">Select Gifts</h1>
         <div className="text-right">
           <p className="text-sm text-gray-500">
             {getTotalQuantity()} item(s) selected

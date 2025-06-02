@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,26 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { Check, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Heart, 
+  Star, 
+  Gift, 
+  MessageSquare, 
+  Upload, 
+  Palette,
+  Type,
+  Image as ImageIcon
+} from "lucide-react";
 
 // Define personalized gift interface
 interface PersonalizedGift {
@@ -89,22 +108,9 @@ const AddPersonalization = () => {
   const completedGiftsCount = gifts.filter(isGiftComplete).length;
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Add Personalization</h1>
-          <p className="text-gray-500">
-            Customize each gift with personal messages for your recipients.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-500">
-            <span className="font-medium">{completedGiftsCount}/{gifts.length}</span> Complete
-          </div>
-          <Button onClick={handleSaveAll}>
-            Save All Personalizations
-          </Button>
-        </div>
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Add Personalization</h1>
       </div>
 
       <div className="bg-white rounded-md shadow">

@@ -1,196 +1,234 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Save } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Calendar,
+  Shield,
+  Camera,
+  Save,
+  Edit
+} from "lucide-react";
 import { toast } from "sonner";
 
+interface ProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  birthday: string;
+  occupation: string;
+  bio: string;
+}
+
+const mockProfileData: ProfileData = {
+  name: "David Chen",
+  email: "david.chen@example.com",
+  phone: "+1 (555) 123-4567",
+  location: "San Francisco, CA",
+  birthday: "1990-05-15",
+  occupation: "Software Engineer",
+  bio: "Passionate about building innovative solutions and making a positive impact on the world."
+};
+
 const MyProfile = () => {
-  const [profileData, setProfileData] = useState({
-    name: 'Admin User',
-    email: 'admin@lindensquare.com',
-    phone: '(555) 123-4567',
-    profilePicture: ''
-  });
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  const [profile, setProfile] = useState(mockProfileData);
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProfileData(prev => ({ ...prev, [name]: value }));
+    setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleProfileSave = () => {
-    console.log('Saving profile:', profileData);
-    toast.success("Profile updated successfully");
-  };
-
-  const handlePasswordSave = () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error("New passwords don't match");
-      return;
-    }
-    if (passwordData.newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-    console.log('Updating password');
-    toast.success("Password updated successfully");
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setProfileData(prev => ({ 
-          ...prev, 
-          profilePicture: event.target?.result as string 
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleSaveProfile = () => {
+    setIsEditing(false);
+    toast.success("Profile updated successfully!");
   };
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">My Profile</h1>
-        <p className="text-gray-500">Manage your account settings and preferences</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Profile Picture */}
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profileData.profilePicture} />
-                <AvatarFallback className="text-lg">
-                  {profileData.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <Label htmlFor="profile-picture" className="cursor-pointer">
-                  <div className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800">
-                    <Camera className="h-4 w-4" />
-                    <span>Change photo</span>
+      <Card className="bg-white border-0 shadow-sm">
+        <CardHeader className="flex flex-col items-center pb-4">
+          <Avatar className="h-24 w-24">
+            <AvatarImage src="https://github.com/shadcn.png" alt="Profile Image" />
+            <AvatarFallback>DC</AvatarFallback>
+          </Avatar>
+          <div className="mt-4 text-center">
+            <CardTitle className="text-lg font-semibold">{profile.name}</CardTitle>
+            <p className="text-sm text-gray-500">{profile.occupation}</p>
+            <Badge variant="secondary" className="mt-2">Admin</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="profile" className="space-y-4">
+            <TabsList className="w-full justify-center">
+              <TabsTrigger value="profile" className="data-[state=active]:text-linden-blue">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="security" className="data-[state=active]:text-linden-blue">
+                <Shield className="mr-2 h-4 w-4" />
+                Security
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="profile" className="space-y-4">
+              <div className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={profile.name}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
                   </div>
-                </Label>
-                <Input
-                  id="profile-picture"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <p className="text-xs text-gray-500 mt-1">JPG, PNG up to 2MB</p>
+                  <div>
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={profile.email}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={profile.phone}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      type="text"
+                      id="location"
+                      name="location"
+                      value={profile.location}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="birthday">Birthday</Label>
+                    <Input
+                      type="date"
+                      id="birthday"
+                      name="birthday"
+                      value={profile.birthday}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="occupation">Occupation</Label>
+                    <Input
+                      type="text"
+                      id="occupation"
+                      name="occupation"
+                      value={profile.occupation}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    value={profile.bio}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="resize-none"
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Form Fields */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={profileData.name}
-                  onChange={handleProfileChange}
-                />
+              <Separator />
+              <div className="flex justify-end">
+                {isEditing ? (
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveProfile}>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </Button>
+                  </div>
+                ) : (
+                  <Button onClick={() => setIsEditing(true)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={handleProfileChange}
-                />
+            </TabsContent>
+            <TabsContent value="security">
+              <div className="space-y-4">
+                <Card className="shadow-none border-0">
+                  <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-500">Update your password to keep your account secure.</p>
+                    <div className="mt-4 space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <Input type="password" id="currentPassword" placeholder="Enter current password" />
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input type="password" id="newPassword" placeholder="Enter new password" />
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <Input type="password" id="confirmPassword" placeholder="Confirm new password" />
+                      <Button className="mt-4">Update Password</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="shadow-none border-0">
+                  <CardHeader>
+                    <CardTitle>Two-Factor Authentication</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-500">Add an extra layer of security to your account with two-factor authentication.</p>
+                    <Button className="mt-4">Enable Two-Factor Authentication</Button>
+                  </CardContent>
+                </Card>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={profileData.phone}
-                  onChange={handleProfileChange}
-                />
-              </div>
-            </div>
-
-            <Button onClick={handleProfileSave} className="w-full">
-              <Save className="mr-2 h-4 w-4" />
-              Save Profile
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Password Change */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="current-password">Current Password</Label>
-              <Input
-                id="current-password"
-                name="currentPassword"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={handlePasswordChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New Password</Label>
-              <Input
-                id="new-password"
-                name="newPassword"
-                type="password"
-                value={passwordData.newPassword}
-                onChange={handlePasswordChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input
-                id="confirm-password"
-                name="confirmPassword"
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={handlePasswordChange}
-              />
-            </div>
-
-            <Button onClick={handlePasswordSave} className="w-full">
-              <Save className="mr-2 h-4 w-4" />
-              Update Password
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };

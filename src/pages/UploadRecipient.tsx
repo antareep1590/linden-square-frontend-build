@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -11,6 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Tabs,
   TabsContent,
@@ -25,8 +26,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Upload, Plus, Trash2, Save } from 'lucide-react';
+import { Upload, Plus, Trash2, Save, Download, Users, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface Recipient {
   id: string;
@@ -140,9 +142,8 @@ const UploadRecipient: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold mb-1">Upload Recipients</h1>
-        <p className="text-gray-500">Add the people who will receive your gifts.</p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Upload Recipients</h1>
       </div>
       
       <Card>

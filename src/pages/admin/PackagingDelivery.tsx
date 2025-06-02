@@ -214,7 +214,7 @@ const deliveryFormSchema = z.object({
 
 type DeliveryFormValues = z.infer<typeof deliveryFormSchema>;
 
-const PackagingDelivery = () => {
+const AdminPackagingDelivery = () => {
   const [activeTab, setActiveTab] = useState("gift-boxes");
   const [giftBoxes, setGiftBoxes] = useState<GiftBox[]>(mockGiftBoxes);
   const [packages, setPackages] = useState(mockPackages);
@@ -341,7 +341,9 @@ const PackagingDelivery = () => {
 
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Packaging & Delivery</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Packaging & Delivery</h1>
+      </div>
 
       {!selectedPackage ? (
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -980,4 +982,4 @@ const PackagingDelivery = () => {
   );
 };
 
-export default PackagingDelivery;
+export default AdminPackagingDelivery;

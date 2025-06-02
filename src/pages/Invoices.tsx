@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, Download, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import InvoiceDetailsModal from "@/components/invoices/InvoiceDetailsModal";
+import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
 
 // Mock data for invoices
 const invoices = [
@@ -59,11 +57,18 @@ const invoices = [
   }
 ];
 
+interface Invoice {
+  id: string;
+  client: string;
+  amount: number;
+  date: string;
+  items: string;
+  status: string;
+}
+
 const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedInvoice, setSelectedInvoice] = useState<typeof invoices[0] | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,16 +77,6 @@ const Invoices = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleViewInvoice = (invoice: typeof invoices[0]) => {
-    setSelectedInvoice(invoice);
-    setIsDetailsModalOpen(true);
-  };
-
-  const handleDownloadInvoice = (invoiceId: string) => {
-    console.log(`Downloading invoice ${invoiceId}`);
-    // In a real app, this would trigger a PDF download
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -89,13 +84,6 @@ const Invoices = () => {
       day: 'numeric'
     });
   };
-
-  // Calculate totals
-  const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-  const paidInvoices = invoices.filter(inv => inv.status === 'paid');
-  const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid');
-  const paidAmount = paidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-  const unpaidAmount = unpaidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
 
   return (
     <div className="space-y-6">
@@ -111,7 +99,7 @@ const Invoices = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">$25,400</div>
             <p className="text-xs text-muted-foreground">
               +12% from last month
             </p>
@@ -120,26 +108,26 @@ const Invoices = () => {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid Amount</CardTitle>
+            <CardTitle className="text-sm font-medium">Paid Invoices</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">${paidAmount.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-green-600">148</div>
             <p className="text-xs text-muted-foreground">
-              {paidInvoices.length} invoices
+              +8 new this month
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <CardTitle className="text-sm font-medium">Unpaid Invoices</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">${unpaidAmount.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-red-600">12</div>
             <p className="text-xs text-muted-foreground">
-              {unpaidInvoices.length} invoices
+              -3 from last month
             </p>
           </CardContent>
         </Card>
@@ -150,7 +138,7 @@ const Invoices = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{invoices.length}</div>
+            <div className="text-2xl font-bold">160</div>
             <p className="text-xs text-muted-foreground">
               This month
             </p>
@@ -159,7 +147,7 @@ const Invoices = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-1">
           <Input
             placeholder="Search by invoice ID or client name..."
@@ -199,30 +187,26 @@ const Invoices = () => {
               <TableRow key={invoice.id}>
                 <TableCell className="font-medium">{invoice.id}</TableCell>
                 <TableCell>{invoice.client}</TableCell>
-                <TableCell className="font-medium">${invoice.amount.toFixed(2)}</TableCell>
+                <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
                 <TableCell className="max-w-xs truncate">{invoice.items}</TableCell>
                 <TableCell>
                   <Badge className={
                     invoice.status === "paid" 
-                      ? "bg-green-500 text-white border-0" 
+                      ? "bg-green-500 text-white" 
                       : invoice.status === "overdue"
-                      ? "bg-red-500 text-white border-0"
-                      : "bg-amber-500 text-white border-0"
+                      ? "bg-red-500 text-white"
+                      : "bg-amber-500 text-white"
                   }>
                     {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleViewInvoice(invoice)}
-                          >
+                          <Button variant="ghost" size="sm">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -235,19 +219,30 @@ const Invoices = () => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDownloadInvoice(invoice.id)}
-                          >
+                          <Button variant="ghost" size="sm">
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Download Invoice</p>
+                          <p>Download PDF</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
+                    
+                    {invoice.status === 'unpaid' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Send Reminder</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -255,12 +250,6 @@ const Invoices = () => {
           </TableBody>
         </Table>
       </div>
-
-      <InvoiceDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        invoice={selectedInvoice}
-      />
     </div>
   );
 };

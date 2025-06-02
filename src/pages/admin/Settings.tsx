@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -30,6 +29,23 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Upload } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
+  Settings as SettingsIcon, 
+  Building, 
+  Mail, 
+  Bell, 
+  Shield,
+  Palette,
+  Globe,
+  Save
+} from "lucide-react";
 
 interface Carrier {
   id: string;
@@ -75,7 +91,7 @@ const mockAddOns: AddOnItem[] = [
 
 const addOnTypes = ['Service', 'Item', 'Accessory', 'Enhancement'];
 
-const Settings = () => {
+const AdminSettings = () => {
   const [carriers, setCarriers] = useState<Carrier[]>(mockCarriers);
   const [boxSizes, setBoxSizes] = useState<BoxSize[]>(mockBoxSizes);
   const [addOns, setAddOns] = useState<AddOnItem[]>(mockAddOns);
@@ -546,4 +562,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default AdminSettings;
