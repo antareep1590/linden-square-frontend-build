@@ -103,61 +103,62 @@ const ExpandedGiftCatalog: React.FC<ExpandedGiftCatalogProps> = ({
               isSelected ? 'border-linden-blue bg-blue-50' : 'border-gray-200'
             }`}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex gap-4">
               <img 
                 src={gift.image} 
                 alt={gift.name}
-                className="w-16 h-16 object-cover rounded"
+                className="w-16 h-16 object-cover rounded flex-shrink-0"
               />
-              <div className="flex-1">
-                <h4 className="font-semibold">{gift.name}</h4>
-                <p className="text-sm text-gray-600">{gift.description}</p>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold truncate">{gift.name}</h4>
+                <p className="text-sm text-gray-600 line-clamp-2">{gift.description}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="secondary" className="text-xs">{gift.category}</Badge>
                   <span className="font-bold text-linden-blue">${gift.price}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {isSelected ? (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onUpdateQuantity(gift.id, quantity - 1, quantity > 1)}
-                      disabled={quantity <= 1}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-8 text-center font-medium">{quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onUpdateQuantity(gift.id, quantity + 1, true)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onUpdateQuantity(gift.id, 0, false)}
-                      className="ml-2"
-                    >
-                      Remove
-                    </Button>
-                  </>
-                ) : (
+            </div>
+            
+            <div className="flex items-center justify-center gap-2 mt-4">
+              {isSelected ? (
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onUpdateQuantity(gift.id, 1, true)}
-                    className="bg-linden-blue text-white hover:bg-linden-blue/90"
+                    onClick={() => onUpdateQuantity(gift.id, quantity - 1, quantity > 1)}
+                    disabled={quantity <= 1}
+                    className="h-8 w-8 p-0"
                   >
-                    Add to Box
+                    <Minus className="h-3 w-3" />
                   </Button>
-                )}
-              </div>
+                  <span className="w-8 text-center font-medium">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onUpdateQuantity(gift.id, quantity + 1, true)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onUpdateQuantity(gift.id, 0, false)}
+                    className="ml-2 text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUpdateQuantity(gift.id, 1, true)}
+                  className="bg-linden-blue text-white hover:bg-linden-blue/90"
+                >
+                  Add to Box
+                </Button>
+              )}
             </div>
           </div>
         );

@@ -54,8 +54,7 @@ const FinalSummary = () => {
   const recipientCount = summary.recipients?.length || 0;
 
   const handleCheckout = () => {
-    // Mock checkout process
-    alert('Proceeding to payment gateway...');
+    navigate('/payment-method', { state: { ...summary, total } });
   };
 
   const handlePayLater = () => {
@@ -119,13 +118,22 @@ const FinalSummary = () => {
                   <h4 className="font-medium mb-3">Personalization</h4>
                   <div className="space-y-2 text-sm">
                     {summary.personalization.ribbonColor && (
-                      <div>Ribbon: {summary.personalization.ribbonColor}</div>
+                      <div className="flex justify-between">
+                        <span>Ribbon Color:</span>
+                        <span>{summary.personalization.ribbonColor}</span>
+                      </div>
                     )}
                     {summary.personalization.giftWrap && (
-                      <div>Gift Wrap: {summary.personalization.giftWrap}</div>
+                      <div className="flex justify-between">
+                        <span>Gift Wrap:</span>
+                        <span>{summary.personalization.giftWrap}</span>
+                      </div>
                     )}
                     {summary.personalization.cardMessage && (
-                      <div>Card Message: "{summary.personalization.cardMessage}"</div>
+                      <div className="flex justify-between">
+                        <span>Card Message:</span>
+                        <span className="max-w-xs text-right">"{summary.personalization.cardMessage}"</span>
+                      </div>
                     )}
                     <div className="flex justify-between font-medium pt-2 border-t">
                       <span>Personalization Total</span>

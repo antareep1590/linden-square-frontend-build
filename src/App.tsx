@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import Invoices from '@/pages/Invoices';
 import Inventory from '@/pages/Inventory';
 import UploadRecipient from '@/pages/UploadRecipient';
 import Profile from '@/pages/Profile';
+import PaymentMethod from '@/pages/PaymentMethod';
 
 // New Gift Box Flow pages
 import GiftBoxFlow from '@/pages/GiftBoxFlow';
@@ -78,6 +78,7 @@ function App() {
           <Route path="/personalization" element={<DashboardLayout><PersonalizationStep /></DashboardLayout>} />
           <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />
           <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
+          <Route path="/payment-method" element={<DashboardLayout><PaymentMethod /></DashboardLayout>} />
           
           {/* Legacy routes - kept for compatibility */}
           <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />

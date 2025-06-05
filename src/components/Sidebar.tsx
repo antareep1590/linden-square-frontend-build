@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,7 +30,6 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Recipients', path: '/customers', icon: <Users size={20} /> },
   { name: 'Gift Box', path: '/gift-box-flow', icon: <Sparkles size={20} /> },
-  { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];

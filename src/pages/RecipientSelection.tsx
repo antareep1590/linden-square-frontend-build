@@ -6,7 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Users, Plus, Upload, Trash2, AlertTriangle, Save } from 'lucide-react';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ArrowLeft, Users, Plus, Upload, Trash2, AlertTriangle, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Recipient {
@@ -26,7 +34,7 @@ const RecipientSelection = () => {
   const location = useLocation();
   
   // Mock existing recipients
-  const [savedRecipients] = useState<Recipient[]>([
+  const [savedRecipients, setSavedRecipients] = useState<Recipient[]>([
     {
       id: 'saved-1',
       name: 'John Smith',
@@ -52,6 +60,7 @@ const RecipientSelection = () => {
     address: '',
     tag: ''
   });
+  const [editingRecipient, setEditingRecipient] = useState<string | null>(null);
   const [sendOption, setSendOption] = useState<'now' | 'later'>('now');
 
   const allRecipients = [...savedRecipients, ...newRecipients];
@@ -90,12 +99,11 @@ const RecipientSelection = () => {
   };
 
   const updateRecipient = (id: string, field: string, value: string | boolean) => {
-    if (savedRecipients.find(r => r.id === id)) {
-      // Update saved recipients
-      const updatedSaved = savedRecipients.map(r => 
-        r.id === id ? { ...r, [field]: value } : r
-      );
-      // Note: In a real app, this would update the global state
+    const savedIndex = savedRecipients.findIndex(r => r.id === id);
+    if (savedIndex !== -1) {
+      const updated = [...savedRecipients];
+      updated[savedIndex] = { ...updated[savedIndex], [field]: value };
+      setSavedRecipients(updated);
     } else {
       setNewRecipients(prev => prev.map(r => 
         r.id === id ? { ...r, [field]: value } : r
@@ -253,46 +261,54 @@ const RecipientSelection = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">Include</th>
-                      <th className="text-left p-2">Name</th>
-                      <th className="text-left p-2">Email</th>
-                      <th className="text-left p-2">Tag</th>
-                      <th className="text-left p-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allRecipients.map((recipient) => (
-                      <tr key={recipient.id} className="border-b">
-                        <td className="p-2">
-                          <Checkbox
-                            checked={recipient.included}
-                            onCheckedChange={(checked) => 
-                              toggleRecipientInclusion(recipient.id, checked as boolean)
-                            }
-                          />
-                        </td>
-                        <td className="p-2">
-                          <div>
-                            <span className="font-medium">{recipient.name}</span>
-                            {recipient.isDuplicate && (
-                              <div className="flex items-center gap-1 text-red-600 text-xs">
-                                <AlertTriangle className="h-3 w-3" />
-                                Duplicate
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-2 text-sm text-gray-600">{recipient.email}</td>
-                        <td className="p-2">
-                          {recipient.tag && (
-                            <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Include</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tag</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allRecipients.map((recipient) => (
+                    <TableRow key={recipient.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={recipient.included}
+                          onCheckedChange={(checked) => 
+                            toggleRecipientInclusion(recipient.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <span className="font-medium">{recipient.name}</span>
+                          {recipient.isDuplicate && (
+                            <div className="flex items-center gap-1 text-red-600 text-xs">
+                              <AlertTriangle className="h-3 w-3" />
+                              Duplicate
+                            </div>
                           )}
-                        </td>
-                        <td className="p-2">
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">{recipient.email}</TableCell>
+                      <TableCell>
+                        {recipient.tag && (
+                          <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingRecipient(recipient.id)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           {newRecipients.find(r => r.id === recipient.id) && (
                             <Button
                               variant="outline"
@@ -303,12 +319,12 @@ const RecipientSelection = () => {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>
