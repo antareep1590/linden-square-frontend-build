@@ -6,73 +6,150 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye, MapPin, Calendar, Gift } from "lucide-react";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye, MapPin, Calendar, ChevronDown, ChevronRight, User } from "lucide-react";
+import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
+
+interface SubOrder {
+  recipientName: string;
+  recipientEmail: string;
+  shippingAddress: string;
+  deliveryStatus: string;
+  estimatedDelivery: string;
+  giftBoxContents: string[];
+}
 
 interface Order {
   id: string;
-  giftBoxName: string;
-  giftBoxItems: string;
   recipientCount: number;
   shipDate: Date;
+  carrier: string;
+  trackingLink: string;
   status: string;
+  items: string;
   shippingAddress: string;
-  deliveryDate: string;
+  estimatedDelivery: string;
+  subOrders: SubOrder[];
 }
 
 const mockOrders: Order[] = [
   {
     id: "ORD-2023-001",
-    giftBoxName: "Premium Gift Box Set",
-    giftBoxItems: "Premium Coffee Set, Luxury Notebook, Wellness Kit",
-    shipDate: new Date("2023-11-01"),
-    shippingAddress: "123 Highland, Some Creek, GA 30303",
-    status: "delivered",
-    deliveryDate: "2023-11-05",
-    recipientCount: 25
+    shipDate: new Date("2023-11-15"),
+    items: "Premium Gift Box Set",
+    shippingAddress: "Multiple Recipients",
+    status: "shipped",
+    estimatedDelivery: "2023-11-20",
+    recipientCount: 3,
+    carrier: "FedEx",
+    trackingLink: "https://fedex.com/track/TRACK12345",
+    subOrders: [
+      {
+        recipientName: "John Smith",
+        recipientEmail: "john@company.com",
+        shippingAddress: "123 Main St, Anytown, CA 12345",
+        deliveryStatus: "delivered",
+        estimatedDelivery: "2023-11-18",
+        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
+      },
+      {
+        recipientName: "Sarah Johnson",
+        recipientEmail: "sarah@partner.com",
+        shippingAddress: "456 Oak Ave, Somewhere, NY 67890",
+        deliveryStatus: "in-transit",
+        estimatedDelivery: "2023-11-20",
+        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
+      },
+      {
+        recipientName: "Mike Wilson",
+        recipientEmail: "mike@team.com",
+        shippingAddress: "789 Pine Rd, Nowhere, TX 54321",
+        deliveryStatus: "processing",
+        estimatedDelivery: "2023-11-22",
+        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
+      }
+    ]
   },
   {
     id: "ORD-2023-002",
-    giftBoxName: "Custom Corporate Box",
-    giftBoxItems: "Custom Notebooks, Coffee Mugs, Tech Accessories",
-    shipDate: new Date("2023-10-28"),
-    shippingAddress: "456 Lowland, Atl, GA 30303",
-    status: "shipped",
-    deliveryDate: "2023-11-08",
-    recipientCount: 50
-  },
-  {
-    id: "ORD-2023-003",
-    giftBoxName: "Executive Gift Package",
-    giftBoxItems: "Wellness Kit, Premium Coffee Set, Artisan Tea Collection",
-    shipDate: new Date("2023-10-20"),
-    shippingAddress: "789 Flatiron, Hapeville, GA 30303",
+    shipDate: new Date("2023-11-10"),
+    items: "Custom Corporate Gifts",
+    shippingAddress: "456 Elm St, Anytown USA",
     status: "processing",
-    deliveryDate: "2023-11-10",
-    recipientCount: 40
-  },
-  {
-    id: "ORD-2023-004",
-    giftBoxName: "Welcome Kit",
-    giftBoxItems: "Gourmet Chocolate Box, Scented Candle, Tech Accessories Kit",
-    shipDate: new Date("2023-11-02"),
-    shippingAddress: "987 Midtown, Atl, GA 30303",
-    status: "pending",
-    deliveryDate: "2023-11-12",
-    recipientCount: 15
+    estimatedDelivery: "2023-11-22",
+    recipientCount: 1,
+    carrier: "UPS",
+    trackingLink: "https://ups.com/track/TRACK67890",
+    subOrders: [
+      {
+        recipientName: "Emily Davis",
+        recipientEmail: "emily@corp.com",
+        shippingAddress: "456 Elm St, Anytown, USA 12345",
+        deliveryStatus: "processing",
+        estimatedDelivery: "2023-11-22",
+        giftBoxContents: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"]
+      }
+    ]
   }
 ];
 
 const TrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deliveryDateRange, setDeliveryDateRange] = useState<any>(null);
+  const [orderDateRange, setOrderDateRange] = useState<any>(null);
+  const [recipientCountFilter, setRecipientCountFilter] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const filteredOrders = mockOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.giftBoxName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.shippingAddress.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesRecipientCount = !recipientCountFilter || order.recipientCount.toString() === recipientCountFilter;
+    return matchesSearch && matchesStatus && matchesRecipientCount;
   });
+
+  // Calculate overall status based on sub-orders
+  const getOverallStatus = (order: Order) => {
+    if (!order.subOrders || order.subOrders.length === 0) return order.status;
+    
+    const statuses = order.subOrders.map(sub => sub.deliveryStatus);
+    if (statuses.every(s => s === 'delivered')) return 'delivered';
+    if (statuses.some(s => s === 'processing')) return 'processing';
+    if (statuses.some(s => s === 'in-transit')) return 'in-transit';
+    return 'shipped';
+  };
+
+  // Get the latest delivery date
+  const getLatestDeliveryDate = (order: Order) => {
+    if (!order.subOrders || order.subOrders.length === 0) return order.estimatedDelivery;
+    
+    const dates = order.subOrders.map(sub => new Date(sub.estimatedDelivery));
+    const latestDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    return latestDate.toISOString().split('T')[0];
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsModalOpen(true);
+  };
+
+  const toggleOrderExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
+  };
 
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
@@ -83,33 +160,69 @@ const TrackOrders = () => {
     });
   };
 
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      "shipped": "bg-blue-500 text-white border-0",
+      "delivered": "bg-green-500 text-white border-0",
+      "processing": "bg-amber-500 text-white border-0",
+      "pending": "bg-gray-500 text-white border-0",
+      "in-transit": "bg-blue-600 text-white border-0"
+    };
+    
+    return (
+      <Badge className={statusColors[status as keyof typeof statusColors] || "bg-gray-500 text-white border-0"}>
+        {status === "in-transit" ? "In Transit" : status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Track Orders</h1>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
+      {/* Enhanced Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/20 p-4 rounded-lg">
+        <div>
           <Input
-            placeholder="Search by order ID, gift box name, or shipping address..."
+            placeholder="Search by order ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="processing">Processing</SelectItem>
             <SelectItem value="shipped">Shipped</SelectItem>
             <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
         </Select>
+
+        <DatePickerWithRange
+          date={deliveryDateRange}
+          onDateChange={setDeliveryDateRange}
+          placeholder="Delivery Date Range"
+        />
+
+        <DatePickerWithRange
+          date={orderDateRange}
+          onDateChange={setOrderDateRange}
+          placeholder="Order Date Range"
+        />
+
+        <Input
+          placeholder="Recipients count"
+          type="number"
+          value={recipientCountFilter}
+          onChange={(e) => setRecipientCountFilter(e.target.value)}
+        />
       </div>
 
       {/* Orders Table */}
@@ -117,63 +230,106 @@ const TrackOrders = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"></TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Gift Box Items</TableHead>
               <TableHead>Recipients</TableHead>
-              <TableHead>Shipping Address</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Delivery Date</TableHead>
+              <TableHead>Estimated Delivery</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{formatDate(order.shipDate)}</TableCell>
-                <TableCell className="max-w-xs">
-                  <div className="flex items-start gap-2">
-                    <Gift className="h-4 w-4 text-linden-blue mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm">{order.giftBoxName}</p>
-                      <p className="text-xs text-gray-600 line-clamp-2">({order.giftBoxItems})</p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Package className="h-4 w-4 text-gray-400" />
-                    <span>{order.recipientCount}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="max-w-xs truncate">{order.shippingAddress}</TableCell>
-                <TableCell>
-                  <Badge className={
-                    order.status === "pending" 
-                      ? "bg-gray-500 text-white border-0"
-                      : order.status === "processing" 
-                      ? "bg-amber-500 text-white border-0"
-                      : order.status === "shipped"
-                      ? "bg-blue-500 text-white border-0"
-                      : "bg-green-500 text-white border-0"
-                  }>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatDate(order.deliveryDate)}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filteredOrders.map((order) => {
+              const overallStatus = getOverallStatus(order);
+              const latestDelivery = getLatestDeliveryDate(order);
+              
+              return (
+                <React.Fragment key={order.id}>
+                  {/* Main Order Row */}
+                  <TableRow className="hover:bg-gray-50">
+                    <TableCell>
+                      {order.recipientCount > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleOrderExpansion(order.id)}
+                          className="p-0 h-6 w-6"
+                        >
+                          {expandedOrders.has(order.id) ? 
+                            <ChevronDown className="h-4 w-4" /> : 
+                            <ChevronRight className="h-4 w-4" />
+                          }
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{formatDate(order.shipDate)}</TableCell>
+                    <TableCell>{order.recipientCount} recipient{order.recipientCount > 1 ? 's' : ''}</TableCell>
+                    <TableCell>{getStatusBadge(overallStatus)}</TableCell>
+                    <TableCell>{formatDate(latestDelivery)}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleViewOrder(order)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View Order Details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  {/* Sub-order Rows */}
+                  {expandedOrders.has(order.id) && order.subOrders?.map((subOrder, index) => (
+                    <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
+                      <TableCell></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 pl-4">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium">{subOrder.recipientName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600 max-w-xs truncate">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          {subOrder.shippingAddress}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(subOrder.deliveryStatus)}</TableCell>
+                      <TableCell>{formatDate(subOrder.estimatedDelivery)}</TableCell>
+                      <TableCell>
+                        <div className="text-xs text-gray-500">
+                          {subOrder.giftBoxContents?.length || 0} items
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
+
+      <OrderDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        order={selectedOrder}
+      />
     </div>
   );
 };

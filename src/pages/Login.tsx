@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,12 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'reset'>('login');
-  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +39,6 @@ const Login: React.FC = () => {
 
   const handleBackToHome = () => {
     navigate('/');
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-    }
   };
 
   const renderLoginForm = () => (
@@ -151,47 +144,6 @@ const Login: React.FC = () => {
                 id="company" 
                 placeholder="Acme Corp" 
               />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="website">Company Website (Optional)</Label>
-            <Input 
-              id="website" 
-              type="url"
-              placeholder="https://www.yourcompany.com" 
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="logo">Company Logo (Optional)</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-              {logoFile ? (
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-sm text-gray-600">{logoFile.name}</span>
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setLogoFile(null)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ) : (
-                <label className="cursor-pointer">
-                  <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-linden-blue hover:text-linden-blue/80">
-                    Click to upload logo
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
             </div>
           </div>
           

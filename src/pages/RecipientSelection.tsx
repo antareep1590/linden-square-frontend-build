@@ -3,115 +3,202 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Users, Package, Plus, Minus, UserPlus } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ArrowLeft, Users, Plus, Upload, Trash2, AlertTriangle, Edit } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Recipient {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   address?: string;
-  tag?: string;
-}
-
-interface GiftBoxAssignment {
-  boxId: string;
-  recipients: string[];
+  tag: string;
+  isDuplicate?: boolean;
+  hasErrors?: boolean;
+  included: boolean;
 }
 
 const RecipientSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [recipients, setRecipients] = useState<Recipient[]>([
-    { id: '1', name: 'John Smith', email: 'john@company.com', tag: 'Client' },
-    { id: '2', name: 'Sarah Johnson', email: 'sarah@partner.com', tag: 'Partner' }
-  ]);
-  const [newRecipient, setNewRecipient] = useState({ name: '', email: '', tag: '' });
-  const [assignments, setAssignments] = useState<GiftBoxAssignment[]>([]);
-
-  // Mock multiple gift boxes data
-  const giftBoxes = [
+  
+  // Mock existing recipients
+  const [savedRecipients, setSavedRecipients] = useState<Recipient[]>([
     {
-      id: 'box-1',
-      name: 'Premium Coffee Collection',
-      price: 85,
-      personalization: { ribbon: 'Gold', message: 'Thank you!' }
+      id: 'saved-1',
+      name: 'John Smith',
+      email: 'john@company.com',
+      phone: '+1234567890',
+      tag: 'Client',
+      included: false
     },
     {
-      id: 'box-2', 
-      name: 'Wellness Starter Kit',
-      price: 65,
-      personalization: { ribbon: 'Blue', message: 'Stay healthy!' }
+      id: 'saved-2',
+      name: 'Sarah Johnson',
+      email: 'sarah@partner.com',
+      tag: 'Partner',
+      included: false
     }
-  ];
+  ]);
+
+  const [newRecipients, setNewRecipients] = useState<Recipient[]>([]);
+  const [newRecipient, setNewRecipient] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    tag: ''
+  });
+  const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [sendOption, setSendOption] = useState<'now' | 'later'>('now');
+
+  const allRecipients = [...savedRecipients, ...newRecipients];
 
   const addRecipient = () => {
-    if (newRecipient.name && newRecipient.email) {
-      const recipient: Recipient = {
-        id: Date.now().toString(),
-        ...newRecipient
-      };
-      setRecipients([...recipients, recipient]);
-      setNewRecipient({ name: '', email: '', tag: '' });
+    if (!newRecipient.name || !newRecipient.email) {
+      toast.error('Name and email are required');
+      return;
+    }
+
+    const isDuplicate = allRecipients.some(r => 
+      r.email.toLowerCase() === newRecipient.email.toLowerCase() ||
+      r.name.toLowerCase() === newRecipient.name.toLowerCase()
+    );
+
+    const recipient: Recipient = {
+      id: Date.now().toString(),
+      ...newRecipient,
+      isDuplicate,
+      included: true
+    };
+
+    setNewRecipients(prev => [...prev, recipient]);
+    setNewRecipient({ name: '', email: '', phone: '', address: '', tag: '' });
+    
+    if (isDuplicate) {
+      toast.warning('Duplicate recipient detected');
+    } else {
+      toast.success('Recipient added successfully');
     }
   };
 
   const removeRecipient = (id: string) => {
-    setRecipients(recipients.filter(r => r.id !== id));
-    // Remove from assignments
-    setAssignments(assignments.map(assignment => ({
-      ...assignment,
-      recipients: assignment.recipients.filter(recipientId => recipientId !== id)
-    })));
+    const savedIndex = savedRecipients.findIndex(r => r.id === id);
+    if (savedIndex !== -1) {
+      setSavedRecipients(prev => prev.filter(r => r.id !== id));
+    } else {
+      setNewRecipients(prev => prev.filter(r => r.id !== id));
+    }
+    toast.success('Recipient removed');
   };
 
-  const assignRecipientToBox = (recipientId: string, boxId: string) => {
-    setAssignments(prev => {
-      const existing = prev.find(a => a.boxId === boxId);
-      if (existing) {
-        if (existing.recipients.includes(recipientId)) {
-          // Remove assignment
-          return prev.map(a => 
-            a.boxId === boxId 
-              ? { ...a, recipients: a.recipients.filter(r => r !== recipientId) }
-              : a
-          );
-        } else {
-          // Add assignment
-          return prev.map(a => 
-            a.boxId === boxId 
-              ? { ...a, recipients: [...a.recipients, recipientId] }
-              : a
-          );
+  const updateRecipient = (id: string, field: string, value: string | boolean) => {
+    const savedIndex = savedRecipients.findIndex(r => r.id === id);
+    if (savedIndex !== -1) {
+      const updated = [...savedRecipients];
+      updated[savedIndex] = { ...updated[savedIndex], [field]: value };
+      setSavedRecipients(updated);
+    } else {
+      setNewRecipients(prev => prev.map(r => 
+        r.id === id ? { ...r, [field]: value } : r
+      ));
+    }
+  };
+
+  const toggleRecipientInclusion = (id: string, included: boolean) => {
+    updateRecipient(id, 'included', included);
+  };
+
+  const handleEditRecipient = (recipient: Recipient) => {
+    setEditingRecipient({ ...recipient });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateRecipient = () => {
+    if (!editingRecipient) return;
+
+    const savedIndex = savedRecipients.findIndex(r => r.id === editingRecipient.id);
+    if (savedIndex !== -1) {
+      setSavedRecipients(prev => prev.map(r => 
+        r.id === editingRecipient.id ? editingRecipient : r
+      ));
+    } else {
+      setNewRecipients(prev => prev.map(r => 
+        r.id === editingRecipient.id ? editingRecipient : r
+      ));
+    }
+    setIsEditModalOpen(false);
+    setEditingRecipient(null);
+    toast.success('Recipient updated successfully');
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      // Mock CSV processing
+      const mockRecipients: Recipient[] = [
+        {
+          id: Date.now().toString(),
+          name: 'Jane Doe',
+          email: 'jane@example.com',
+          phone: '+1234567890',
+          address: '123 Main St, City, State',
+          tag: 'Client',
+          included: true
         }
-      } else {
-        // Create new assignment
-        return [...prev, { boxId, recipients: [recipientId] }];
+      ];
+      
+      setNewRecipients(prev => [...prev, ...mockRecipients]);
+      toast.success('CSV uploaded successfully');
+    } else {
+      toast.error('Please upload a valid CSV file');
+    }
+  };
+
+  const handleContinue = () => {
+    const selectedRecipients = allRecipients.filter(r => r.included);
+    
+    if (selectedRecipients.length === 0) {
+      toast.error('Please select at least one recipient');
+      return;
+    }
+
+    const validRecipients = selectedRecipients.filter(r => r.name && r.email);
+    if (validRecipients.length !== selectedRecipients.length) {
+      toast.error('Please fix all recipient errors before continuing');
+      return;
+    }
+
+    navigate('/final-summary', { 
+      state: { 
+        ...location.state, 
+        recipients: selectedRecipients,
+        sendOption 
       }
     });
   };
 
-  const isRecipientAssignedToBox = (recipientId: string, boxId: string) => {
-    const assignment = assignments.find(a => a.boxId === boxId);
-    return assignment?.recipients.includes(recipientId) || false;
-  };
-
-  const getAssignedRecipientsCount = (boxId: string) => {
-    const assignment = assignments.find(a => a.boxId === boxId);
-    return assignment?.recipients.length || 0;
-  };
-
-  const handleContinue = () => {
-    const finalData = {
-      ...location.state,
-      recipients,
-      assignments,
-      giftBoxes
-    };
-    navigate('/final-summary', { state: finalData });
-  };
+  const selectedCount = allRecipients.filter(r => r.included).length;
 
   return (
     <div className="space-y-6">
@@ -121,147 +208,287 @@ const RecipientSelection = () => {
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Assign Recipients</h1>
-          <p className="text-gray-600">Assign recipients to your selected gift boxes</p>
+          <h1 className="text-2xl font-bold">Select Recipients</h1>
+          <p className="text-gray-600">Add recipients for your gift boxes</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recipients Management */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Add Recipients */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Manual Add */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5" />
-                Add Recipients
+                <Plus className="h-5 w-5" />
+                Add Recipient Manually
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  placeholder="Full Name *"
+                  value={newRecipient.name}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
+                />
+                <Input
+                  placeholder="Email Address *"
+                  type="email"
+                  value={newRecipient.email}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
+                />
+                <Input
+                  placeholder="Phone Number (optional)"
+                  value={newRecipient.phone}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, phone: e.target.value }))}
+                />
+                <Input
+                  placeholder="Tag (e.g., Client, Friend)"
+                  value={newRecipient.tag}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, tag: e.target.value }))}
+                />
+              </div>
               <Input
-                placeholder="Full Name"
-                value={newRecipient.name}
-                onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Address (optional)"
+                value={newRecipient.address}
+                onChange={(e) => setNewRecipient(prev => ({ ...prev, address: e.target.value }))}
               />
-              <Input
-                placeholder="Email Address"
-                type="email"
-                value={newRecipient.email}
-                onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
-              />
-              <Select 
-                value={newRecipient.tag} 
-                onValueChange={(value) => setNewRecipient(prev => ({ ...prev, tag: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select tag (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Client">Client</SelectItem>
-                  <SelectItem value="Partner">Partner</SelectItem>
-                  <SelectItem value="Employee">Employee</SelectItem>
-                  <SelectItem value="Vendor">Vendor</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={addRecipient} className="w-full bg-linden-blue hover:bg-linden-blue/90">
+              <Button onClick={addRecipient} className="bg-linden-blue hover:bg-linden-blue/90">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Recipient
               </Button>
             </CardContent>
           </Card>
 
+          {/* CSV Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Upload CSV File
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <label className="cursor-pointer">
+                  <span className="text-linden-blue hover:text-linden-blue/80">
+                    Click to upload CSV file
+                  </span>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-xs text-gray-500 mt-2">
+                  CSV should include: Name, Email, Phone, Address, Tag
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recipients Table */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Recipients ({recipients.length})
+                All Recipients ({allRecipients.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {recipients.map(recipient => (
-                  <div key={recipient.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{recipient.name}</p>
-                      <p className="text-xs text-gray-600">{recipient.email}</p>
-                    </div>
-                    {recipient.tag && (
-                      <Badge variant="secondary" className="text-xs mr-2">{recipient.tag}</Badge>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeRecipient(recipient.id)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Include</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Tag</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allRecipients.map((recipient) => (
+                    <TableRow key={recipient.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={recipient.included}
+                          onCheckedChange={(checked) => 
+                            toggleRecipientInclusion(recipient.id, checked as boolean)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <span className="font-medium">{recipient.name}</span>
+                          {recipient.isDuplicate && (
+                            <div className="flex items-center gap-1 text-red-600 text-xs">
+                              <AlertTriangle className="h-3 w-3" />
+                              Duplicate
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">{recipient.email}</TableCell>
+                      <TableCell>
+                        {recipient.tag && (
+                          <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditRecipient(recipient)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeRecipient(recipient.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>
 
-        {/* Gift Box Assignments */}
-        <div className="lg:col-span-2 space-y-6">
-          {giftBoxes.map(box => (
-            <Card key={box.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    {box.name}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">${box.price}</Badge>
-                    <Badge className="bg-linden-blue">
-                      {getAssignedRecipientsCount(box.id)} assigned
-                    </Badge>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {recipients.map(recipient => {
-                    const isAssigned = isRecipientAssignedToBox(recipient.id, box.id);
-                    return (
-                      <div
-                        key={recipient.id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          isAssigned 
-                            ? 'border-linden-blue bg-linden-lightblue' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => assignRecipientToBox(recipient.id, box.id)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-sm">{recipient.name}</p>
-                            <p className="text-xs text-gray-600">{recipient.email}</p>
-                          </div>
-                          {recipient.tag && (
-                            <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Send Options */}
+        <div className="lg:col-span-1">
+          <Card className="sticky top-6">
+            <CardHeader>
+              <CardTitle>Send Options</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="sendOption"
+                    value="now"
+                    checked={sendOption === 'now'}
+                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later')}
+                  />
+                  <span>Send Now</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    name="sendOption"
+                    value="later"
+                    checked={sendOption === 'later'}
+                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later')}
+                  />
+                  <span>Schedule for Later</span>
+                </label>
+              </div>
 
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleContinue}
-              className="bg-linden-blue hover:bg-linden-blue/90"
-              disabled={assignments.length === 0 || assignments.every(a => a.recipients.length === 0)}
-            >
-              Continue to Summary
-            </Button>
-          </div>
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-2">Summary</h4>
+                <div className="text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span>Total Recipients:</span>
+                    <span>{allRecipients.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Selected:</span>
+                    <span className="text-green-600">{selectedCount}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleContinue}
+                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                disabled={selectedCount === 0}
+              >
+                Continue to Summary
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Edit Recipient Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Recipient</DialogTitle>
+          </DialogHeader>
+          
+          {editingRecipient && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingRecipient.name}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editingRecipient.email}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, email: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  value={editingRecipient.phone || ''}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, phone: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-tag">Tag</Label>
+                <Input
+                  id="edit-tag"
+                  value={editingRecipient.tag}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, tag: e.target.value })}
+                />
+              </div>
+              
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={editingRecipient.address || ''}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, address: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateRecipient}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
