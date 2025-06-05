@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,50 +17,60 @@ import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
 
 interface Order {
   id: string;
-  date: string;
+  recipientCount: number;
+  shipDate: Date;
+  carrier: string;
+  trackingLink: string;
+  status: string;
   items: string;
   shippingAddress: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'pending';
   deliveryDate: string;
-  trackingNumber: string;
 }
 
 const mockOrders: Order[] = [
   {
     id: "ORD-2023-001",
-    date: "2023-11-01",
+    shipDate: new Date("2023-11-01"),
     items: "Premium Gift Box Set x25",
-    shippingAddress: "123 Highland, Some Crrek, GA 30303",
+    shippingAddress: "123 Highland, Some Creek, GA 30303",
     status: "delivered",
     deliveryDate: "2023-11-05",
-    trackingNumber: "TRACK12345"
+    recipientCount: 25,
+    carrier: "FedEx",
+    trackingLink: "https://fedex.com/track/TRACK12345"
   },
   {
     id: "ORD-2023-002",
-    date: "2023-10-28",
+    shipDate: new Date("2023-10-28"),
     items: "Custom Notebooks x50, Coffee Mugs x50",
     shippingAddress: "456 Lowland, Atl, GA 30303",
     status: "shipped",
     deliveryDate: "2023-11-08",
-    trackingNumber: "TRACK54321"
+    recipientCount: 50,
+    carrier: "UPS",
+    trackingLink: "https://ups.com/track/TRACK54321"
   },
   {
     id: "ORD-2023-003",
-    date: "2023-10-20",
+    shipDate: new Date("2023-10-20"),
     items: "Executive Gift Package x40",
     shippingAddress: "789 Flatiron, Hapeville, GA 30303",
     status: "processing",
     deliveryDate: "2023-11-10",
-    trackingNumber: "TRACK98765"
+    recipientCount: 40,
+    carrier: "DHL",
+    trackingLink: "https://dhl.com/track/TRACK98765"
   },
   {
     id: "ORD-2023-004",
-    date: "2023-11-02",
+    shipDate: new Date("2023-11-02"),
     items: "Welcome Kit x15",
     shippingAddress: "987 Midtown, Atl, GA 30303",
     status: "pending",
     deliveryDate: "2023-11-12",
-    trackingNumber: "TRACK67890"
+    recipientCount: 15,
+    carrier: "USPS",
+    trackingLink: "https://usps.com/track/TRACK67890"
   }
 ];
 
@@ -81,8 +92,9 @@ const AdminTrackOrders = () => {
     setIsDetailsModalOpen(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -136,7 +148,7 @@ const AdminTrackOrders = () => {
             {filteredOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{formatDate(order.date)}</TableCell>
+                <TableCell>{formatDate(order.shipDate)}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.items}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.shippingAddress}</TableCell>
                 <TableCell>

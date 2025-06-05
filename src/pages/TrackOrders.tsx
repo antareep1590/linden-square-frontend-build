@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,50 +17,60 @@ import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
 
 interface Order {
   id: string;
-  date: string;
+  recipientCount: number;
+  shipDate: Date;
+  carrier: string;
+  trackingLink: string;
+  status: string;
   items: string;
   shippingAddress: string;
-  status: 'processing' | 'shipped' | 'delivered' | 'pending';
   estimatedDelivery: string;
-  trackingNumber: string;
 }
 
 const mockOrders: Order[] = [
   {
     id: "ORD-2023-001",
-    date: "2023-11-15",
+    shipDate: new Date("2023-11-15"),
     items: "Premium Gift Box Set",
     shippingAddress: "123 Main St, Anytown USA",
     status: "shipped",
     estimatedDelivery: "2023-11-20",
-    trackingNumber: "TRACK12345"
+    recipientCount: 1,
+    carrier: "FedEx",
+    trackingLink: "https://fedex.com/track/TRACK12345"
   },
   {
     id: "ORD-2023-002",
-    date: "2023-11-10",
+    shipDate: new Date("2023-11-10"),
     items: "Custom Corporate Gifts",
     shippingAddress: "456 Elm St, Anytown USA",
     status: "processing",
     estimatedDelivery: "2023-11-22",
-    trackingNumber: "TRACK67890"
+    recipientCount: 5,
+    carrier: "UPS",
+    trackingLink: "https://ups.com/track/TRACK67890"
   },
   {
     id: "ORD-2023-003",
-    date: "2023-11-05",
+    shipDate: new Date("2023-11-05"),
     items: "Employee Appreciation Gifts",
     shippingAddress: "789 Oak St, Anytown USA",
     status: "delivered",
     estimatedDelivery: "2023-11-09",
-    trackingNumber: "TRACK10111"
+    recipientCount: 10,
+    carrier: "DHL",
+    trackingLink: "https://dhl.com/track/TRACK10111"
   },
   {
     id: "ORD-2023-004",
-    date: "2023-10-28",
+    shipDate: new Date("2023-10-28"),
     items: "Client Holiday Gifts",
     shippingAddress: "101 Pine St, Anytown USA",
     status: "pending",
     estimatedDelivery: "2023-11-15",
-    trackingNumber: "TRACK12131"
+    recipientCount: 3,
+    carrier: "USPS",
+    trackingLink: "https://usps.com/track/TRACK12131"
   }
 ];
 
@@ -80,8 +91,9 @@ const TrackOrders = () => {
     setIsDetailsModalOpen(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -135,7 +147,7 @@ const TrackOrders = () => {
             {filteredOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{formatDate(order.date)}</TableCell>
+                <TableCell>{formatDate(order.shipDate)}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.items}</TableCell>
                 <TableCell className="max-w-xs truncate">{order.shippingAddress}</TableCell>
                 <TableCell>
