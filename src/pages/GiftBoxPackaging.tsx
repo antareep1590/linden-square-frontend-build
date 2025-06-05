@@ -16,8 +16,11 @@ import {
   Star,
   CheckCircle,
   MapPin,
-  Clock
+  Clock,
+  Plus,
+  Minus
 } from "lucide-react";
+import GiftAssignmentPanel from "@/components/GiftAssignmentPanel";
 
 interface GiftBox {
   id: string;
@@ -28,6 +31,7 @@ interface GiftBox {
   capacity: number;
   features: string[];
   rating: number;
+  quantity: number;
 }
 
 interface ShippingOption {
@@ -48,7 +52,8 @@ const giftBoxes: GiftBox[] = [
     image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop',
     capacity: 6,
     features: ['Custom Engraving', 'Magnetic Closure', 'Sustainable Wood'],
-    rating: 4.8
+    rating: 4.8,
+    quantity: 0
   },
   {
     id: '2',
@@ -58,7 +63,8 @@ const giftBoxes: GiftBox[] = [
     image: 'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=300&h=200&fit=crop',
     capacity: 8,
     features: ['Gold Accents', 'Premium Ribbon', 'Luxury Feel'],
-    rating: 4.9
+    rating: 4.9,
+    quantity: 0
   },
   {
     id: '3',
@@ -68,7 +74,8 @@ const giftBoxes: GiftBox[] = [
     image: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=300&h=200&fit=crop',
     capacity: 5,
     features: ['100% Recycled', 'Biodegradable', 'Eco-Conscious'],
-    rating: 4.7
+    rating: 4.7,
+    quantity: 0
   }
 ];
 
@@ -100,19 +107,41 @@ const shippingOptions: ShippingOption[] = [
 ];
 
 const GiftBoxPackaging = () => {
-  const [selectedBox, setSelectedBox] = useState<string>('');
+  const [selectedBoxes, setSelectedBoxes] = useState<GiftBox[]>(giftBoxes);
   const [selectedShipping, setSelectedShipping] = useState<string>('standard');
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [addInsurance, setAddInsurance] = useState(false);
   const [addThankYouNote, setAddThankYouNote] = useState(false);
   const [signatureRequired, setSignatureRequired] = useState(false);
+  const [showGiftAssignment, setShowGiftAssignment] = useState(false);
+  const [selectedBoxForGifts, setSelectedBoxForGifts] = useState<GiftBox | null>(null);
 
-  const selectedGiftBox = giftBoxes.find(box => box.id === selectedBox);
   const selectedShippingOption = shippingOptions.find(option => option.id === selectedShipping);
+
+  const updateBoxQuantity = (boxId: string, newQuantity: number) => {
+    setSelectedBoxes(boxes => 
+      boxes.map(box => 
+        box.id === boxId ? { ...box, quantity: Math.max(0, newQuantity) } : box
+      )
+    );
+  };
+
+  const handleAssignGifts = (box: GiftBox) => {
+    if (box.quantity > 0) {
+      setSelectedBoxForGifts(box);
+      setShowGiftAssignment(true);
+    }
+  };
 
   const calculateTotal = () => {
     let total = 0;
-    if (selectedGiftBox) total += selectedGiftBox.price;
+    
+    // Add gift box costs
+    selectedBoxes.forEach(box => {
+      total += box.price * box.quantity;
+    });
+    
+    // Add shipping cost
     if (selectedShippingOption) total += selectedShippingOption.price;
     if (addInsurance) total += 4.99;
     if (addThankYouNote) total += 2.99;
@@ -120,9 +149,13 @@ const GiftBoxPackaging = () => {
     return total;
   };
 
+  const getTotalBoxes = () => {
+    return selectedBoxes.reduce((sum, box) => sum + box.quantity, 0);
+  };
+
   const handleSavePackaging = () => {
     console.log('Packaging saved:', {
-      giftBox: selectedGiftBox,
+      giftBoxes: selectedBoxes.filter(box => box.quantity > 0),
       shipping: selectedShippingOption,
       deliveryInstructions,
       addOns: { addInsurance, addThankYouNote, signatureRequired }
@@ -133,7 +166,7 @@ const GiftBoxPackaging = () => {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Packaging & Delivery</h1>
-        <p className="text-gray-600">Choose your gift box and delivery preferences</p>
+        <p className="text-gray-600">Choose your gift boxes, add gifts, and set delivery preferences</p>
       </div>
 
       {/* Gift Box Selection */}
@@ -141,18 +174,17 @@ const GiftBoxPackaging = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Select Gift Box
+            Select Gift Boxes
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {giftBoxes.map((box) => (
+            {selectedBoxes.map((box) => (
               <Card 
                 key={box.id} 
-                className={`cursor-pointer transition-all ${
-                  selectedBox === box.id ? 'ring-2 ring-linden-blue' : ''
+                className={`transition-all ${
+                  box.quantity > 0 ? 'ring-2 ring-linden-blue' : ''
                 }`}
-                onClick={() => setSelectedBox(box.id)}
               >
                 <div className="aspect-video relative">
                   <img
@@ -160,9 +192,11 @@ const GiftBoxPackaging = () => {
                     alt={box.name}
                     className="object-cover w-full h-full rounded-t-lg"
                   />
-                  {selectedBox === box.id && (
+                  {box.quantity > 0 && (
                     <div className="absolute top-2 right-2">
-                      <CheckCircle className="h-6 w-6 text-linden-blue bg-white rounded-full" />
+                      <Badge className="bg-linden-blue text-white">
+                        {box.quantity}
+                      </Badge>
                     </div>
                   )}
                 </div>
@@ -186,12 +220,48 @@ const GiftBoxPackaging = () => {
                     </div>
                     <Badge variant="outline">Capacity: {box.capacity} items</Badge>
                   </div>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 mb-4">
                     {box.features.map((feature, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {feature}
                       </Badge>
                     ))}
+                  </div>
+
+                  {/* Quantity Controls */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateBoxQuantity(box.id, box.quantity - 1)}
+                        disabled={box.quantity === 0}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center font-medium">{box.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => updateBoxQuantity(box.id, box.quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    {box.quantity > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAssignGifts(box)}
+                        className="text-linden-blue"
+                      >
+                        <Gift className="h-4 w-4 mr-1" />
+                        Assign Gifts
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -275,7 +345,7 @@ const GiftBoxPackaging = () => {
               <Checkbox
                 id="insurance"
                 checked={addInsurance}
-                onCheckedChange={setAddInsurance}
+                onCheckedChange={(checked) => setAddInsurance(checked === true)}
               />
               <Label htmlFor="insurance" className="flex-1">
                 Add shipping insurance (+$4.99)
@@ -286,7 +356,7 @@ const GiftBoxPackaging = () => {
               <Checkbox
                 id="thank-you-note"
                 checked={addThankYouNote}
-                onCheckedChange={setAddThankYouNote}
+                onCheckedChange={(checked) => setAddThankYouNote(checked === true)}
               />
               <Label htmlFor="thank-you-note" className="flex-1">
                 Include personalized thank-you note (+$2.99)
@@ -297,7 +367,7 @@ const GiftBoxPackaging = () => {
               <Checkbox
                 id="signature"
                 checked={signatureRequired}
-                onCheckedChange={setSignatureRequired}
+                onCheckedChange={(checked) => setSignatureRequired(checked === true)}
               />
               <Label htmlFor="signature" className="flex-1">
                 Require signature on delivery (+$3.99)
@@ -317,12 +387,12 @@ const GiftBoxPackaging = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {selectedGiftBox && (
-              <div className="flex justify-between">
-                <span>{selectedGiftBox.name}</span>
-                <span>${selectedGiftBox.price}</span>
+            {selectedBoxes.filter(box => box.quantity > 0).map((box) => (
+              <div key={box.id} className="flex justify-between">
+                <span>{box.name} (x{box.quantity})</span>
+                <span>${(box.price * box.quantity).toFixed(2)}</span>
               </div>
-            )}
+            ))}
             {selectedShippingOption && (
               <div className="flex justify-between">
                 <span>{selectedShippingOption.name}</span>
@@ -349,7 +419,7 @@ const GiftBoxPackaging = () => {
             )}
             <Separator />
             <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
+              <span>Total ({getTotalBoxes()} boxes)</span>
               <span>${calculateTotal().toFixed(2)}</span>
             </div>
           </div>
@@ -357,12 +427,19 @@ const GiftBoxPackaging = () => {
           <Button 
             onClick={handleSavePackaging}
             className="w-full mt-6 bg-linden-blue hover:bg-linden-blue/90"
-            disabled={!selectedBox}
+            disabled={getTotalBoxes() === 0}
           >
             Save Packaging & Delivery Preferences
           </Button>
         </CardContent>
       </Card>
+
+      {/* Gift Assignment Panel */}
+      <GiftAssignmentPanel
+        isOpen={showGiftAssignment}
+        onClose={() => setShowGiftAssignment(false)}
+        selectedBox={selectedBoxForGifts}
+      />
     </div>
   );
 };
