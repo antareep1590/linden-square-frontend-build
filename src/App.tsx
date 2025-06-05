@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,6 +19,8 @@ import Invoices from '@/pages/Invoices';
 import Inventory from '@/pages/Inventory';
 import UploadRecipient from '@/pages/UploadRecipient';
 import Profile from '@/pages/Profile';
+import BoxListing from '@/pages/BoxListing';
+import BoxDetails from '@/pages/BoxDetails';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -62,6 +63,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
           <Route path="/customers" element={<DashboardLayout><Customers /></DashboardLayout>} />
           <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
+          <Route path="/box-listing" element={<DashboardLayout><BoxListing /></DashboardLayout>} />
+          <Route path="/box-details/:id" element={<DashboardLayout><BoxDetails /></DashboardLayout>} />
           <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></DashboardLayout>} />
           <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />
           <Route path="/packaging" element={<DashboardLayout><GiftBoxPackaging /></DashboardLayout>} />
