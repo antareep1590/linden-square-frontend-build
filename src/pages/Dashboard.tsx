@@ -6,52 +6,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Gift, Users, Package, TrendingUp, Clock, AlertCircle } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Gift, Users, TrendingUp, Clock, AlertCircle, Package, MapPin, Calendar } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-const mockOrders = [
-  { 
-    id: 'ORD-001', 
-    giftName: 'Corporate Welcome Box', 
-    recipients: 24, 
-    status: 'Processing', 
-    date: '2025-04-02',
-    priority: 'high'
-  },
-  { 
-    id: 'ORD-002', 
-    giftName: 'Holiday Gift Bundle', 
-    recipients: 56, 
-    status: 'Pending Addresses', 
-    date: '2025-03-28',
-    priority: 'medium'
-  },
-  { 
-    id: 'ORD-003', 
-    giftName: 'Employee Appreciation Kit', 
-    recipients: 12, 
-    status: 'Completed', 
-    date: '2025-03-15',
-    priority: 'low'
-  },
-  { 
-    id: 'ORD-004', 
-    giftName: 'Client Thank You Package', 
-    recipients: 8, 
-    status: 'Shipped', 
-    date: '2025-03-10',
-    priority: 'low'
-  },
-];
+const mostRecentOrder = {
+  id: 'ORD-001', 
+  giftName: 'Corporate Welcome Box', 
+  recipients: 24, 
+  status: 'Processing', 
+  date: '2025-04-02',
+  priority: 'high',
+  giftBoxItems: 'Premium Coffee Set, Luxury Notebook, Wellness Kit',
+  estimatedDelivery: '2025-04-10',
+  trackingNumber: 'TRK123456789'
+};
 
 const Dashboard: React.FC = () => {
   return (
@@ -62,7 +31,7 @@ const Dashboard: React.FC = () => {
       </div>
       
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -96,21 +65,6 @@ const Dashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Inventory Available</p>
-                <p className="text-3xl font-bold text-gray-900">384</p>
-                <p className="text-sm text-gray-500 mt-2">Items in stock</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Package className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
@@ -128,77 +82,115 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
       
-      {/* Recent Orders */}
+      {/* Most Recent Order */}
       <Card className="bg-white border-0 shadow-sm">
         <CardHeader className="border-b border-gray-100 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Latest Bulk Orders</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Track and manage your recent gift orders</p>
+              <CardTitle className="text-xl font-semibold text-gray-900">Most Recent Order</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Your latest gift order details</p>
             </div>
             <Button variant="outline" className="px-4 py-2">
               View All Orders
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 border-0">
-                <TableHead className="font-semibold text-gray-700 py-4">Order ID</TableHead>
-                <TableHead className="font-semibold text-gray-700">Gift Name</TableHead>
-                <TableHead className="font-semibold text-gray-700">Recipients</TableHead>
-                <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                <TableHead className="font-semibold text-gray-700">Date</TableHead>
-                <TableHead className="font-semibold text-gray-700">Priority</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockOrders.map((order) => (
-                <TableRow key={order.id} className="hover:bg-gray-50 border-gray-100">
-                  <TableCell className="font-medium text-linden-blue py-4">{order.id}</TableCell>
-                  <TableCell className="font-medium text-gray-900">{order.giftName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-700">{order.recipients}</span>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Order Info */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Order Details</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Order ID:</span>
+                    <span className="text-sm font-medium text-linden-blue">{mostRecentOrder.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Gift Name:</span>
+                    <span className="text-sm font-medium">{mostRecentOrder.giftName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Recipients:</span>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3 text-gray-400" />
+                      <span className="text-sm font-medium">{mostRecentOrder.recipients}</span>
                     </div>
-                  </TableCell>
-                  <TableCell>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Order Date:</span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3 text-gray-400" />
+                      <span className="text-sm">{new Date(mostRecentOrder.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status & Progress */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Status & Timeline</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Status:</span>
                     <Badge 
                       variant="secondary"
-                      className={
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800 border-green-200' :
-                        order.status === 'Processing' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                        order.status === 'Pending Addresses' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                        order.status === 'Shipped' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : ''
-                      }
+                      className="bg-blue-100 text-blue-800 border-blue-200"
                     >
-                      {order.status}
+                      {mostRecentOrder.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      {new Date(order.date).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Priority:</span>
                     <Badge 
                       variant="outline"
-                      className={
-                        order.priority === 'high' ? 'border-red-200 text-red-700 bg-red-50' :
-                        order.priority === 'medium' ? 'border-amber-200 text-amber-700 bg-amber-50' :
-                        'border-gray-200 text-gray-600 bg-gray-50'
-                      }
+                      className="border-red-200 text-red-700 bg-red-50"
                     >
-                      {order.priority}
+                      {mostRecentOrder.priority}
                     </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Est. Delivery:</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-gray-400" />
+                      <span className="text-sm">{new Date(mostRecentOrder.estimatedDelivery).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Tracking:</span>
+                    <span className="text-sm font-mono text-gray-800">{mostRecentOrder.trackingNumber}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Gift Items */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Gift Items</h3>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Package className="h-4 w-4 text-gray-500 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{mostRecentOrder.giftName}</p>
+                      <p className="text-xs text-gray-600 mt-1">({mostRecentOrder.giftBoxItems})</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button size="sm" variant="outline" className="flex-1">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    Track Order
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1">
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -12,6 +12,12 @@ import ViewInvoice from "./pages/ViewInvoice";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import GiftBoxFlow from "./pages/GiftBoxFlow";
+import BoxListing from "./pages/BoxListing";
+import BoxDetails from "./pages/BoxDetails";
+import SelectGifts from "./pages/SelectGifts";
+import PersonalizationStep from "./pages/PersonalizationStep";
+import RecipientSelection from "./pages/RecipientSelection";
+import FinalSummary from "./pages/FinalSummary";
 import TrackOrders from "./pages/TrackOrders";
 import Invoices from "./pages/Invoices";
 import Profile from "./pages/Profile";
@@ -46,6 +52,12 @@ const App = () => (
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
           <Route path="/customers" element={<Layout><Customers /></Layout>} />
           <Route path="/gift-box-flow" element={<Layout><GiftBoxFlow /></Layout>} />
+          <Route path="/box-listing" element={<Layout><BoxListing /></Layout>} />
+          <Route path="/box-details/:id" element={<Layout><BoxDetails /></Layout>} />
+          <Route path="/select-gifts" element={<Layout><SelectGifts /></Layout>} />
+          <Route path="/personalization" element={<Layout><PersonalizationStep /></Layout>} />
+          <Route path="/recipient-selection" element={<Layout><RecipientSelection /></Layout>} />
+          <Route path="/final-summary" element={<Layout><FinalSummary /></Layout>} />
           <Route path="/track-orders" element={<Layout><TrackOrders /></Layout>} />
           <Route path="/invoices" element={<Layout><Invoices /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
