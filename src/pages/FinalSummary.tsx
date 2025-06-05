@@ -11,7 +11,7 @@ const FinalSummary = () => {
   const navigate = useNavigate();
   const state = location.state || {};
 
-  // Mock data for demonstration
+  // Mock data for demonstration with proper structure
   const mockSummary = {
     boxDetails: {
       name: 'Birthday Celebration Box',
@@ -22,7 +22,9 @@ const FinalSummary = () => {
     selectedGifts: [
       { name: 'Premium Coffee Set', price: 24.99, quantity: 1 },
       { name: 'Gourmet Chocolate Box', price: 19.99, quantity: 1 },
-      { name: 'Scented Candle', price: 15.99, quantity: 1 }
+      { name: 'Scented Candle', price: 15.99, quantity: 1 },
+      { name: 'Artisan Tea Collection', price: 22.99, quantity: 1 },
+      { name: 'Premium Notebook', price: 18.99, quantity: 1 }
     ],
     personalization: {
       ribbonColor: 'Gold',
@@ -53,7 +55,7 @@ const FinalSummary = () => {
   };
 
   const personalizationCost = summary.personalization?.addOnsCost || 0;
-  const shippingCost = 15.00; // Mock shipping cost
+  const shippingCost = 15.00;
   const subtotal = calculateSubtotal();
   const total = subtotal + personalizationCost + shippingCost;
   const recipientCount = summary.recipients?.length || 0;
@@ -63,7 +65,6 @@ const FinalSummary = () => {
   };
 
   const handlePayLater = () => {
-    // Mock pay later process
     alert('Order saved. Payment link will be sent to your email.');
     navigate('/dashboard');
   };
@@ -104,6 +105,7 @@ const FinalSummary = () => {
                 <span className="font-bold">${summary.boxDetails?.basePrice?.toFixed(2)}</span>
               </div>
 
+              {/* Included Gifts Section */}
               {summary.selectedGifts && summary.selectedGifts.length > 0 && (
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Included Gifts</h4>
@@ -118,11 +120,12 @@ const FinalSummary = () => {
                 </div>
               )}
 
+              {/* Personalization Section */}
               {summary.personalization && (
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Personalization</h4>
                   <div className="space-y-2 text-sm">
-                    {summary.personalization.selectedAddOns ? (
+                    {summary.personalization.selectedAddOns && summary.personalization.selectedAddOns.length > 0 ? (
                       <div className="space-y-2">
                         {summary.personalization.selectedAddOns.map((addon: any, index: number) => (
                           <div key={index} className="flex justify-between">
@@ -130,6 +133,12 @@ const FinalSummary = () => {
                             <span>${addon.price.toFixed(2)}</span>
                           </div>
                         ))}
+                        {summary.personalization.cardMessage && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-600 mb-1">Card Message:</p>
+                            <p className="text-sm italic">"{summary.personalization.cardMessage}"</p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <>
@@ -146,9 +155,9 @@ const FinalSummary = () => {
                           </div>
                         )}
                         {summary.personalization.cardMessage && (
-                          <div className="flex justify-between">
-                            <span>Card Message:</span>
-                            <span className="max-w-xs text-right">"{summary.personalization.cardMessage}"</span>
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-600 mb-1">Card Message:</p>
+                            <p className="text-sm italic">"{summary.personalization.cardMessage}"</p>
                           </div>
                         )}
                       </>

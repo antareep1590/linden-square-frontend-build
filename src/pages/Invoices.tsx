@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
+import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText, CheckCircle, Clock } from "lucide-react";
 
-// Mock data for invoices
+// Mock data for invoices with gift box items
 const invoices = [
   {
     id: "INV-2023-001",
@@ -21,6 +23,7 @@ const invoices = [
     amount: 1250.00,
     date: "2023-11-01",
     items: "Premium Gift Box Set x25",
+    giftBoxItems: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"],
     status: "paid"
   },
   {
@@ -28,7 +31,8 @@ const invoices = [
     client: "Tech Innovations",
     amount: 890.50,
     date: "2023-10-28",
-    items: "Custom Notebooks x50, Coffee Mugs x50",
+    items: "Custom Corporate Gifts",
+    giftBoxItems: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"],
     status: "unpaid"
   },
   {
@@ -37,6 +41,7 @@ const invoices = [
     amount: 2100.00,
     date: "2023-10-20",
     items: "Executive Gift Package x40",
+    giftBoxItems: ["Executive Pen Set", "Premium Coffee", "Business Card Holder"],
     status: "paid"
   },
   {
@@ -45,6 +50,7 @@ const invoices = [
     amount: 450.00,
     date: "2023-11-02",
     items: "Welcome Kit x15",
+    giftBoxItems: ["Welcome Guide", "Company Swag", "Gift Card"],
     status: "unpaid"
   },
   {
@@ -53,22 +59,15 @@ const invoices = [
     amount: 5500.00,
     date: "2023-10-15",
     items: "Holiday Collection x100",
+    giftBoxItems: ["Holiday Treats", "Seasonal Decor", "Gift Baskets"],
     status: "overdue"
   }
 ];
 
-interface Invoice {
-  id: string;
-  client: string;
-  amount: number;
-  date: string;
-  items: string;
-  status: string;
-}
-
 const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<any>(null);
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,23 +84,40 @@ const Invoices = () => {
     });
   };
 
+  // Calculate totals
+  const totalPaid = invoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
+  const totalDue = invoices.filter(inv => inv.status !== 'paid').reduce((sum, inv) => sum + inv.amount, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Invoices & Payments</h1>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards - Updated */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Amount Paid</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$25,400</div>
+            <div className="text-2xl font-bold text-green-600">${totalPaid.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
-              +12% from last month
+              From completed orders
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Amount Due</CardTitle>
+            <Clock className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">${totalDue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              Outstanding payments
             </p>
           </CardContent>
         </Card>
@@ -112,22 +128,11 @@ const Invoices = () => {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">148</div>
+            <div className="text-2xl font-bold text-green-600">
+              {invoices.filter(inv => inv.status === 'paid').length}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +8 new this month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unpaid Invoices</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">12</div>
-            <p className="text-xs text-muted-foreground">
-              -3 from last month
+              This month
             </p>
           </CardContent>
         </Card>
@@ -138,25 +143,24 @@ const Invoices = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">160</div>
+            <div className="text-2xl font-bold">{invoices.length}</div>
             <p className="text-xs text-muted-foreground">
-              This month
+              All time
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by invoice ID or client name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {/* Enhanced Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-muted/20 p-4 rounded-lg">
+        <Input
+          placeholder="Search by client name or invoice ID..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -166,6 +170,18 @@ const Invoices = () => {
             <SelectItem value="overdue">Overdue</SelectItem>
           </SelectContent>
         </Select>
+
+        <DatePickerWithRange
+          date={dateRange}
+          onDateChange={setDateRange}
+          placeholder="Date of Invoice"
+        />
+
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            Export
+          </Button>
+        </div>
       </div>
 
       {/* Invoices Table */}
@@ -177,7 +193,7 @@ const Invoices = () => {
               <TableHead>Client</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Items</TableHead>
+              <TableHead>Gift Box Items</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -189,7 +205,20 @@ const Invoices = () => {
                 <TableCell>{invoice.client}</TableCell>
                 <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
-                <TableCell className="max-w-xs truncate">{invoice.items}</TableCell>
+                <TableCell className="max-w-xs">
+                  <div className="flex flex-wrap gap-1">
+                    {invoice.giftBoxItems.slice(0, 2).map((item, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {item}
+                      </Badge>
+                    ))}
+                    {invoice.giftBoxItems.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{invoice.giftBoxItems.length - 2} more
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <Badge className={
                     invoice.status === "paid" 

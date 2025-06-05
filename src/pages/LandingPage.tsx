@@ -1,26 +1,23 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
-import { ArrowRight, Upload, Gift, Truck, Users, BarChart3, Package, Shield, CheckCircle, Star, Clock, Heart, MapPin, CreditCard, Headphones } from 'lucide-react';
+import { ArrowRight, Upload, Gift, Truck, Users, BarChart3, Package, Shield, CheckCircle, Star, Clock, Heart, MapPin, CreditCard, Headphones, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [activeValueProp, setActiveValueProp] = useState(0);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: 'smooth' });
+  const handleBrowsePresetBoxes = () => {
+    navigate('/box-listing');
   };
 
-  const handleBookDemo = () => {
+  const handleStartBuilding = () => {
     navigate('/login');
   };
 
-  const handleLoginClick = () => {
+  const handleGetStarted = () => {
     navigate('/login');
   };
 
@@ -327,33 +324,58 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-linden-blue mb-4">All-in-One Gifting Platform</h2>
-            <p className="text-xl text-gray-600">Everything you need for successful corporate gifting</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Choose Your Gift Box Approach
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Whether you prefer our curated collections or want to build something unique, 
+              we've got the perfect solution for your gifting needs.
+            </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-xl transition-all duration-300 border-0 shadow-lg group">
-                <CardContent className="p-8">
-                  <div className="mb-6">
-                    <div className="bg-linden-lightblue rounded-full w-16 h-16 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      {React.cloneElement(feature.icon, { className: "h-8 w-8 text-linden-blue" })}
-                    </div>
-                    <div className="mb-4">
-                      <img 
-                        src={feature.screenshot} 
-                        alt={feature.title}
-                        className="w-full h-32 object-cover rounded-lg shadow-md"
-                      />
-                    </div>
-                  </div>
-                  <h3 className="text-lg font-semibold text-linden-blue mb-3">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Preset Gift Boxes */}
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-linden-blue rounded-lg flex items-center justify-center mx-auto mb-6">
+                <Package className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Preset Gift Boxes
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Professionally curated gift boxes for every occasion. 
+                Ready to customize and send with just a few clicks.
+              </p>
+              <Button 
+                onClick={handleBrowsePresetBoxes}
+                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+              >
+                Browse Preset Boxes
+              </Button>
+            </div>
+
+            {/* Build Your Own Box */}
+            <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
+              <div className="w-16 h-16 bg-linden-gold rounded-lg flex items-center justify-center mx-auto mb-6">
+                <Sparkles className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Build Your Own Box
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Create completely custom gift boxes tailored to your recipients. 
+                Choose every item and personalization detail.
+              </p>
+              <Button 
+                onClick={handleStartBuilding}
+                className="w-full bg-linden-gold hover:bg-linden-gold/90"
+              >
+                Start Building
+              </Button>
+            </div>
           </div>
         </div>
       </section>

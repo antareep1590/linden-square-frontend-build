@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { 
   Tooltip,
   TooltipContent,
@@ -101,6 +102,9 @@ const mockOrders: Order[] = [
 const TrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deliveryDateRange, setDeliveryDateRange] = useState<any>(null);
+  const [orderDateRange, setOrderDateRange] = useState<any>(null);
+  const [recipientCountFilter, setRecipientCountFilter] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -108,8 +112,29 @@ const TrackOrders = () => {
   const filteredOrders = mockOrders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesRecipientCount = !recipientCountFilter || order.recipientCount.toString() === recipientCountFilter;
+    return matchesSearch && matchesStatus && matchesRecipientCount;
   });
+
+  // Calculate overall status based on sub-orders
+  const getOverallStatus = (order: Order) => {
+    if (!order.subOrders || order.subOrders.length === 0) return order.status;
+    
+    const statuses = order.subOrders.map(sub => sub.deliveryStatus);
+    if (statuses.every(s => s === 'delivered')) return 'delivered';
+    if (statuses.some(s => s === 'processing')) return 'processing';
+    if (statuses.some(s => s === 'in-transit')) return 'in-transit';
+    return 'shipped';
+  };
+
+  // Get the latest delivery date
+  const getLatestDeliveryDate = (order: Order) => {
+    if (!order.subOrders || order.subOrders.length === 0) return order.estimatedDelivery;
+    
+    const dates = order.subOrders.map(sub => new Date(sub.estimatedDelivery));
+    const latestDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    return latestDate.toISOString().split('T')[0];
+  };
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -157,17 +182,18 @@ const TrackOrders = () => {
         <h1 className="text-2xl font-bold">Track Orders</h1>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
+      {/* Enhanced Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/20 p-4 rounded-lg">
+        <div>
           <Input
             placeholder="Search by order ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger>
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -178,6 +204,25 @@ const TrackOrders = () => {
             <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
         </Select>
+
+        <DatePickerWithRange
+          date={deliveryDateRange}
+          onDateChange={setDeliveryDateRange}
+          placeholder="Delivery Date Range"
+        />
+
+        <DatePickerWithRange
+          date={orderDateRange}
+          onDateChange={setOrderDateRange}
+          placeholder="Order Date Range"
+        />
+
+        <Input
+          placeholder="Recipients count"
+          type="number"
+          value={recipientCountFilter}
+          onChange={(e) => setRecipientCountFilter(e.target.value)}
+        />
       </div>
 
       {/* Orders Table */}
@@ -195,82 +240,87 @@ const TrackOrders = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order) => (
-              <React.Fragment key={order.id}>
-                {/* Main Order Row */}
-                <TableRow className="hover:bg-gray-50">
-                  <TableCell>
-                    {order.recipientCount > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleOrderExpansion(order.id)}
-                        className="p-0 h-6 w-6"
-                      >
-                        {expandedOrders.has(order.id) ? 
-                          <ChevronDown className="h-4 w-4" /> : 
-                          <ChevronRight className="h-4 w-4" />
-                        }
-                      </Button>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{formatDate(order.shipDate)}</TableCell>
-                  <TableCell>{order.recipientCount} recipient{order.recipientCount > 1 ? 's' : ''}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>{formatDate(order.estimatedDelivery)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleViewOrder(order)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>View Order Details</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
-                </TableRow>
-                
-                {/* Sub-order Rows */}
-                {expandedOrders.has(order.id) && order.subOrders.map((subOrder, index) => (
-                  <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
-                    <TableCell></TableCell>
+            {filteredOrders.map((order) => {
+              const overallStatus = getOverallStatus(order);
+              const latestDelivery = getLatestDeliveryDate(order);
+              
+              return (
+                <React.Fragment key={order.id}>
+                  {/* Main Order Row */}
+                  <TableRow className="hover:bg-gray-50">
                     <TableCell>
-                      <div className="flex items-center gap-2 pl-4">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">{subOrder.recipientName}</span>
-                      </div>
+                      {order.recipientCount > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleOrderExpansion(order.id)}
+                          className="p-0 h-6 w-6"
+                        >
+                          {expandedOrders.has(order.id) ? 
+                            <ChevronDown className="h-4 w-4" /> : 
+                            <ChevronRight className="h-4 w-4" />
+                          }
+                        </Button>
+                      )}
                     </TableCell>
+                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell>{formatDate(order.shipDate)}</TableCell>
+                    <TableCell>{order.recipientCount} recipient{order.recipientCount > 1 ? 's' : ''}</TableCell>
+                    <TableCell>{getStatusBadge(overallStatus)}</TableCell>
+                    <TableCell>{formatDate(latestDelivery)}</TableCell>
                     <TableCell>
-                      <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600 max-w-xs truncate">
-                        <MapPin className="h-3 w-3 inline mr-1" />
-                        {subOrder.shippingAddress}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(subOrder.deliveryStatus)}</TableCell>
-                    <TableCell>{formatDate(subOrder.estimatedDelivery)}</TableCell>
-                    <TableCell>
-                      <div className="text-xs text-gray-500">
-                        {subOrder.giftBoxContents.length} items
+                      <div className="flex justify-end gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleViewOrder(order)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>View Order Details</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </React.Fragment>
-            ))}
+                  
+                  {/* Sub-order Rows */}
+                  {expandedOrders.has(order.id) && order.subOrders?.map((subOrder, index) => (
+                    <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
+                      <TableCell></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 pl-4">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium">{subOrder.recipientName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600 max-w-xs truncate">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          {subOrder.shippingAddress}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(subOrder.deliveryStatus)}</TableCell>
+                      <TableCell>{formatDate(subOrder.estimatedDelivery)}</TableCell>
+                      <TableCell>
+                        <div className="text-xs text-gray-500">
+                          {subOrder.giftBoxContents?.length || 0} items
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
