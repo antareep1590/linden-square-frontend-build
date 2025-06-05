@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,10 +19,6 @@ const LandingPage = () => {
   };
 
   const handleGetStarted = () => {
-    navigate('/login');
-  };
-
-  const handleBookDemo = () => {
     navigate('/login');
   };
 
@@ -130,28 +127,6 @@ const LandingPage = () => {
     { name: "Stripe", logo: "https://cdn.worldvectorlogo.com/logos/stripe-4.svg" }
   ];
 
-  const pricingTiers = [
-    {
-      name: "Basic",
-      description: "Perfect for small teams",
-      features: ["Up to 100 recipients/month", "Basic tracking", "Email support"],
-      cta: "Get Started"
-    },
-    {
-      name: "Growth",
-      description: "For scaling businesses",
-      features: ["Up to 1,000 recipients/month", "Advanced analytics", "Priority support", "Custom branding"],
-      cta: "Most Popular",
-      popular: true
-    },
-    {
-      name: "Enterprise",
-      description: "For large organizations",
-      features: ["Unlimited recipients", "Dedicated account manager", "Custom integrations", "SLA guarantee"],
-      cta: "Custom Quote"
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky Header */}
@@ -172,14 +147,8 @@ const LandingPage = () => {
               >
                 Features
               </button>
-              <button 
-                onClick={() => scrollToSection('pricing')}
-                className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
-              >
-                Pricing
-              </button>
               <Button 
-                onClick={handleBookDemo}
+                onClick={handleGetStarted}
                 className="bg-linden-blue hover:bg-linden-blue/90"
               >
                 Get Started
@@ -207,19 +176,11 @@ const LandingPage = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
                   size="lg"
-                  onClick={handleBookDemo}
+                  onClick={handleGetStarted}
                   className="bg-linden-blue hover:bg-linden-blue/90 text-lg px-8 py-4 group"
                 >
-                  Book a Demo
+                  Get Started
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => scrollToSection('features')}
-                  className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white text-lg px-8 py-4"
-                >
-                  Explore the Platform
                 </Button>
               </div>
             </div>
@@ -227,44 +188,37 @@ const LandingPage = () => {
               <div className="bg-white rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-transform duration-500">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-semibold text-linden-blue">Gift Campaign Dashboard</h3>
+                    <h3 className="text-xl font-semibold text-linden-blue">Start Your Gifting Journey</h3>
                     <div className="flex space-x-2">
                       <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <Card className="p-4 bg-linden-lightblue border-0">
                       <div className="text-center">
                         <Package className="h-8 w-8 mx-auto text-linden-blue mb-2" />
-                        <p className="text-2xl font-bold text-linden-blue">247</p>
-                        <p className="text-xs text-linden-blue">Gifts Sent</p>
+                        <p className="text-lg font-bold text-linden-blue">Choose</p>
+                        <p className="text-xs text-linden-blue">Your Perfect Box</p>
                       </div>
                     </Card>
                     <Card className="p-4 bg-linden-gold/10 border-0">
                       <div className="text-center">
                         <Users className="h-8 w-8 mx-auto text-linden-gold mb-2" />
-                        <p className="text-2xl font-bold text-linden-gold">98%</p>
-                        <p className="text-xs text-linden-blue">Delivered</p>
-                      </div>
-                    </Card>
-                    <Card className="p-4 bg-green-50 border-0">
-                      <div className="text-center">
-                        <Heart className="h-8 w-8 mx-auto text-green-600 mb-2" />
-                        <p className="text-2xl font-bold text-green-600">4.9</p>
-                        <p className="text-xs text-linden-blue">Rating</p>
+                        <p className="text-lg font-bold text-linden-gold">Select</p>
+                        <p className="text-xs text-linden-blue">Recipients</p>
                       </div>
                     </Card>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm text-gray-600">Premium Coffee Set</span>
-                      <span className="text-sm font-medium text-green-600">Delivered</span>
+                      <span className="text-sm text-gray-600">Premium Gift Boxes</span>
+                      <span className="text-sm font-medium text-green-600">Ready to Send</span>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm text-gray-600">Custom Notebook Collection</span>
-                      <span className="text-sm font-medium text-blue-600">In Transit</span>
+                      <span className="text-sm text-gray-600">Custom Collections</span>
+                      <span className="text-sm font-medium text-blue-600">Build Your Own</span>
                     </div>
                   </div>
                 </div>
@@ -442,47 +396,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-linden-blue mb-4">Transparent, Flexible Pricing</h2>
-            <p className="text-xl text-gray-600">No storage markups. No hidden carrier fees.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pricingTiers.map((tier, index) => (
-              <Card key={index} className={`border-0 shadow-lg relative ${tier.popular ? 'ring-2 ring-linden-gold' : ''}`}>
-                {tier.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-linden-gold text-white px-4 py-1 rounded-full text-sm font-medium">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                <CardContent className="p-8 text-center">
-                  <h3 className="text-2xl font-bold text-linden-blue mb-2">{tier.name}</h3>
-                  <p className="text-gray-600 mb-6">{tier.description}</p>
-                  <ul className="space-y-3 mb-8">
-                    {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center justify-center">
-                        <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                        <span className="text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button 
-                    className={`w-full ${tier.popular ? 'bg-linden-gold hover:bg-linden-gold/90' : 'bg-linden-blue hover:bg-linden-blue/90'}`}
-                    onClick={tier.name === 'Enterprise' ? handleBookDemo : handleLoginClick}
-                  >
-                    {tier.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* CTA Banner */}
       <section className="py-20 bg-gradient-to-r from-linden-blue via-linden-blue/95 to-linden-blue relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -531,7 +444,6 @@ const LandingPage = () => {
               <h4 className="font-semibold text-linden-blue mb-4">Support</h4>
               <ul className="space-y-3 text-gray-600">
                 <li><a href="#" className="hover:text-linden-blue transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-linden-blue transition-colors">Careers</a></li>
                 <li><a href="#" className="hover:text-linden-blue transition-colors">Blog</a></li>
               </ul>
             </div>
