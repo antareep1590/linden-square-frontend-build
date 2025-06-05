@@ -1,14 +1,24 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Table,
   TableBody,
@@ -19,15 +29,13 @@ import {
 } from "@/components/ui/table";
 import { 
   Search, 
-  Plus, 
   Filter, 
-  MoreHorizontal,
-  Mail,
-  Phone,
-  MapPin,
+  Edit,
+  Trash2,
   Calendar,
-  User
+  Tag
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Customer {
   id: string;
@@ -90,23 +98,65 @@ const mockCustomers: Customer[] = [
 const Customers = () => {
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [tagFilter, setTagFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
 
-  const filteredCustomers = customers.filter(customer => 
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTag = tagFilter === 'all' || customer.tags.some(tag => 
+      tag.toLowerCase() === tagFilter.toLowerCase()
+    );
+    
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const orderDate = new Date(customer.lastOrder);
+      const now = new Date();
+      const daysDiff = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      switch (dateFilter) {
+        case 'week':
+          matchesDate = daysDiff <= 7;
+          break;
+        case 'month':
+          matchesDate = daysDiff <= 30;
+          break;
+        case 'quarter':
+          matchesDate = daysDiff <= 90;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesTag && matchesDate;
+  });
 
-  const handleViewCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setIsViewModalOpen(true);
+  const handleEditCustomer = (customer: Customer) => {
+    setEditingCustomer({ ...customer });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCustomer = () => {
+    if (!editingCustomer) return;
+
+    setCustomers(customers.map(customer => 
+      customer.id === editingCustomer.id ? editingCustomer : customer
+    ));
+    setIsEditModalOpen(false);
+    setEditingCustomer(null);
+    toast.success("Recipient updated successfully");
   };
 
   const handleDeleteCustomer = (id: string) => {
     setCustomers(customers.filter(customer => customer.id !== id));
+    toast.success("Recipient deleted successfully");
+  };
+
+  const getAllTags = () => {
+    const allTags = customers.flatMap(customer => customer.tags);
+    return Array.from(new Set(allTags));
   };
 
   return (
@@ -116,13 +166,6 @@ const Customers = () => {
           <h1 className="text-2xl font-bold">Recipients</h1>
           <p className="text-gray-600">Manage your gift recipients and their information</p>
         </div>
-        <Button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-linden-blue hover:bg-linden-blue/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Recipient
-        </Button>
       </div>
 
       <Card>
@@ -140,10 +183,34 @@ const Customers = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="sm:w-auto">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
+            
+            <div className="flex gap-2">
+              <Select value={tagFilter} onValueChange={setTagFilter}>
+                <SelectTrigger className="w-40">
+                  <Tag className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by Tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tags</SelectItem>
+                  {getAllTags().map(tag => (
+                    <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-48">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dates</SelectItem>
+                  <SelectItem value="week">Last Week</SelectItem>
+                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="quarter">Last Quarter</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="rounded-md border">
@@ -173,26 +240,23 @@ const Customers = () => {
                     </TableCell>
                     <TableCell>{new Date(customer.lastOrder).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewCustomer(customer)}>
-                            <User className="h-4 w-4 mr-2" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="h-4 w-4 mr-2" />
-                            Email
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteCustomer(customer.id)}>
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditCustomer(customer)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCustomer(customer.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -208,8 +272,79 @@ const Customers = () => {
         </CardContent>
       </Card>
 
-      {/* Customer Details Modal would be here */}
-      {/* Add Customer Modal would be here */}
+      {/* Edit Customer Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Recipient</DialogTitle>
+          </DialogHeader>
+          
+          {editingCustomer && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingCustomer.name}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editingCustomer.email}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, email: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  value={editingCustomer.phone}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-tags">Tags (comma separated)</Label>
+                <Input
+                  id="edit-tags"
+                  value={editingCustomer.tags.join(', ')}
+                  onChange={(e) => setEditingCustomer({ 
+                    ...editingCustomer, 
+                    tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                  })}
+                />
+              </div>
+              
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={editingCustomer.address}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCustomer}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -7,6 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { 
   Table,
   TableBody,
   TableCell,
@@ -60,7 +68,8 @@ const RecipientSelection = () => {
     address: '',
     tag: ''
   });
-  const [editingRecipient, setEditingRecipient] = useState<string | null>(null);
+  const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [sendOption, setSendOption] = useState<'now' | 'later'>('now');
 
   const allRecipients = [...savedRecipients, ...newRecipients];
@@ -94,7 +103,12 @@ const RecipientSelection = () => {
   };
 
   const removeRecipient = (id: string) => {
-    setNewRecipients(prev => prev.filter(r => r.id !== id));
+    const savedIndex = savedRecipients.findIndex(r => r.id === id);
+    if (savedIndex !== -1) {
+      setSavedRecipients(prev => prev.filter(r => r.id !== id));
+    } else {
+      setNewRecipients(prev => prev.filter(r => r.id !== id));
+    }
     toast.success('Recipient removed');
   };
 
@@ -113,6 +127,29 @@ const RecipientSelection = () => {
 
   const toggleRecipientInclusion = (id: string, included: boolean) => {
     updateRecipient(id, 'included', included);
+  };
+
+  const handleEditRecipient = (recipient: Recipient) => {
+    setEditingRecipient({ ...recipient });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateRecipient = () => {
+    if (!editingRecipient) return;
+
+    const savedIndex = savedRecipients.findIndex(r => r.id === editingRecipient.id);
+    if (savedIndex !== -1) {
+      setSavedRecipients(prev => prev.map(r => 
+        r.id === editingRecipient.id ? editingRecipient : r
+      ));
+    } else {
+      setNewRecipients(prev => prev.map(r => 
+        r.id === editingRecipient.id ? editingRecipient : r
+      ));
+    }
+    setIsEditModalOpen(false);
+    setEditingRecipient(null);
+    toast.success('Recipient updated successfully');
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,23 +339,20 @@ const RecipientSelection = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => setEditingRecipient(recipient.id)}
-                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => handleEditRecipient(recipient)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {newRecipients.find(r => r.id === recipient.id) && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeRecipient(recipient.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeRecipient(recipient.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -384,6 +418,77 @@ const RecipientSelection = () => {
           </Card>
         </div>
       </div>
+
+      {/* Edit Recipient Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Recipient</DialogTitle>
+          </DialogHeader>
+          
+          {editingRecipient && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Full Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingRecipient.name}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editingRecipient.email}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, email: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Phone</Label>
+                <Input
+                  id="edit-phone"
+                  value={editingRecipient.phone || ''}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, phone: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-tag">Tag</Label>
+                <Input
+                  id="edit-tag"
+                  value={editingRecipient.tag}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, tag: e.target.value })}
+                />
+              </div>
+              
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={editingRecipient.address || ''}
+                  onChange={(e) => setEditingRecipient({ ...editingRecipient, address: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateRecipient}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

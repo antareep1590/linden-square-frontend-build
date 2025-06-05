@@ -6,6 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, MapPin, Truck, Package, Clock, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 
+interface SubOrder {
+  recipientName: string;
+  recipientEmail: string;
+  shippingAddress: string;
+  deliveryStatus: string;
+  estimatedDelivery: string;
+  giftBoxContents: string[];
+}
+
 interface Order {
   id: string;
   recipientCount: number;
@@ -13,6 +22,7 @@ interface Order {
   carrier: string;
   trackingLink: string;
   status: string;
+  subOrders?: SubOrder[];
 }
 
 interface OrderDetailsModalProps {
@@ -79,7 +89,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -135,23 +145,59 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Recipient Information
+                Recipient Details
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <MapPin className="h-4 w-4 mt-0.5 text-gray-600" />
-                  <div>
-                    <p className="font-medium">John Doe</p>
-                    <p className="text-sm text-gray-600">123 Main Street</p>
-                    <p className="text-sm text-gray-600">Anytown, CA 94501</p>
+              <div className="space-y-4">
+                {order.subOrders && order.subOrders.length > 0 ? (
+                  order.subOrders.map((subOrder, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="font-medium">{subOrder.recipientName}</p>
+                          <p className="text-sm text-gray-600">{subOrder.recipientEmail}</p>
+                        </div>
+                        <Badge className={`${getStatusColor(subOrder.deliveryStatus)}`}>
+                          {subOrder.deliveryStatus === "in-transit" ? "In Transit" : 
+                           subOrder.deliveryStatus.charAt(0).toUpperCase() + subOrder.deliveryStatus.slice(1)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-gray-500" />
+                          <span>{subOrder.shippingAddress}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-500" />
+                          <span>Expected: {format(new Date(subOrder.estimatedDelivery), "MMM d, yyyy")}</span>
+                        </div>
+                        
+                        {subOrder.giftBoxContents && subOrder.giftBoxContents.length > 0 && (
+                          <div className="mt-3">
+                            <p className="font-medium text-gray-700 mb-2">Gift Box Contents:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {subOrder.giftBoxContents.map((item, itemIndex) => (
+                                <Badge key={itemIndex} variant="outline" className="text-xs">
+                                  {item}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <MapPin className="h-4 w-4 mt-0.5 text-gray-600" />
+                    <div>
+                      <p className="font-medium">Single Recipient</p>
+                      <p className="text-sm text-gray-600">Details will be shown here</p>
+                    </div>
                   </div>
-                </div>
-                {order.recipientCount > 1 && (
-                  <p className="text-sm text-gray-500">
-                    + {order.recipientCount - 1} more recipients
-                  </p>
                 )}
               </div>
             </CardContent>

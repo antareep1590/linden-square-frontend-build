@@ -28,7 +28,12 @@ const FinalSummary = () => {
       ribbonColor: 'Gold',
       giftWrap: 'Elegant White',
       cardMessage: 'Happy Birthday! Wishing you all the best.',
-      addOnsCost: 18.00
+      addOnsCost: 18.00,
+      selectedAddOns: [
+        { name: 'Gold Ribbon', price: 5.00 },
+        { name: 'Elegant White Gift Wrap', price: 8.00 },
+        { name: 'Custom Card Message', price: 5.00 }
+      ]
     },
     recipients: [
       { name: 'John Smith', email: 'john@company.com', tag: 'Client' },
@@ -117,23 +122,36 @@ const FinalSummary = () => {
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Personalization</h4>
                   <div className="space-y-2 text-sm">
-                    {summary.personalization.ribbonColor && (
-                      <div className="flex justify-between">
-                        <span>Ribbon Color:</span>
-                        <span>{summary.personalization.ribbonColor}</span>
+                    {summary.personalization.selectedAddOns ? (
+                      <div className="space-y-2">
+                        {summary.personalization.selectedAddOns.map((addon: any, index: number) => (
+                          <div key={index} className="flex justify-between">
+                            <span>{addon.name}</span>
+                            <span>${addon.price.toFixed(2)}</span>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                    {summary.personalization.giftWrap && (
-                      <div className="flex justify-between">
-                        <span>Gift Wrap:</span>
-                        <span>{summary.personalization.giftWrap}</span>
-                      </div>
-                    )}
-                    {summary.personalization.cardMessage && (
-                      <div className="flex justify-between">
-                        <span>Card Message:</span>
-                        <span className="max-w-xs text-right">"{summary.personalization.cardMessage}"</span>
-                      </div>
+                    ) : (
+                      <>
+                        {summary.personalization.ribbonColor && (
+                          <div className="flex justify-between">
+                            <span>Ribbon Color:</span>
+                            <span>{summary.personalization.ribbonColor}</span>
+                          </div>
+                        )}
+                        {summary.personalization.giftWrap && (
+                          <div className="flex justify-between">
+                            <span>Gift Wrap:</span>
+                            <span>{summary.personalization.giftWrap}</span>
+                          </div>
+                        )}
+                        {summary.personalization.cardMessage && (
+                          <div className="flex justify-between">
+                            <span>Card Message:</span>
+                            <span className="max-w-xs text-right">"{summary.personalization.cardMessage}"</span>
+                          </div>
+                        )}
+                      </>
                     )}
                     <div className="flex justify-between font-medium pt-2 border-t">
                       <span>Personalization Total</span>
