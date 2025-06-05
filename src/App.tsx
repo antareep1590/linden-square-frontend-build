@@ -21,6 +21,9 @@ import UploadRecipient from '@/pages/UploadRecipient';
 import Profile from '@/pages/Profile';
 import BoxListing from '@/pages/BoxListing';
 import BoxDetails from '@/pages/BoxDetails';
+import BuildCustomBox from '@/pages/BuildCustomBox';
+import PersonalizationStep from '@/pages/PersonalizationStep';
+import FinalSummary from '@/pages/FinalSummary';
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -65,6 +68,9 @@ function App() {
           <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
           <Route path="/box-listing" element={<DashboardLayout><BoxListing /></DashboardLayout>} />
           <Route path="/box-details/:id" element={<DashboardLayout><BoxDetails /></DashboardLayout>} />
+          <Route path="/build-custom-box" element={<DashboardLayout><BuildCustomBox /></DashboardLayout>} />
+          <Route path="/personalization" element={<DashboardLayout><PersonalizationStep /></DashboardLayout>} />
+          <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
           <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></DashboardLayout>} />
           <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />
           <Route path="/packaging" element={<DashboardLayout><GiftBoxPackaging /></DashboardLayout>} />
