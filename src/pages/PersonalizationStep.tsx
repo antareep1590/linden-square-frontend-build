@@ -89,7 +89,7 @@ const PersonalizationStep = () => {
     const boxPersonalization = personalizations[boxId];
     if (!boxPersonalization) return 0;
     
-    return Array.from(boxPersonalization.selectedOptions?.keys() || []).reduce((total: number, optionId: string) => {
+    return Array.from(boxPersonalization.selectedOptions?.entries() || []).reduce((total: number, [optionId, value]: [string, string]) => {
       const option = personalizationOptions.find(o => o.id === optionId);
       return total + (option?.price || 0);
     }, 0);
@@ -100,10 +100,10 @@ const PersonalizationStep = () => {
     selectedBoxes.forEach(box => {
       const boxPersonalization = personalizations[box.id];
       if (boxPersonalization) {
-        const selectedAddOns = Array.from(boxPersonalization.selectedOptions?.entries() || []).map(([optionId, value]) => {
+        const selectedAddOns = Array.from(boxPersonalization.selectedOptions?.entries() || []).map(([optionId, value]: [string, string]) => {
           const option = personalizationOptions.find(o => o.id === optionId);
           return option ? { name: `${option.name}: ${value}`, price: option.price } : null;
-        }).filter(Boolean);
+        }).filter(Boolean) as Array<{ name: string; price: number }>;
 
         updateBox(box.id, {
           personalization: {

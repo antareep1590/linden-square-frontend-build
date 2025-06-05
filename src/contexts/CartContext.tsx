@@ -19,6 +19,10 @@ export interface GiftBox {
     cardMessage: string;
     tagMessage: string;
     addOnsCost: number;
+    selectedAddOns: Array<{
+      name: string;
+      price: number;
+    }>;
   };
   assignedRecipients?: Array<{
     id: string;
