@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -130,23 +131,25 @@ const BuildCustomBox = () => {
 
     setCreatedBoxes(prev => [...prev, boxToSave]);
     
-    // Add to cart
-    const cartBox = {
-      id: boxToSave.id,
-      type: 'custom' as const,
-      name: boxToSave.name,
-      size: boxToSave.size,
-      theme: boxToSave.theme,
-      basePrice: boxSizes.find(s => s.value === boxToSave.size)?.price || 0,
-      gifts: boxToSave.gifts.map(g => ({
-        id: g.id,
-        name: g.name,
-        price: g.price,
-        quantity: g.quantity
-      }))
-    };
-    
-    addBox(cartBox);
+    // Add to cart - ensure size is not empty
+    if (boxToSave.size !== '') {
+      const cartBox = {
+        id: boxToSave.id,
+        type: 'custom' as const,
+        name: boxToSave.name,
+        size: boxToSave.size as 'Small' | 'Medium' | 'Large',
+        theme: boxToSave.theme,
+        basePrice: boxSizes.find(s => s.value === boxToSave.size)?.price || 0,
+        gifts: boxToSave.gifts.map(g => ({
+          id: g.id,
+          name: g.name,
+          price: g.price,
+          quantity: g.quantity
+        }))
+      };
+      
+      addBox(cartBox);
+    }
 
     // Reset current box
     setCurrentBox({

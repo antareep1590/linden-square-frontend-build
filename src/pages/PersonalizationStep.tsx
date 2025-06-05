@@ -85,7 +85,7 @@ const PersonalizationStep = () => {
     }));
   };
 
-  const calculatePersonalizationCost = (boxId: string) => {
+  const calculatePersonalizationCost = (boxId: string): number => {
     const boxPersonalization = personalizations[boxId];
     if (!boxPersonalization) return 0;
     
