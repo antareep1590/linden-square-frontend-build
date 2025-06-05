@@ -107,15 +107,15 @@ const BuildCustomBox = () => {
     if (!boxConfig.size || boxConfig.gifts.length === 0) {
       return;
     }
-    navigate('/upload-recipient', { state: { customBox: boxConfig } });
+    navigate('/recipient-selection', { state: { customBox: boxConfig } });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/box-listing')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Boxes
+          Back to Gift Box Flow
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Build Your Custom Box</h1>

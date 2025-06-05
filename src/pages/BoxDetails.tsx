@@ -111,7 +111,7 @@ const BoxDetails = () => {
   };
 
   const handlePersonalize = () => {
-    navigate('/personalization', { 
+    navigate('/recipient-selection', { 
       state: { 
         boxDetails,
         selectedGifts: boxDetails.gifts.filter(gift => gift.included && gift.quantity > 0)
@@ -268,7 +268,7 @@ const BoxDetails = () => {
             className="w-full mt-6 bg-linden-blue hover:bg-linden-blue/90"
             disabled={getIncludedGiftsCount() === 0}
           >
-            Continue to Personalization
+            Continue to Recipients
           </Button>
         </CardContent>
       </Card>

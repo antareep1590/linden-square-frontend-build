@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   Users,
   Settings,
-  UserCog
+  UserCog,
+  Sparkles
 } from 'lucide-react';
 
 type MenuItem = {
@@ -25,10 +26,11 @@ type MenuItem = {
   icon: React.ReactNode;
 };
 
-// Client menu items
+// Client menu items - Updated to include new Gift Box Flow
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
+  { name: 'Gift Box Flow', path: '/gift-box-flow', icon: <Sparkles size={20} /> },
   { name: 'Select Gifts', path: '/select-gifts', icon: <Gift size={20} /> },
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
   { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,7 +89,7 @@ const PersonalizationStep = () => {
   };
 
   const handleContinue = () => {
-    navigate('/final-summary', { 
+    navigate('/recipient-selection', { 
       state: { 
         ...location.state, 
         personalization: config 
