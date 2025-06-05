@@ -6,54 +6,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Gift, Users, Package, TrendingUp, Clock, AlertCircle } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Gift, Users, TrendingUp, Clock, AlertCircle, Package, Calendar, MapPin, User } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-const mockOrders = [
-  { 
-    id: 'ORD-001', 
-    giftName: 'Corporate Welcome Box', 
-    recipients: 24, 
-    status: 'Processing', 
-    date: '2025-04-02',
-    priority: 'high'
-  },
-  { 
-    id: 'ORD-002', 
-    giftName: 'Holiday Gift Bundle', 
-    recipients: 56, 
-    status: 'Pending Addresses', 
-    date: '2025-03-28',
-    priority: 'medium'
-  },
-  { 
-    id: 'ORD-003', 
-    giftName: 'Employee Appreciation Kit', 
-    recipients: 12, 
-    status: 'Completed', 
-    date: '2025-03-15',
-    priority: 'low'
-  },
-  { 
-    id: 'ORD-004', 
-    giftName: 'Client Thank You Package', 
-    recipients: 8, 
-    status: 'Shipped', 
-    date: '2025-03-10',
-    priority: 'low'
-  },
-];
-
 const Dashboard: React.FC = () => {
+  // Mock data for the most recent order
+  const mostRecentOrder = {
+    id: 'ORD-001',
+    giftName: 'Corporate Welcome Box',
+    recipients: 24,
+    status: 'Processing',
+    date: '2025-04-02',
+    priority: 'high',
+    estimatedDelivery: '2025-04-15',
+    giftBoxItems: ['Premium Coffee Set', 'Gourmet Chocolate Box', 'Scented Candle'],
+    recipientDetails: [
+      { name: 'John Smith', status: 'Delivered', email: 'john@company.com' },
+      { name: 'Sarah Johnson', status: 'In Transit', email: 'sarah@partner.com' },
+      { name: 'Mike Wilson', status: 'Processing', email: 'mike@team.com' },
+      { name: '...and 21 more recipients', status: '', email: '' }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 space-y-8">
       {/* Standard Page Heading */}
@@ -61,8 +36,8 @@ const Dashboard: React.FC = () => {
         <h1 className="text-2xl font-bold">Dashboard</h1>
       </div>
       
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Metrics Grid - Updated to remove Inventory Available */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -96,21 +71,6 @@ const Dashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Inventory Available</p>
-                <p className="text-3xl font-bold text-gray-900">384</p>
-                <p className="text-sm text-gray-500 mt-2">Items in stock</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Package className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card className="bg-white border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-6">
@@ -128,77 +88,113 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
       
-      {/* Recent Orders */}
+      {/* Most Recent Order */}
       <Card className="bg-white border-0 shadow-sm">
         <CardHeader className="border-b border-gray-100 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Latest Bulk Orders</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Track and manage your recent gift orders</p>
+              <CardTitle className="text-xl font-semibold text-gray-900">Most Recent Order</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Your latest gift order details and progress</p>
             </div>
             <Button variant="outline" className="px-4 py-2">
               View All Orders
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 border-0">
-                <TableHead className="font-semibold text-gray-700 py-4">Order ID</TableHead>
-                <TableHead className="font-semibold text-gray-700">Gift Name</TableHead>
-                <TableHead className="font-semibold text-gray-700">Recipients</TableHead>
-                <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                <TableHead className="font-semibold text-gray-700">Date</TableHead>
-                <TableHead className="font-semibold text-gray-700">Priority</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockOrders.map((order) => (
-                <TableRow key={order.id} className="hover:bg-gray-50 border-gray-100">
-                  <TableCell className="font-medium text-linden-blue py-4">{order.id}</TableCell>
-                  <TableCell className="font-medium text-gray-900">{order.giftName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span className="text-gray-700">{order.recipients}</span>
+        <CardContent className="p-6">
+          {/* Order Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-linden-lightblue rounded-lg">
+                <Package className="h-5 w-5 text-linden-blue" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Order ID</p>
+                <p className="font-semibold text-linden-blue">{mostRecentOrder.id}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Gift className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Gift Box</p>
+                <p className="font-semibold text-gray-900">{mostRecentOrder.giftName}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Users className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Recipients</p>
+                <p className="font-semibold text-gray-900">{mostRecentOrder.recipients}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Est. Delivery</p>
+                <p className="font-semibold text-gray-900">{new Date(mostRecentOrder.estimatedDelivery).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Status */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Order Status</h3>
+              <Badge 
+                variant="secondary"
+                className="bg-blue-100 text-blue-800 border-blue-200"
+              >
+                {mostRecentOrder.status}
+              </Badge>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-2">Gift Box Items:</p>
+              <p className="text-gray-800">{mostRecentOrder.giftBoxItems.join(", ")}</p>
+            </div>
+          </div>
+
+          {/* Recent Recipients */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Recipients</h3>
+            <div className="space-y-3">
+              {mostRecentOrder.recipientDetails.map((recipient, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-white rounded-full">
+                      <User className="h-4 w-4 text-gray-600" />
                     </div>
-                  </TableCell>
-                  <TableCell>
+                    <div>
+                      <p className="font-medium text-gray-900">{recipient.name}</p>
+                      {recipient.email && (
+                        <p className="text-sm text-gray-600">{recipient.email}</p>
+                      )}
+                    </div>
+                  </div>
+                  {recipient.status && (
                     <Badge 
                       variant="secondary"
                       className={
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800 border-green-200' :
-                        order.status === 'Processing' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                        order.status === 'Pending Addresses' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                        order.status === 'Shipped' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : ''
+                        recipient.status === 'Delivered' ? 'bg-green-100 text-green-800 border-green-200' :
+                        recipient.status === 'In Transit' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                        'bg-amber-100 text-amber-800 border-amber-200'
                       }
                     >
-                      {order.status}
+                      {recipient.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      {new Date(order.date).toLocaleDateString()}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="outline"
-                      className={
-                        order.priority === 'high' ? 'border-red-200 text-red-700 bg-red-50' :
-                        order.priority === 'medium' ? 'border-amber-200 text-amber-700 bg-amber-50' :
-                        'border-gray-200 text-gray-600 bg-gray-50'
-                      }
-                    >
-                      {order.priority}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
+                  )}
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

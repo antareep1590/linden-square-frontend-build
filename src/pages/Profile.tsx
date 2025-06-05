@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +15,8 @@ import {
 } from "@/components/ui/tabs";
 import { 
   User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Building,
-  Calendar,
   Edit,
   Save,
-  Camera,
   Shield
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,8 +27,6 @@ interface ProfileData {
   phone: string;
   address: string;
   company: string;
-  birthday: string;
-  bio: string;
 }
 
 const mockProfileData: ProfileData = {
@@ -43,9 +34,7 @@ const mockProfileData: ProfileData = {
   email: "john.doe@example.com",
   phone: "+1 (555) 123-4567",
   address: "123 Main St, Anytown, USA",
-  company: "Acme Corp",
-  birthday: "1990-01-01",
-  bio: "A short bio about John Doe."
+  company: "Acme Corp"
 };
 
 const Profile = () => {
@@ -58,7 +47,7 @@ const Profile = () => {
     setIsEditing(false);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfileData(prevData => ({
       ...prevData,
@@ -157,29 +146,6 @@ const Profile = () => {
                     value={profileData.address}
                     onChange={handleChange}
                     disabled={!isEditing}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="birthday">Birthday</Label>
-                    <Input
-                      id="birthday"
-                      name="birthday"
-                      type="date"
-                      value={profileData.birthday}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea 
-                    id="bio" 
-                    name="bio"
-                    value={profileData.bio} 
-                    onChange={handleChange}
-                    disabled={!isEditing} 
                   />
                 </div>
               </div>

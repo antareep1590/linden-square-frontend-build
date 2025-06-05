@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -153,6 +152,31 @@ const Login: React.FC = () => {
               id="address" 
               placeholder="123 Main St, City, State, ZIP" 
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="website">Company Website (Optional)</Label>
+            <Input 
+              id="website" 
+              type="url"
+              placeholder="https://company.com" 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="logo">Company Logo (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                id="logo" 
+                type="file"
+                accept="image/*"
+                className="flex-1"
+              />
+              <Button type="button" variant="outline" size="sm">
+                <Upload className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">Supported formats: JPG, PNG, SVG (Max 5MB)</p>
           </div>
           
           <div className="space-y-2">

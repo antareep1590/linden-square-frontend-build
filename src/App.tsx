@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,6 +8,7 @@ import { Toaster } from 'sonner';
 import LandingPage from '@/pages/LandingPage';
 import Login from '@/pages/Login';
 import NotFound from '@/pages/NotFound';
+import ViewInvoice from '@/pages/ViewInvoice';
 
 // Client pages
 import Dashboard from '@/pages/Dashboard';
@@ -80,10 +82,13 @@ function App() {
           <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
           <Route path="/payment-method" element={<DashboardLayout><PaymentMethod /></DashboardLayout>} />
           
+          {/* Invoices */}
+          <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
+          <Route path="/invoices/:invoiceId" element={<DashboardLayout><ViewInvoice /></DashboardLayout>} />
+          
           {/* Legacy routes - kept for compatibility */}
           <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />
           <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
-          <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
           <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />
           <Route path="/upload-recipient" element={<DashboardLayout><UploadRecipient /></DashboardLayout>} />
           

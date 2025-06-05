@@ -22,6 +22,7 @@ interface SubOrder {
   shippingAddress: string;
   deliveryStatus: string;
   estimatedDelivery: string;
+  giftBoxName: string;
   giftBoxContents: string[];
 }
 
@@ -35,6 +36,8 @@ interface Order {
   items: string;
   shippingAddress: string;
   estimatedDelivery: string;
+  giftBoxName: string;
+  giftBoxItems: string[];
   subOrders: SubOrder[];
 }
 
@@ -49,6 +52,8 @@ const mockOrders: Order[] = [
     recipientCount: 3,
     carrier: "FedEx",
     trackingLink: "https://fedex.com/track/TRACK12345",
+    giftBoxName: "Premium Gift Box Set",
+    giftBoxItems: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"],
     subOrders: [
       {
         recipientName: "John Smith",
@@ -56,6 +61,7 @@ const mockOrders: Order[] = [
         shippingAddress: "123 Main St, Anytown, CA 12345",
         deliveryStatus: "delivered",
         estimatedDelivery: "2023-11-18",
+        giftBoxName: "Premium Gift Box Set",
         giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
       },
       {
@@ -64,6 +70,7 @@ const mockOrders: Order[] = [
         shippingAddress: "456 Oak Ave, Somewhere, NY 67890",
         deliveryStatus: "in-transit",
         estimatedDelivery: "2023-11-20",
+        giftBoxName: "Premium Gift Box Set",
         giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
       },
       {
@@ -72,6 +79,7 @@ const mockOrders: Order[] = [
         shippingAddress: "789 Pine Rd, Nowhere, TX 54321",
         deliveryStatus: "processing",
         estimatedDelivery: "2023-11-22",
+        giftBoxName: "Premium Gift Box Set",
         giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
       }
     ]
@@ -86,6 +94,8 @@ const mockOrders: Order[] = [
     recipientCount: 1,
     carrier: "UPS",
     trackingLink: "https://ups.com/track/TRACK67890",
+    giftBoxName: "Custom Corporate Gifts",
+    giftBoxItems: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"],
     subOrders: [
       {
         recipientName: "Emily Davis",
@@ -93,6 +103,7 @@ const mockOrders: Order[] = [
         shippingAddress: "456 Elm St, Anytown, USA 12345",
         deliveryStatus: "processing",
         estimatedDelivery: "2023-11-22",
+        giftBoxName: "Custom Corporate Gifts",
         giftBoxContents: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"]
       }
     ]
@@ -176,6 +187,10 @@ const TrackOrders = () => {
     );
   };
 
+  const formatGiftBoxItems = (giftBoxName: string, giftBoxItems: string[]) => {
+    return `${giftBoxName} (${giftBoxItems.join(", ")})`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -234,6 +249,7 @@ const TrackOrders = () => {
               <TableHead>Order ID</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Recipients</TableHead>
+              <TableHead>Gift Box Items</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Estimated Delivery</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -266,6 +282,11 @@ const TrackOrders = () => {
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>{formatDate(order.shipDate)}</TableCell>
                     <TableCell>{order.recipientCount} recipient{order.recipientCount > 1 ? 's' : ''}</TableCell>
+                    <TableCell className="max-w-xs">
+                      <div className="text-sm text-gray-600 truncate" title={formatGiftBoxItems(order.giftBoxName, order.giftBoxItems)}>
+                        {formatGiftBoxItems(order.giftBoxName, order.giftBoxItems)}
+                      </div>
+                    </TableCell>
                     <TableCell>{getStatusBadge(overallStatus)}</TableCell>
                     <TableCell>{formatDate(latestDelivery)}</TableCell>
                     <TableCell>
@@ -307,6 +328,11 @@ const TrackOrders = () => {
                         <div className="text-sm text-gray-600 max-w-xs truncate">
                           <MapPin className="h-3 w-3 inline mr-1" />
                           {subOrder.shippingAddress}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <div className="text-sm text-gray-600 truncate" title={formatGiftBoxItems(subOrder.giftBoxName, subOrder.giftBoxContents)}>
+                          {formatGiftBoxItems(subOrder.giftBoxName, subOrder.giftBoxContents)}
                         </div>
                       </TableCell>
                       <TableCell>{getStatusBadge(subOrder.deliveryStatus)}</TableCell>
