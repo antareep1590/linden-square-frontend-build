@@ -253,114 +253,106 @@ const RecipientSelection = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Add Recipients */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Add New Recipient Modal Trigger */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Add Recipients
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-4">
-                <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                  <Button 
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="bg-linden-blue hover:bg-linden-blue/90"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add New Recipient
-                  </Button>
-                  
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Add New Recipient</DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          placeholder="Full Name"
-                          value={newRecipient.name}
-                          onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Email Address"
-                          value={newRecipient.email}
-                          onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                          id="phone"
-                          placeholder="Phone Number"
-                          value={newRecipient.phone}
-                          onChange={(e) => setNewRecipient(prev => ({ ...prev, phone: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="tag">Tag</Label>
-                        <Input
-                          id="tag"
-                          placeholder="e.g., Client, Friend"
-                          value={newRecipient.tag}
-                          onChange={(e) => setNewRecipient(prev => ({ ...prev, tag: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div className="col-span-2 space-y-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input
-                          id="address"
-                          placeholder="Address"
-                          value={newRecipient.address}
-                          onChange={(e) => setNewRecipient(prev => ({ ...prev, address: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-                    
-                    <DialogFooter>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setIsAddModalOpen(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={() => {
-                        addRecipient();
-                        setIsAddModalOpen(false);
-                      }}>
-                        Add Recipient
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                <Button variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload CSV
-                </Button>
+      {/* Action Buttons */}
+      <div className="flex gap-4 mb-6">
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <Button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-linden-blue hover:bg-linden-blue/90"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Recipient
+          </Button>
+          
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Add New Recipient</DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="Full Name"
+                  value={newRecipient.name}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, name: e.target.value }))}
+                />
               </div>
-              <p className="text-xs text-gray-500">
-                Click to upload CSV file. CSV must include: Name, Email, Phone, Address, Tag
-              </p>
-            </CardContent>
-          </Card>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Email Address"
+                  value={newRecipient.email}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="Phone Number"
+                  value={newRecipient.phone}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="tag">Tag</Label>
+                <Input
+                  id="tag"
+                  placeholder="e.g., Client, Friend"
+                  value={newRecipient.tag}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, tag: e.target.value }))}
+                />
+              </div>
+              
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Address"
+                  value={newRecipient.address}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, address: e.target.value }))}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsAddModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                addRecipient();
+                setIsAddModalOpen(false);
+              }}>
+                Add Recipient
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
+        <Button variant="outline">
+          <Upload className="h-4 w-4 mr-2" />
+          Upload CSV
+        </Button>
+      </div>
+
+      {/* Helper text for CSV */}
+      <p className="text-xs text-gray-500 mb-6">
+        Click to upload CSV file. CSV must include: Name, Email, Phone, Address, Tag
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recipients Table and Assignment */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Recipients Table */}
           <Card>
             <CardHeader>
