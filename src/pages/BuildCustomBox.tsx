@@ -4,7 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Package, Gift, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Package, Gift, Plus, Minus, ShoppingCart, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
+import { toast } from 'sonner';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface CustomBoxGift {
   id: string;
@@ -16,6 +19,8 @@ interface CustomBoxGift {
 }
 
 interface CustomBoxConfig {
+  id: string;
+  name: string;
   size: 'Small' | 'Medium' | 'Large' | '';
   theme: string;
   gifts: CustomBoxGift[];
@@ -61,14 +66,18 @@ const boxSizes = [
 
 const BuildCustomBox = () => {
   const navigate = useNavigate();
-  const [boxConfig, setBoxConfig] = useState<CustomBoxConfig>({
+  const { selectedBoxes, addBox } = useCart();
+  const [createdBoxes, setCreatedBoxes] = useState<CustomBoxConfig[]>([]);
+  const [currentBox, setCurrentBox] = useState<CustomBoxConfig>({
+    id: '',
+    name: '',
     size: '',
     theme: 'No Theme',
     gifts: []
   });
 
   const updateGiftQuantity = (giftId: string, quantity: number) => {
-    setBoxConfig(prev => {
+    setCurrentBox(prev => {
       const existingGiftIndex = prev.gifts.findIndex(g => g.id === giftId);
       const gift = availableGifts.find(g => g.id === giftId);
       
@@ -93,20 +102,75 @@ const BuildCustomBox = () => {
   };
 
   const getGiftQuantity = (giftId: string) => {
-    return boxConfig.gifts.find(g => g.id === giftId)?.quantity || 0;
+    return currentBox.gifts.find(g => g.id === giftId)?.quantity || 0;
   };
 
-  const calculateTotal = () => {
-    const boxPrice = boxSizes.find(s => s.value === boxConfig.size)?.price || 0;
-    const giftsTotal = boxConfig.gifts.reduce((sum, gift) => sum + (gift.price * gift.quantity), 0);
+  const calculateBoxTotal = (box: CustomBoxConfig) => {
+    const boxPrice = boxSizes.find(s => s.value === box.size)?.price || 0;
+    const giftsTotal = box.gifts.reduce((sum, gift) => sum + (gift.price * gift.quantity), 0);
     return boxPrice + giftsTotal;
   };
 
-  const handleContinue = () => {
-    if (!boxConfig.size || boxConfig.gifts.length === 0) {
+  const generateBoxName = (box: CustomBoxConfig) => {
+    if (box.name) return box.name;
+    return `${box.size || 'Custom'} ${box.theme} Box`;
+  };
+
+  const saveCurrentBox = () => {
+    if (!currentBox.size || currentBox.gifts.length === 0) {
+      toast.error('Please select a box size and add at least one gift');
       return;
     }
-    navigate('/personalization', { state: { customBox: boxConfig } });
+
+    const boxToSave = {
+      ...currentBox,
+      id: Date.now().toString(),
+      name: generateBoxName(currentBox)
+    };
+
+    setCreatedBoxes(prev => [...prev, boxToSave]);
+    
+    // Add to cart
+    const cartBox = {
+      id: boxToSave.id,
+      type: 'custom' as const,
+      name: boxToSave.name,
+      size: boxToSave.size,
+      theme: boxToSave.theme,
+      basePrice: boxSizes.find(s => s.value === boxToSave.size)?.price || 0,
+      gifts: boxToSave.gifts.map(g => ({
+        id: g.id,
+        name: g.name,
+        price: g.price,
+        quantity: g.quantity
+      }))
+    };
+    
+    addBox(cartBox);
+
+    // Reset current box
+    setCurrentBox({
+      id: '',
+      name: '',
+      size: '',
+      theme: 'No Theme',
+      gifts: []
+    });
+
+    toast.success('Box saved successfully!');
+  };
+
+  const removeCreatedBox = (boxId: string) => {
+    setCreatedBoxes(prev => prev.filter(box => box.id !== boxId));
+    toast.success('Box removed');
+  };
+
+  const handleContinue = () => {
+    if (selectedBoxes.length === 0) {
+      toast.error('Please create at least one custom box');
+      return;
+    }
+    navigate('/personalization');
   };
 
   return (
@@ -117,10 +181,61 @@ const BuildCustomBox = () => {
           Back to Gift Box Flow
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Build Your Custom Box</h1>
-          <p className="text-gray-600">Create a personalized gift box from scratch</p>
+          <h1 className="text-2xl font-bold">Build Your Custom Boxes</h1>
+          <p className="text-gray-600">Create personalized gift boxes from scratch</p>
         </div>
       </div>
+
+      {/* Created Boxes Summary */}
+      {createdBoxes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Created Boxes ({createdBoxes.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {createdBoxes.map((box) => (
+                <AccordionItem key={box.id} value={box.id}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center justify-between w-full mr-4">
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium">{box.name}</span>
+                        <Badge variant="outline">{box.size}</Badge>
+                        <Badge variant="secondary">{box.theme}</Badge>
+                        <span className="text-sm text-gray-600">{box.gifts.length} items</span>
+                      </div>
+                      <span className="font-bold text-linden-blue">${calculateBoxTotal(box).toFixed(2)}</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {box.gifts.map(gift => (
+                          <div key={gift.id} className="text-sm p-2 bg-gray-50 rounded">
+                            <div className="font-medium">{gift.name}</div>
+                            <div className="text-gray-600">Qty: {gift.quantity} × ${gift.price}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeCreatedBox(box.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove Box
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Box Configuration */}
@@ -134,8 +249,8 @@ const BuildCustomBox = () => {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Box Size</label>
-              <Select value={boxConfig.size} onValueChange={(value: 'Small' | 'Medium' | 'Large') => 
-                setBoxConfig(prev => ({ ...prev, size: value }))
+              <Select value={currentBox.size} onValueChange={(value: 'Small' | 'Medium' | 'Large') => 
+                setCurrentBox(prev => ({ ...prev, size: value }))
               }>
                 <SelectTrigger>
                   <SelectValue placeholder="Select size" />
@@ -151,17 +266,17 @@ const BuildCustomBox = () => {
                   ))}
                 </SelectContent>
               </Select>
-              {boxConfig.size && (
+              {currentBox.size && (
                 <p className="text-xs text-gray-500 mt-1">
-                  {boxSizes.find(s => s.value === boxConfig.size)?.description}
+                  {boxSizes.find(s => s.value === currentBox.size)?.description}
                 </p>
               )}
             </div>
 
             <div>
               <label className="text-sm font-medium mb-2 block">Theme</label>
-              <Select value={boxConfig.theme} onValueChange={(value) => 
-                setBoxConfig(prev => ({ ...prev, theme: value }))
+              <Select value={currentBox.theme} onValueChange={(value) => 
+                setCurrentBox(prev => ({ ...prev, theme: value }))
               }>
                 <SelectTrigger>
                   <SelectValue />
@@ -174,15 +289,15 @@ const BuildCustomBox = () => {
               </Select>
             </div>
 
-            {boxConfig.size && (
+            {currentBox.size && (
               <div className="pt-4 border-t">
                 <h4 className="font-medium mb-2">Box Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Box ({boxConfig.size})</span>
-                    <span>${boxSizes.find(s => s.value === boxConfig.size)?.price}</span>
+                    <span>Box ({currentBox.size})</span>
+                    <span>${boxSizes.find(s => s.value === currentBox.size)?.price}</span>
                   </div>
-                  {boxConfig.gifts.map(gift => (
+                  {currentBox.gifts.map(gift => (
                     <div key={gift.id} className="flex justify-between">
                       <span>{gift.name} (x{gift.quantity})</span>
                       <span>${(gift.price * gift.quantity).toFixed(2)}</span>
@@ -190,11 +305,37 @@ const BuildCustomBox = () => {
                   ))}
                   <div className="border-t pt-2 flex justify-between font-bold">
                     <span>Total</span>
-                    <span className="text-linden-blue">${calculateTotal().toFixed(2)}</span>
+                    <span className="text-linden-blue">${calculateBoxTotal(currentBox).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
             )}
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={saveCurrentBox}
+                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                disabled={!currentBox.size || currentBox.gifts.length === 0}
+              >
+                Save This Box
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setCurrentBox({
+                    id: '',
+                    name: '',
+                    size: '',
+                    theme: 'No Theme',
+                    gifts: []
+                  });
+                }}
+                className="w-full"
+              >
+                Create Another Box
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -280,13 +421,13 @@ const BuildCustomBox = () => {
             <div>
               <h3 className="font-medium">Ready to continue?</h3>
               <p className="text-sm text-gray-500">
-                {boxConfig.gifts.length} gift(s) selected in {boxConfig.size || 'no'} box
+                {selectedBoxes.length} box(es) created
               </p>
             </div>
             <Button 
               onClick={handleContinue}
               className="bg-linden-blue hover:bg-linden-blue/90"
-              disabled={!boxConfig.size || boxConfig.gifts.length === 0}
+              disabled={selectedBoxes.length === 0}
             >
               Continue to Personalization
             </Button>
