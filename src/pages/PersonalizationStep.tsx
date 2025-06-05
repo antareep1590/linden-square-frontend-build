@@ -89,7 +89,8 @@ const PersonalizationStep = () => {
     const boxPersonalization = personalizations[boxId];
     if (!boxPersonalization) return 0;
     
-    return Array.from(boxPersonalization.selectedOptions?.entries() || []).reduce((total: number, [optionId, value]: [string, string]) => {
+    const entries = Array.from(boxPersonalization.selectedOptions?.entries() || []) as Array<[string, string]>;
+    return entries.reduce((total: number, [optionId, value]: [string, string]) => {
       const option = personalizationOptions.find(o => o.id === optionId);
       return total + (option?.price || 0);
     }, 0);
