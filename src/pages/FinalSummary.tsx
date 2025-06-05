@@ -1,75 +1,73 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Users, CreditCard } from 'lucide-react';
-import { useCart } from '@/contexts/CartContext';
+import { ArrowLeft, Package, Users, CreditCard, Clock } from 'lucide-react';
 
 const FinalSummary = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { giftBoxes, recipients, getTotalCost } = useCart();
+  const state = location.state || {};
 
-  const getRecipientsByIds = (recipientIds: string[]) => {
-    return recipients.filter(r => recipientIds.includes(r.id));
+  // Mock data for demonstration with proper structure
+  const mockSummary = {
+    boxDetails: {
+      name: 'Birthday Celebration Box',
+      size: 'Medium',
+      theme: 'Birthday',
+      basePrice: 85.00
+    },
+    selectedGifts: [
+      { name: 'Premium Coffee Set', price: 24.99, quantity: 1 },
+      { name: 'Gourmet Chocolate Box', price: 19.99, quantity: 1 },
+      { name: 'Scented Candle', price: 15.99, quantity: 1 },
+      { name: 'Artisan Tea Collection', price: 22.99, quantity: 1 },
+      { name: 'Premium Notebook', price: 18.99, quantity: 1 }
+    ],
+    personalization: {
+      ribbonColor: 'Gold',
+      giftWrap: 'Elegant White',
+      cardMessage: 'Happy Birthday! Wishing you all the best.',
+      addOnsCost: 18.00,
+      selectedAddOns: [
+        { name: 'Gold Ribbon', price: 5.00 },
+        { name: 'Elegant White Gift Wrap', price: 8.00 },
+        { name: 'Custom Card Message', price: 5.00 }
+      ]
+    },
+    recipients: [
+      { name: 'John Smith', email: 'john@company.com', tag: 'Client' },
+      { name: 'Sarah Johnson', email: 'sarah@partner.com', tag: 'Partner' },
+      { name: 'Mike Wilson', email: 'mike@team.com', tag: 'Team Member' }
+    ],
+    sendOption: 'now'
   };
 
-  const calculateBoxTotal = (box: any) => {
-    let total = box.basePrice;
-    
-    // Add gift costs
-    box.selectedGifts.forEach((quantity: number) => {
-      total += 25.00 * quantity; // Mock price
-    });
-    
-    // Add personalization costs
-    if (box.personalization) {
-      total += box.personalization.addOnsCost;
-    }
-    
-    // Multiply by number of recipients for this box
-    return total * box.assignedRecipients.length;
+  const summary = { ...mockSummary, ...state };
+
+  const calculateSubtotal = () => {
+    const basePrice = summary.boxDetails?.basePrice || 0;
+    const giftsTotal = summary.selectedGifts?.reduce((sum: number, gift: any) => 
+      sum + (gift.price * gift.quantity), 0) || 0;
+    return basePrice + giftsTotal;
   };
 
+  const personalizationCost = summary.personalization?.addOnsCost || 0;
   const shippingCost = 15.00;
-  const subtotal = getTotalCost();
-  const total = subtotal + shippingCost;
-  const totalRecipients = giftBoxes.reduce((sum, box) => sum + box.assignedRecipients.length, 0);
+  const subtotal = calculateSubtotal();
+  const total = subtotal + personalizationCost + shippingCost;
+  const recipientCount = summary.recipients?.length || 0;
 
   const handleCheckout = () => {
-    navigate('/payment-method', { 
-      state: { 
-        giftBoxes, 
-        recipients, 
-        total,
-        subtotal,
-        shippingCost
-      }
-    });
+    navigate('/payment-method', { state: { ...summary, total } });
   };
 
   const handlePayLater = () => {
     alert('Order saved. Payment link will be sent to your email.');
     navigate('/dashboard');
   };
-
-  if (giftBoxes.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Order Summary</h1>
-            <p className="text-gray-600">No gift boxes found. Please add gift boxes first.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -80,120 +78,124 @@ const FinalSummary = () => {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Order Summary</h1>
-          <p className="text-gray-600">Review your complete order before proceeding to payment</p>
+          <p className="text-gray-600">Review your order before proceeding to payment</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
-          {giftBoxes.map((box, index) => {
-            const boxRecipients = getRecipientsByIds(box.assignedRecipients);
-            const boxTotal = calculateBoxTotal(box);
-            
-            return (
-              <Card key={box.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5" />
-                    Gift Box {index + 1}: {box.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex gap-2 mb-2">
-                        {box.size && <Badge variant="outline">{box.size}</Badge>}
-                        {box.theme && <Badge variant="outline">{box.theme}</Badge>}
-                        <Badge className="bg-linden-blue">{box.type}</Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">Base Price: ${box.basePrice.toFixed(2)}</p>
-                    </div>
-                    <span className="font-bold text-lg">${boxTotal.toFixed(2)}</span>
+          {/* Gift Box Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Gift Box
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold">{summary.boxDetails?.name}</h3>
+                  <div className="flex gap-2 mt-1">
+                    <Badge variant="outline">{summary.boxDetails?.size}</Badge>
+                    <Badge variant="outline">{summary.boxDetails?.theme}</Badge>
                   </div>
+                </div>
+                <span className="font-bold">${summary.boxDetails?.basePrice?.toFixed(2)}</span>
+              </div>
 
-                  {/* Gifts Section */}
-                  {box.selectedGifts.size > 0 && (
-                    <div className="border-t pt-4">
-                      <h4 className="font-medium mb-3">Included Gifts</h4>
+              {/* Included Gifts Section */}
+              {summary.selectedGifts && summary.selectedGifts.length > 0 && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Included Gifts</h4>
+                  <div className="space-y-2">
+                    {summary.selectedGifts.map((gift: any, index: number) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span>{gift.name} (x{gift.quantity})</span>
+                        <span>${(gift.price * gift.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Personalization Section */}
+              {summary.personalization && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Personalization</h4>
+                  <div className="space-y-2 text-sm">
+                    {summary.personalization.selectedAddOns && summary.personalization.selectedAddOns.length > 0 ? (
                       <div className="space-y-2">
-                        {Array.from(box.selectedGifts.entries()).map(([giftId, quantity]) => (
-                          <div key={giftId} className="flex justify-between text-sm">
-                            <span>Gift {giftId} (x{quantity})</span>
-                            <span>${(25.00 * quantity).toFixed(2)}</span>
+                        {summary.personalization.selectedAddOns.map((addon: any, index: number) => (
+                          <div key={index} className="flex justify-between">
+                            <span>{addon.name}</span>
+                            <span>${addon.price.toFixed(2)}</span>
                           </div>
                         ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Personalization Section */}
-                  {box.personalization && (
-                    <div className="border-t pt-4">
-                      <h4 className="font-medium mb-3">Personalization</h4>
-                      <div className="space-y-2 text-sm">
-                        {box.personalization.selectedAddOns && box.personalization.selectedAddOns.length > 0 ? (
-                          <div className="space-y-2">
-                            {box.personalization.selectedAddOns.map((addon, addonIndex) => (
-                              <div key={addonIndex} className="flex justify-between">
-                                <span>{addon.name}</span>
-                                <span>${addon.price.toFixed(2)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
-                            {box.personalization.ribbonColor && (
-                              <div className="flex justify-between">
-                                <span>Ribbon Color:</span>
-                                <span>{box.personalization.ribbonColor}</span>
-                              </div>
-                            )}
-                            {box.personalization.giftWrap && (
-                              <div className="flex justify-between">
-                                <span>Gift Wrap:</span>
-                                <span>{box.personalization.giftWrap}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {box.personalization.cardMessage && (
+                        {summary.personalization.cardMessage && (
                           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                             <p className="text-xs text-gray-600 mb-1">Card Message:</p>
-                            <p className="text-sm italic">"{box.personalization.cardMessage}"</p>
+                            <p className="text-sm italic">"{summary.personalization.cardMessage}"</p>
                           </div>
                         )}
-                        
-                        <div className="flex justify-between font-medium pt-2 border-t">
-                          <span>Personalization Total</span>
-                          <span>${box.personalization.addOnsCost.toFixed(2)}</span>
-                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Recipients for this box */}
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-3">Recipients ({boxRecipients.length})</h4>
-                    <div className="space-y-2">
-                      {boxRecipients.map((recipient) => (
-                        <div key={recipient.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <div>
-                            <div className="font-medium text-sm">{recipient.name}</div>
-                            <div className="text-xs text-gray-600">{recipient.email}</div>
+                    ) : (
+                      <>
+                        {summary.personalization.ribbonColor && (
+                          <div className="flex justify-between">
+                            <span>Ribbon Color:</span>
+                            <span>{summary.personalization.ribbonColor}</span>
                           </div>
-                          {recipient.tag && (
-                            <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
-                          )}
-                        </div>
-                      ))}
+                        )}
+                        {summary.personalization.giftWrap && (
+                          <div className="flex justify-between">
+                            <span>Gift Wrap:</span>
+                            <span>{summary.personalization.giftWrap}</span>
+                          </div>
+                        )}
+                        {summary.personalization.cardMessage && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-600 mb-1">Card Message:</p>
+                            <p className="text-sm italic">"{summary.personalization.cardMessage}"</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex justify-between font-medium pt-2 border-t">
+                      <span>Personalization Total</span>
+                      <span>${personalizationCost.toFixed(2)}</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recipients */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Recipients ({recipientCount})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {summary.recipients?.map((recipient: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">{recipient.name}</div>
+                      <div className="text-sm text-gray-600">{recipient.email}</div>
+                    </div>
+                    {recipient.tag && (
+                      <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Payment Summary */}
@@ -204,23 +206,30 @@ const FinalSummary = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 text-sm">
-                {giftBoxes.map((box, index) => (
-                  <div key={box.id} className="flex justify-between">
-                    <span>Box {index + 1} ({box.assignedRecipients.length} recipients)</span>
-                    <span>${calculateBoxTotal(box).toFixed(2)}</span>
-                  </div>
-                ))}
-                <div className="border-t pt-3 flex justify-between">
+                <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping ({totalRecipients} recipients)</span>
+                  <span>Personalization</span>
+                  <span>${personalizationCost.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping ({recipientCount} recipients)</span>
                   <span>${shippingCost.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span className="text-linden-blue">${total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {summary.sendOption === 'now' ? 'Send Now' : 'Send Later'}
+                  </span>
                 </div>
               </div>
 
@@ -238,6 +247,7 @@ const FinalSummary = () => {
                   onClick={handlePayLater}
                   className="w-full"
                 >
+                  <Clock className="h-4 w-4 mr-2" />
                   Pay Later
                 </Button>
               </div>
