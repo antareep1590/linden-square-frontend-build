@@ -159,7 +159,7 @@ const BoxListing = () => {
       toast.error('Please select at least one box first');
       return;
     }
-    navigate('/personalization');
+    navigate('/customize-box');
   };
 
   const formatDate = (dateString: string) => {

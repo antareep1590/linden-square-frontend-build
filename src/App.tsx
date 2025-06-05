@@ -27,6 +27,7 @@ import GiftBoxFlow from '@/pages/GiftBoxFlow';
 import BoxListing from '@/pages/BoxListing';
 import BoxDetails from '@/pages/BoxDetails';
 import BuildCustomBox from '@/pages/BuildCustomBox';
+import CustomizeBox from '@/pages/CustomizeBox';
 import PersonalizationStep from '@/pages/PersonalizationStep';
 import RecipientSelection from '@/pages/RecipientSelection';
 import FinalSummary from '@/pages/FinalSummary';
@@ -79,6 +80,7 @@ function App() {
             <Route path="/box-listing" element={<DashboardLayout><BoxListing /></DashboardLayout>} />
             <Route path="/box-details/:id" element={<DashboardLayout><BoxDetails /></DashboardLayout>} />
             <Route path="/build-custom-box" element={<DashboardLayout><BuildCustomBox /></DashboardLayout>} />
+            <Route path="/customize-box" element={<DashboardLayout><CustomizeBox /></DashboardLayout>} />
             <Route path="/personalization" element={<DashboardLayout><PersonalizationStep /></DashboardLayout>} />
             <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />
             <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
