@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -165,16 +164,16 @@ const FinalSummary = () => {
                                 </div>
                               ) : (
                                 <>
-                                  {box.personalization.ribbonColor && (
+                                  {box.personalization.selectedOptions?.get('ribbonColor') && (
                                     <div className="flex justify-between">
                                       <span>Ribbon Color:</span>
-                                      <span>{box.personalization.ribbonColor}</span>
+                                      <span>{box.personalization.selectedOptions.get('ribbonColor')}</span>
                                     </div>
                                   )}
-                                  {box.personalization.giftWrap && (
+                                  {box.personalization.selectedOptions?.get('giftWrap') && (
                                     <div className="flex justify-between">
                                       <span>Gift Wrap:</span>
-                                      <span>{box.personalization.giftWrap}</span>
+                                      <span>{box.personalization.selectedOptions.get('giftWrap')}</span>
                                     </div>
                                   )}
                                   {box.personalization.cardMessage && (
