@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gift, Package, Sparkles, Users } from 'lucide-react';
+import { Gift, Package, Sparkles, Users, Plus } from 'lucide-react';
 
 const GiftBoxFlow = () => {
   const navigate = useNavigate();
@@ -11,9 +11,9 @@ const GiftBoxFlow = () => {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-4">Choose Your Gift Box Journey</h1>
+        <h1 className="text-3xl font-bold mb-4">Create Your Gift Campaign</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Select from our expertly curated preset boxes or build your own custom gift box from scratch
+          Build multiple gift boxes in one order. Choose from preset boxes or create custom ones, then assign recipients to each box.
         </p>
       </div>
 
@@ -26,25 +26,29 @@ const GiftBoxFlow = () => {
             <div className="mx-auto mb-4 p-3 bg-linden-blue/10 rounded-full w-16 h-16 flex items-center justify-center">
               <Gift className="h-8 w-8 text-linden-blue" />
             </div>
-            <CardTitle className="text-xl">Preset Gift Boxes</CardTitle>
+            <CardTitle className="text-xl">Start with Preset Boxes</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10 text-center space-y-4">
             <p className="text-gray-600 mb-6">
-              Choose from our expertly curated gift boxes. Perfect for specific occasions and themes.
+              Choose from expertly curated gift boxes. Select multiple boxes and customize each one.
             </p>
             
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-center gap-2">
-                <Sparkles className="h-4 w-4 text-linden-blue" />
-                <span>Pre-selected themes & sizes</span>
+                <Plus className="h-4 w-4 text-linden-blue" />
+                <span>Select multiple preset boxes</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Package className="h-4 w-4 text-linden-blue" />
-                <span>Customizable gift contents</span>
+                <span>Customize gifts in each box</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="h-4 w-4 text-linden-blue" />
+                <span>Personalize each box individually</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Users className="h-4 w-4 text-linden-blue" />
-                <span>Perfect for events & occasions</span>
+                <span>Assign recipients to each box</span>
               </div>
             </div>
 
@@ -62,25 +66,29 @@ const GiftBoxFlow = () => {
             <div className="mx-auto mb-4 p-3 bg-purple-500/10 rounded-full w-16 h-16 flex items-center justify-center">
               <Package className="h-8 w-8 text-purple-500" />
             </div>
-            <CardTitle className="text-xl">Build Your Own Box</CardTitle>
+            <CardTitle className="text-xl">Build Custom Boxes</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10 text-center space-y-4">
             <p className="text-gray-600 mb-6">
-              Create a completely personalized gift box from scratch. Full control over every detail.
+              Create completely custom gift boxes from scratch. Build multiple unique boxes for different recipients.
             </p>
             
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-500" />
-                <span>Choose your own theme</span>
+                <Plus className="h-4 w-4 text-purple-500" />
+                <span>Create multiple custom boxes</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Package className="h-4 w-4 text-purple-500" />
-                <span>Select box size & gifts</span>
+                <span>Choose size, theme & gifts</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                <span>Full personalization control</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <Users className="h-4 w-4 text-purple-500" />
-                <span>Complete personalization</span>
+                <span>Recipient assignment per box</span>
               </div>
             </div>
 
@@ -93,7 +101,7 @@ const GiftBoxFlow = () => {
 
       <div className="text-center mt-8">
         <p className="text-sm text-gray-500">
-          Both options include personalization, recipient management, and delivery options
+          Mix and match preset and custom boxes in the same order • Assign different recipients to each box
         </p>
       </div>
     </div>
