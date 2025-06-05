@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Star, Gift, Plus, Minus, Package } from 'lucide-react';
+import { ArrowLeft, Star, Gift, Package } from 'lucide-react';
+import ExpandedGiftCatalog from '@/components/ExpandedGiftCatalog';
 
 interface BoxGift {
   id: string;
@@ -69,16 +69,6 @@ const mockBoxDetails: BoxDetails = {
       category: 'Home',
       included: true,
       quantity: 1
-    },
-    {
-      id: '4',
-      name: 'Wellness Kit',
-      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop',
-      price: 29.99,
-      description: 'Complete wellness package with aromatherapy essentials',
-      category: 'Health',
-      included: false,
-      quantity: 0
     }
   ]
 };
@@ -87,34 +77,46 @@ const BoxDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [boxDetails, setBoxDetails] = useState<BoxDetails>(mockBoxDetails);
+  const [selectedGifts, setSelectedGifts] = useState<Map<string, number>>(
+    new Map(boxDetails.gifts.filter(g => g.included).map(g => [g.id, g.quantity]))
+  );
 
   const updateGiftQuantity = (giftId: string, newQuantity: number, included: boolean) => {
-    setBoxDetails(prev => ({
-      ...prev,
-      gifts: prev.gifts.map(gift => 
-        gift.id === giftId 
-          ? { ...gift, quantity: Math.max(0, newQuantity), included }
-          : gift
-      )
-    }));
+    const newSelectedGifts = new Map(selectedGifts);
+    if (included && newQuantity > 0) {
+      newSelectedGifts.set(giftId, newQuantity);
+    } else {
+      newSelectedGifts.delete(giftId);
+    }
+    setSelectedGifts(newSelectedGifts);
   };
 
   const calculateTotal = () => {
-    const giftsTotal = boxDetails.gifts
-      .filter(gift => gift.included && gift.quantity > 0)
-      .reduce((sum, gift) => sum + (gift.price * gift.quantity), 0);
+    let giftsTotal = 0;
+    selectedGifts.forEach((quantity, giftId) => {
+      const gift = boxDetails.gifts.find(g => g.id === giftId);
+      if (gift) {
+        giftsTotal += gift.price * quantity;
+      } else {
+        // Handle gifts from expanded catalog with mock prices
+        const mockPrices: { [key: string]: number } = {
+          '4': 29.99, '5': 34.99, '6': 45.99, '7': 27.99, '8': 39.99
+        };
+        giftsTotal += (mockPrices[giftId] || 25.00) * quantity;
+      }
+    });
     return boxDetails.basePrice + giftsTotal;
   };
 
   const getIncludedGiftsCount = () => {
-    return boxDetails.gifts.filter(gift => gift.included && gift.quantity > 0).length;
+    return Array.from(selectedGifts.values()).reduce((sum, quantity) => sum + quantity, 0);
   };
 
   const handlePersonalize = () => {
-    navigate('/recipient-selection', { 
+    navigate('/personalization', { 
       state: { 
         boxDetails,
-        selectedGifts: boxDetails.gifts.filter(gift => gift.included && gift.quantity > 0)
+        selectedGifts: Array.from(selectedGifts.entries()).map(([id, quantity]) => ({ id, quantity }))
       }
     });
   };
@@ -164,73 +166,11 @@ const BoxDetails = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {boxDetails.gifts.map((gift) => (
-                <div 
-                  key={gift.id}
-                  className={`border rounded-lg p-4 transition-all ${
-                    gift.included ? 'border-linden-blue bg-blue-50' : 'border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={gift.image} 
-                      alt={gift.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-semibold">{gift.name}</h4>
-                      <p className="text-sm text-gray-600">{gift.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="secondary" className="text-xs">{gift.category}</Badge>
-                        <span className="font-bold text-linden-blue">${gift.price}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {gift.included ? (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateGiftQuantity(gift.id, gift.quantity - 1, gift.quantity > 1)}
-                            disabled={gift.quantity <= 1}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center font-medium">{gift.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateGiftQuantity(gift.id, gift.quantity + 1, true)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateGiftQuantity(gift.id, 0, false)}
-                            className="ml-2"
-                          >
-                            Remove
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateGiftQuantity(gift.id, 1, true)}
-                          className="bg-linden-blue text-white hover:bg-linden-blue/90"
-                        >
-                          Add to Box
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ExpandedGiftCatalog
+              gifts={[]}
+              selectedGifts={selectedGifts}
+              onUpdateQuantity={updateGiftQuantity}
+            />
           </CardContent>
         </Card>
       </div>
@@ -249,14 +189,17 @@ const BoxDetails = () => {
               <span>Base Box ({boxDetails.size} {boxDetails.theme})</span>
               <span>${boxDetails.basePrice.toFixed(2)}</span>
             </div>
-            {boxDetails.gifts
-              .filter(gift => gift.included && gift.quantity > 0)
-              .map(gift => (
-                <div key={gift.id} className="flex justify-between text-sm">
-                  <span>{gift.name} (x{gift.quantity})</span>
-                  <span>${(gift.price * gift.quantity).toFixed(2)}</span>
+            {Array.from(selectedGifts.entries()).map(([giftId, quantity]) => {
+              const gift = boxDetails.gifts.find(g => g.id === giftId);
+              const name = gift?.name || `Gift ${giftId}`;
+              const price = gift?.price || 25.00;
+              return (
+                <div key={giftId} className="flex justify-between text-sm">
+                  <span>{name} (x{quantity})</span>
+                  <span>${(price * quantity).toFixed(2)}</span>
                 </div>
-              ))}
+              );
+            })}
             <div className="border-t pt-3 flex justify-between font-bold text-lg">
               <span>Total ({getIncludedGiftsCount()} items)</span>
               <span className="text-linden-blue">${calculateTotal().toFixed(2)}</span>
@@ -268,7 +211,7 @@ const BoxDetails = () => {
             className="w-full mt-6 bg-linden-blue hover:bg-linden-blue/90"
             disabled={getIncludedGiftsCount() === 0}
           >
-            Continue to Recipients
+            Continue to Personalization
           </Button>
         </CardContent>
       </Card>

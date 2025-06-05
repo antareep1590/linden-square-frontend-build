@@ -26,14 +26,12 @@ type MenuItem = {
   icon: React.ReactNode;
 };
 
-// Client menu items - Updated to include new Gift Box Flow
+// Client menu items - Updated with renamed and removed pages
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
-  { name: 'Gift Box Flow', path: '/gift-box-flow', icon: <Sparkles size={20} /> },
-  { name: 'Select Gifts', path: '/select-gifts', icon: <Gift size={20} /> },
+  { name: 'Recipients', path: '/customers', icon: <Users size={20} /> },
+  { name: 'Gift Box', path: '/gift-box-flow', icon: <Sparkles size={20} /> },
   { name: 'Add Personalization', path: '/add-personalization', icon: <Pen size={20} /> },
-  { name: 'Packaging & Delivery', path: '/packaging', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];

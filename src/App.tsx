@@ -12,9 +12,7 @@ import NotFound from '@/pages/NotFound';
 // Client pages
 import Dashboard from '@/pages/Dashboard';
 import Customers from '@/pages/Customers';
-import SelectGifts from '@/pages/SelectGifts';
 import AddPersonalization from '@/pages/AddPersonalization';
-import GiftBoxPackaging from '@/pages/GiftBoxPackaging';
 import TrackOrders from '@/pages/TrackOrders';
 import Invoices from '@/pages/Invoices';
 import Inventory from '@/pages/Inventory';
@@ -82,9 +80,7 @@ function App() {
           <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
           
           {/* Legacy routes - kept for compatibility */}
-          <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></DashboardLayout>} />
           <Route path="/add-personalization" element={<DashboardLayout><AddPersonalization /></DashboardLayout>} />
-          <Route path="/packaging" element={<DashboardLayout><GiftBoxPackaging /></DashboardLayout>} />
           <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
           <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
           <Route path="/inventory" element={<DashboardLayout><Inventory /></DashboardLayout>} />

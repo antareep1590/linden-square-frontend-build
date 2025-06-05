@@ -19,6 +19,7 @@ interface GiftBoxOption {
   defaultGifts: number;
   rating?: number;
   description: string;
+  products?: string[];
 }
 
 const presetBoxes: GiftBoxOption[] = [
@@ -32,7 +33,8 @@ const presetBoxes: GiftBoxOption[] = [
     priceRange: '$75 - $95',
     defaultGifts: 5,
     rating: 4.8,
-    description: 'Pre-curated birthday celebration with premium gifts and festive touches'
+    description: 'Pre-curated birthday celebration with premium gifts and festive touches',
+    products: ['chocolates', 'candles', 'coffee', 'cards']
   },
   {
     id: 'preset-2',
@@ -44,7 +46,8 @@ const presetBoxes: GiftBoxOption[] = [
     priceRange: '$120 - $150',
     defaultGifts: 7,
     rating: 4.9,
-    description: 'Sophisticated welcome package for new team members and clients'
+    description: 'Sophisticated welcome package for new team members and clients',
+    products: ['notebook', 'coffee', 'tech-accessories', 'wellness']
   },
   {
     id: 'preset-3',
@@ -56,7 +59,8 @@ const presetBoxes: GiftBoxOption[] = [
     priceRange: '$45 - $65',
     defaultGifts: 4,
     rating: 4.7,
-    description: 'Warm holiday greetings with seasonal treats and decorations'
+    description: 'Warm holiday greetings with seasonal treats and decorations',
+    products: ['chocolates', 'candles', 'ornaments', 'cards']
   }
 ];
 
@@ -78,11 +82,15 @@ const BoxListing = () => {
   const [selectedTheme, setSelectedTheme] = useState('All');
   const [selectedSize, setSelectedSize] = useState('All');
   const [priceRange, setPriceRange] = useState('All');
+  const [productFilter, setProductFilter] = useState('All');
+  const [productFilterType, setProductFilterType] = useState<'include' | 'exclude'>('include');
+  const [selectedProduct, setSelectedProduct] = useState('');
 
   const allBoxes = [...presetBoxes, customBoxOption];
   const themes = ['All', 'Birthday', 'Professional', 'Holiday', 'Custom'];
   const sizes = ['All', 'Small', 'Medium', 'Large'];
   const priceRanges = ['All', 'Under $50', '$50 - $100', 'Over $100'];
+  const products = ['All', 'chocolates', 'candles', 'coffee', 'notebook', 'tech-accessories', 'wellness', 'ornaments', 'cards'];
 
   const filteredBoxes = allBoxes.filter(box => {
     const matchesSearch = box.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,7 +98,16 @@ const BoxListing = () => {
     const matchesTheme = selectedTheme === 'All' || box.theme === selectedTheme;
     const matchesSize = selectedSize === 'All' || box.size === selectedSize;
     
-    return matchesSearch && matchesTheme && matchesSize;
+    let matchesProduct = true;
+    if (selectedProduct && selectedProduct !== 'All' && box.products) {
+      if (productFilterType === 'include') {
+        matchesProduct = box.products.includes(selectedProduct);
+      } else {
+        matchesProduct = !box.products.includes(selectedProduct);
+      }
+    }
+    
+    return matchesSearch && matchesTheme && matchesSize && matchesProduct;
   });
 
   const handleBoxSelect = (box: GiftBoxOption) => {
@@ -111,49 +128,97 @@ const BoxListing = () => {
       {/* Search and Filters */}
       <Card className="bg-gray-50">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search boxes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search boxes..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Theme</label>
+                <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themes.map(theme => (
+                      <SelectItem key={theme} value={theme}>{theme}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Size</label>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sizes.map(size => (
+                      <SelectItem key={size} value={size}>{size}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Price Range</label>
+                <Select value={priceRange} onValueChange={setPriceRange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Price Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceRanges.map(range => (
+                      <SelectItem key={range} value={range}>{range}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Filter by Products</label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={productFilterType === 'include' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilterType('include')}
+                      className="text-xs"
+                    >
+                      Include
+                    </Button>
+                    <Button
+                      variant={productFilterType === 'exclude' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductFilterType('exclude')}
+                      className="text-xs"
+                    >
+                      Exclude
+                    </Button>
+                  </div>
+                  <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products.map(product => (
+                        <SelectItem key={product} value={product}>{product}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            
-            <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-              <SelectTrigger>
-                <SelectValue placeholder="Theme" />
-              </SelectTrigger>
-              <SelectContent>
-                {themes.map(theme => (
-                  <SelectItem key={theme} value={theme}>{theme}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedSize} onValueChange={setSelectedSize}>
-              <SelectTrigger>
-                <SelectValue placeholder="Size" />
-              </SelectTrigger>
-              <SelectContent>
-                {sizes.map(size => (
-                  <SelectItem key={size} value={size}>{size}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Price Range" />
-              </SelectTrigger>
-              <SelectContent>
-                {priceRanges.map(range => (
-                  <SelectItem key={range} value={range}>{range}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>

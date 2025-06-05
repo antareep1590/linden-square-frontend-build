@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,7 +106,7 @@ const BuildCustomBox = () => {
     if (!boxConfig.size || boxConfig.gifts.length === 0) {
       return;
     }
-    navigate('/recipient-selection', { state: { customBox: boxConfig } });
+    navigate('/personalization', { state: { customBox: boxConfig } });
   };
 
   return (
@@ -289,7 +288,7 @@ const BuildCustomBox = () => {
               className="bg-linden-blue hover:bg-linden-blue/90"
               disabled={!boxConfig.size || boxConfig.gifts.length === 0}
             >
-              Continue to Recipients
+              Continue to Personalization
             </Button>
           </div>
         </CardContent>

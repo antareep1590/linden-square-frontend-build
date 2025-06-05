@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Users, Plus, Upload, Edit2, Trash2, AlertTriangle, Save } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Users, Plus, Upload, Trash2, AlertTriangle, Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Recipient {
@@ -18,22 +18,43 @@ interface Recipient {
   tag: string;
   isDuplicate?: boolean;
   hasErrors?: boolean;
+  included: boolean;
 }
 
 const RecipientSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  
+  // Mock existing recipients
+  const [savedRecipients] = useState<Recipient[]>([
+    {
+      id: 'saved-1',
+      name: 'John Smith',
+      email: 'john@company.com',
+      phone: '+1234567890',
+      tag: 'Client',
+      included: false
+    },
+    {
+      id: 'saved-2',
+      name: 'Sarah Johnson',
+      email: 'sarah@partner.com',
+      tag: 'Partner',
+      included: false
+    }
+  ]);
+
+  const [newRecipients, setNewRecipients] = useState<Recipient[]>([]);
   const [newRecipient, setNewRecipient] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
-    tag: 'Client'
+    tag: ''
   });
-  const [sendOption, setSendOption] = useState<'now' | 'later' | 'draft'>('now');
+  const [sendOption, setSendOption] = useState<'now' | 'later'>('now');
 
-  const tags = ['Client', 'Team Member', 'Partner', 'Friend', 'Family', 'Other'];
+  const allRecipients = [...savedRecipients, ...newRecipients];
 
   const addRecipient = () => {
     if (!newRecipient.name || !newRecipient.email) {
@@ -41,7 +62,7 @@ const RecipientSelection = () => {
       return;
     }
 
-    const isDuplicate = recipients.some(r => 
+    const isDuplicate = allRecipients.some(r => 
       r.email.toLowerCase() === newRecipient.email.toLowerCase() ||
       r.name.toLowerCase() === newRecipient.name.toLowerCase()
     );
@@ -49,11 +70,12 @@ const RecipientSelection = () => {
     const recipient: Recipient = {
       id: Date.now().toString(),
       ...newRecipient,
-      isDuplicate
+      isDuplicate,
+      included: true
     };
 
-    setRecipients(prev => [...prev, recipient]);
-    setNewRecipient({ name: '', email: '', phone: '', address: '', tag: 'Client' });
+    setNewRecipients(prev => [...prev, recipient]);
+    setNewRecipient({ name: '', email: '', phone: '', address: '', tag: '' });
     
     if (isDuplicate) {
       toast.warning('Duplicate recipient detected');
@@ -63,14 +85,26 @@ const RecipientSelection = () => {
   };
 
   const removeRecipient = (id: string) => {
-    setRecipients(prev => prev.filter(r => r.id !== id));
+    setNewRecipients(prev => prev.filter(r => r.id !== id));
     toast.success('Recipient removed');
   };
 
-  const updateRecipient = (id: string, field: string, value: string) => {
-    setRecipients(prev => prev.map(r => 
-      r.id === id ? { ...r, [field]: value } : r
-    ));
+  const updateRecipient = (id: string, field: string, value: string | boolean) => {
+    if (savedRecipients.find(r => r.id === id)) {
+      // Update saved recipients
+      const updatedSaved = savedRecipients.map(r => 
+        r.id === id ? { ...r, [field]: value } : r
+      );
+      // Note: In a real app, this would update the global state
+    } else {
+      setNewRecipients(prev => prev.map(r => 
+        r.id === id ? { ...r, [field]: value } : r
+      ));
+    }
+  };
+
+  const toggleRecipientInclusion = (id: string, included: boolean) => {
+    updateRecipient(id, 'included', included);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,42 +113,33 @@ const RecipientSelection = () => {
       // Mock CSV processing
       const mockRecipients: Recipient[] = [
         {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@example.com',
+          id: Date.now().toString(),
+          name: 'Jane Doe',
+          email: 'jane@example.com',
           phone: '+1234567890',
           address: '123 Main St, City, State',
-          tag: 'Client'
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          tag: 'Partner',
-          hasErrors: true // Missing phone/address
+          tag: 'Client',
+          included: true
         }
       ];
       
-      setRecipients(prev => [...prev, ...mockRecipients]);
+      setNewRecipients(prev => [...prev, ...mockRecipients]);
       toast.success('CSV uploaded successfully');
     } else {
       toast.error('Please upload a valid CSV file');
     }
   };
 
-  const handleSaveDraft = () => {
-    toast.success('Recipients saved as draft');
-    navigate('/dashboard');
-  };
-
   const handleContinue = () => {
-    if (recipients.length === 0) {
-      toast.error('Please add at least one recipient');
+    const selectedRecipients = allRecipients.filter(r => r.included);
+    
+    if (selectedRecipients.length === 0) {
+      toast.error('Please select at least one recipient');
       return;
     }
 
-    const validRecipients = recipients.filter(r => r.name && r.email);
-    if (validRecipients.length !== recipients.length) {
+    const validRecipients = selectedRecipients.filter(r => r.name && r.email);
+    if (validRecipients.length !== selectedRecipients.length) {
       toast.error('Please fix all recipient errors before continuing');
       return;
     }
@@ -122,14 +147,13 @@ const RecipientSelection = () => {
     navigate('/final-summary', { 
       state: { 
         ...location.state, 
-        recipients,
+        recipients: selectedRecipients,
         sendOption 
       }
     });
   };
 
-  const duplicateCount = recipients.filter(r => r.isDuplicate).length;
-  const errorCount = recipients.filter(r => r.hasErrors || !r.name || !r.email).length;
+  const selectedCount = allRecipients.filter(r => r.included).length;
 
   return (
     <div className="space-y-6">
@@ -173,18 +197,11 @@ const RecipientSelection = () => {
                   value={newRecipient.phone}
                   onChange={(e) => setNewRecipient(prev => ({ ...prev, phone: e.target.value }))}
                 />
-                <Select value={newRecipient.tag} onValueChange={(value) => 
-                  setNewRecipient(prev => ({ ...prev, tag: value }))
-                }>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tags.map(tag => (
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  placeholder="Tag (e.g., Client, Friend)"
+                  value={newRecipient.tag}
+                  onChange={(e) => setNewRecipient(prev => ({ ...prev, tag: e.target.value }))}
+                />
               </div>
               <Input
                 placeholder="Address (optional)"
@@ -227,71 +244,56 @@ const RecipientSelection = () => {
             </CardContent>
           </Card>
 
-          {/* Recipients List */}
-          {recipients.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Recipients ({recipients.length})
-                  </div>
-                  {(duplicateCount > 0 || errorCount > 0) && (
-                    <div className="flex items-center gap-2">
-                      {duplicateCount > 0 && (
-                        <Badge variant="destructive">{duplicateCount} Duplicates</Badge>
-                      )}
-                      {errorCount > 0 && (
-                        <Badge variant="destructive">{errorCount} Errors</Badge>
-                      )}
-                    </div>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {recipients.map((recipient) => (
-                    <div 
-                      key={recipient.id}
-                      className={`border rounded-lg p-4 ${
-                        recipient.isDuplicate ? 'border-red-300 bg-red-50' : 
-                        recipient.hasErrors ? 'border-yellow-300 bg-yellow-50' : 
-                        'border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          <Input
-                            placeholder="Name"
-                            value={recipient.name}
-                            onChange={(e) => updateRecipient(recipient.id, 'name', e.target.value)}
-                            className="text-sm"
+          {/* Recipients Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                All Recipients ({allRecipients.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Include</th>
+                      <th className="text-left p-2">Name</th>
+                      <th className="text-left p-2">Email</th>
+                      <th className="text-left p-2">Tag</th>
+                      <th className="text-left p-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allRecipients.map((recipient) => (
+                      <tr key={recipient.id} className="border-b">
+                        <td className="p-2">
+                          <Checkbox
+                            checked={recipient.included}
+                            onCheckedChange={(checked) => 
+                              toggleRecipientInclusion(recipient.id, checked as boolean)
+                            }
                           />
-                          <Input
-                            placeholder="Email"
-                            value={recipient.email}
-                            onChange={(e) => updateRecipient(recipient.id, 'email', e.target.value)}
-                            className="text-sm"
-                          />
-                          <Input
-                            placeholder="Phone"
-                            value={recipient.phone || ''}
-                            onChange={(e) => updateRecipient(recipient.id, 'phone', e.target.value)}
-                            className="text-sm"
-                          />
-                          <div className="flex items-center gap-2">
-                            <Select value={recipient.tag} onValueChange={(value) => 
-                              updateRecipient(recipient.id, 'tag', value)
-                            }>
-                              <SelectTrigger className="text-sm">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {tags.map(tag => (
-                                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        </td>
+                        <td className="p-2">
+                          <div>
+                            <span className="font-medium">{recipient.name}</span>
+                            {recipient.isDuplicate && (
+                              <div className="flex items-center gap-1 text-red-600 text-xs">
+                                <AlertTriangle className="h-3 w-3" />
+                                Duplicate
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-2 text-sm text-gray-600">{recipient.email}</td>
+                        <td className="p-2">
+                          {recipient.tag && (
+                            <Badge variant="secondary" className="text-xs">{recipient.tag}</Badge>
+                          )}
+                        </td>
+                        <td className="p-2">
+                          {newRecipients.find(r => r.id === recipient.id) && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -300,29 +302,15 @@ const RecipientSelection = () => {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {recipient.isDuplicate && (
-                        <div className="flex items-center gap-1 mt-2 text-sm text-red-600">
-                          <AlertTriangle className="h-4 w-4" />
-                          Potential duplicate detected
-                        </div>
-                      )}
-                      
-                      {recipient.hasErrors && (
-                        <div className="flex items-center gap-1 mt-2 text-sm text-yellow-600">
-                          <AlertTriangle className="h-4 w-4" />
-                          Missing required fields
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Send Options */}
@@ -339,7 +327,7 @@ const RecipientSelection = () => {
                     name="sendOption"
                     value="now"
                     checked={sendOption === 'now'}
-                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later' | 'draft')}
+                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later')}
                   />
                   <span>Send Now</span>
                 </label>
@@ -349,19 +337,9 @@ const RecipientSelection = () => {
                     name="sendOption"
                     value="later"
                     checked={sendOption === 'later'}
-                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later' | 'draft')}
+                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later')}
                   />
                   <span>Schedule for Later</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name="sendOption"
-                    value="draft"
-                    checked={sendOption === 'draft'}
-                    onChange={(e) => setSendOption(e.target.value as 'now' | 'later' | 'draft')}
-                  />
-                  <span>Save as Draft</span>
                 </label>
               </div>
 
@@ -369,40 +347,23 @@ const RecipientSelection = () => {
                 <h4 className="font-medium mb-2">Summary</h4>
                 <div className="text-sm space-y-1">
                   <div className="flex justify-between">
-                    <span>Recipients:</span>
-                    <span>{recipients.length}</span>
+                    <span>Total Recipients:</span>
+                    <span>{allRecipients.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Valid:</span>
-                    <span className="text-green-600">{recipients.length - errorCount}</span>
+                    <span>Selected:</span>
+                    <span className="text-green-600">{selectedCount}</span>
                   </div>
-                  {errorCount > 0 && (
-                    <div className="flex justify-between">
-                      <span>Errors:</span>
-                      <span className="text-red-600">{errorCount}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Button 
-                  onClick={handleContinue}
-                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
-                  disabled={recipients.length === 0 || errorCount > 0}
-                >
-                  Continue to Summary
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={handleSaveDraft}
-                  className="w-full"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Save as Draft
-                </Button>
-              </div>
+              <Button 
+                onClick={handleContinue}
+                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                disabled={selectedCount === 0}
+              >
+                Continue to Summary
+              </Button>
             </CardContent>
           </Card>
         </div>
