@@ -8,8 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Package, Trash2, Edit, Save } from 'lucide-react';
+import { Plus, Package, Trash2, Edit } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 // Mock gift catalog
@@ -20,6 +19,13 @@ const mockGiftCatalog = [
   { id: 4, name: 'Artisan Tea Collection', price: 22.99, category: 'Food & Drink' },
   { id: 5, name: 'Premium Notebook', price: 18.99, category: 'Stationery' },
   { id: 6, name: 'Luxury Bath Set', price: 34.99, category: 'Personal Care' },
+];
+
+// Mock gift boxes from inventory
+const mockInventoryGiftBoxes = [
+  { id: "GB-001", boxName: "Premium Executive Box", size: "Large", unitCost: 125.99 },
+  { id: "GB-002", boxName: "Holiday Celebration", size: "Medium", unitCost: 89.99 },
+  { id: "GB-003", boxName: "Welcome Package", size: "Small", unitCost: 45.99 },
 ];
 
 interface PresetBox {
@@ -49,9 +55,21 @@ const PresetGiftBoxSetup = () => {
     name: '',
     description: '',
     theme: '',
-    size: 'medium',
+    size: '',
     basePrice: 0,
   });
+
+  const handleBoxNameChange = (boxName: string) => {
+    const selectedBox = mockInventoryGiftBoxes.find(box => box.boxName === boxName);
+    if (selectedBox) {
+      setNewBox({
+        ...newBox,
+        name: boxName,
+        size: selectedBox.size,
+        basePrice: selectedBox.unitCost,
+      });
+    }
+  };
 
   const handleCreateBox = () => {
     const box: PresetBox = {
@@ -62,7 +80,7 @@ const PresetGiftBoxSetup = () => {
     };
     
     setPresetBoxes([...presetBoxes, box]);
-    setNewBox({ name: '', description: '', theme: '', size: 'medium', basePrice: 0 });
+    setNewBox({ name: '', description: '', theme: '', size: '', basePrice: 0 });
     setShowCreateDialog(false);
   };
 
@@ -241,12 +259,18 @@ const PresetGiftBoxSetup = () => {
           <div className="space-y-4">
             <div>
               <Label htmlFor="name">Box Name</Label>
-              <Input
-                id="name"
-                value={newBox.name}
-                onChange={(e) => setNewBox({ ...newBox, name: e.target.value })}
-                placeholder="e.g., Executive Welcome Box"
-              />
+              <Select onValueChange={handleBoxNameChange} value={newBox.name}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a gift box" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockInventoryGiftBoxes.map((box) => (
+                    <SelectItem key={box.id} value={box.boxName}>
+                      {box.boxName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="description">Description</Label>
@@ -268,16 +292,13 @@ const PresetGiftBoxSetup = () => {
             </div>
             <div>
               <Label htmlFor="size">Size</Label>
-              <Select value={newBox.size} onValueChange={(value) => setNewBox({ ...newBox, size: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="large">Large</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="size"
+                value={newBox.size}
+                readOnly
+                placeholder="Auto-filled based on selected box"
+                className="bg-gray-100"
+              />
             </div>
             <div>
               <Label htmlFor="basePrice">Base Price ($)</Label>
@@ -286,8 +307,9 @@ const PresetGiftBoxSetup = () => {
                 type="number"
                 step="0.01"
                 value={newBox.basePrice}
-                onChange={(e) => setNewBox({ ...newBox, basePrice: parseFloat(e.target.value) || 0 })}
-                placeholder="0.00"
+                readOnly
+                placeholder="Auto-filled based on selected box"
+                className="bg-gray-100"
               />
             </div>
           </div>

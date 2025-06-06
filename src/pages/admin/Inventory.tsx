@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
@@ -12,12 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Archive, Plus, Edit, Trash2, Package } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +29,6 @@ const mockInventory = [
     quantity: 120,
     reorderThreshold: 50,
     unitCost: 15.99,
-    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-15")
   },
   {
@@ -45,7 +39,6 @@ const mockInventory = [
     quantity: 35,
     reorderThreshold: 40,
     unitCost: 12.50,
-    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-09-20")
   },
   {
@@ -56,7 +49,6 @@ const mockInventory = [
     quantity: 18,
     reorderThreshold: 25,
     unitCost: 22.00,
-    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-11-01")
   },
   {
@@ -67,7 +59,6 @@ const mockInventory = [
     quantity: 80,
     reorderThreshold: 30,
     unitCost: 8.75,
-    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-10")
   },
   {
@@ -78,7 +69,6 @@ const mockInventory = [
     quantity: 22,
     reorderThreshold: 20,
     unitCost: 35.00,
-    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-25")
   }
 ];
@@ -92,9 +82,8 @@ const mockGiftBoxes = [
     qtyInHand: 15,
     reorderThreshold: 10,
     unitCost: 125.99,
-    status: 'active' as 'active' | 'inactive',
-    lastRefilledDate: new Date("2023-10-20"),
-    componentSkus: ["Artisan Chocolates", "Leather Journal", "Premium Pen Set"]
+    size: "Large",
+    lastRefilledDate: new Date("2023-10-20")
   },
   {
     id: "GB-002",
@@ -103,9 +92,8 @@ const mockGiftBoxes = [
     qtyInHand: 8,
     reorderThreshold: 15,
     unitCost: 89.99,
-    status: 'active' as 'active' | 'inactive',
-    lastRefilledDate: new Date("2023-11-01"),
-    componentSkus: ["Scented Candle", "Holiday Treats", "Gift Card"]
+    size: "Medium",
+    lastRefilledDate: new Date("2023-11-01")
   },
   {
     id: "GB-003",
@@ -114,9 +102,8 @@ const mockGiftBoxes = [
     qtyInHand: 25,
     reorderThreshold: 20,
     unitCost: 45.99,
-    status: 'active' as 'active' | 'inactive',
-    lastRefilledDate: new Date("2023-10-15"),
-    componentSkus: ["Coffee Mug", "Custom Notepad", "Company Swag"]
+    size: "Small",
+    lastRefilledDate: new Date("2023-10-15")
   }
 ];
 
@@ -128,7 +115,6 @@ interface InventoryItem {
   quantity: number;
   reorderThreshold: number;
   unitCost: number;
-  status: 'active' | 'inactive';
   lastRefilledDate: Date;
 }
 
@@ -139,9 +125,8 @@ interface GiftBox {
   qtyInHand: number;
   reorderThreshold: number;
   unitCost: number;
-  status: 'active' | 'inactive';
+  size: string;
   lastRefilledDate: Date;
-  componentSkus: string[];
 }
 
 const categories = [
@@ -515,9 +500,9 @@ const AdminInventory = () => {
                   <TableHead className="text-right">Qty In Hand</TableHead>
                   <TableHead className="text-right">Reorder Threshold</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
+                  <TableHead>Box Size</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Refill Date</TableHead>
-                  <TableHead>Component SKUs</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -538,32 +523,14 @@ const AdminInventory = () => {
                         <TableCell className="text-right">{box.reorderThreshold}</TableCell>
                         <TableCell className="text-right">{formatCurrency(box.unitCost)}</TableCell>
                         <TableCell>
+                          <Badge variant="outline">{box.size}</Badge>
+                        </TableCell>
+                        <TableCell>
                           <Badge className={`${stockStatus.color} text-white border-0`}>
                             {stockStatus.label}
                           </Badge>
                         </TableCell>
                         <TableCell>{formatDate(box.lastRefilledDate)}</TableCell>
-                        <TableCell>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge variant="outline" className="cursor-help">
-                                  {box.componentSkus.length} components
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                <div>
-                                  <p className="font-medium mb-1">Components:</p>
-                                  <ul className="text-sm space-y-1">
-                                    {box.componentSkus.map((sku, index) => (
-                                      <li key={index}>• {sku}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="sm" onClick={() => handleEditBox(box)}>

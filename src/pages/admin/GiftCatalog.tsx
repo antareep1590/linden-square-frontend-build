@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -49,6 +48,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+// Mock gift data from inventory
+const mockInventoryProducts = [
+  { id: "1", name: "Artisan Chocolates", category: "Food & Beverage", unitCost: 15.99 },
+  { id: "2", name: "Coffee Mug", category: "Drinkware", unitCost: 12.50 },
+  { id: "3", name: "Scented Candle", category: "Home & Living", unitCost: 22.00 },
+  { id: "4", name: "Custom Notepad", category: "Stationery", unitCost: 8.75 },
+  { id: "5", name: "Leather Journal", category: "Stationery", unitCost: 35.00 },
+];
+
 // Mock gift data
 const mockGifts = [
   {
@@ -58,7 +66,6 @@ const mockGifts = [
     category: "Home",
     tags: ["aromatherapy", "luxury"],
     image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop",
-    status: "active",
     visibility: "public",
     description: "Premium soy candles with natural essential oils",
     quantity: 25,
@@ -70,7 +77,6 @@ const mockGifts = [
     category: "Food & Drink",
     tags: ["alcohol", "gourmet"],
     image: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=300&h=200&fit=crop",
-    status: "active",
     visibility: "public",
     description: "Carefully selected premium wine from renowned vineyards",
     quantity: 15,
@@ -82,7 +88,6 @@ const mockGifts = [
     category: "Food & Drink",
     tags: ["sweets", "luxury"],
     image: "https://images.unsplash.com/photo-1500673922987-e212871fec22",
-    status: "active",
     visibility: "private",
   },
   {
@@ -92,7 +97,6 @@ const mockGifts = [
     category: "Stationery",
     tags: ["office", "personal"],
     image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-    status: "inactive",
     visibility: "public",
   },
   {
@@ -102,7 +106,6 @@ const mockGifts = [
     category: "Personal Care",
     tags: ["spa", "relaxation"],
     image: "https://images.unsplash.com/photo-1501854140801-50d01698950b",
-    status: "active",
     visibility: "public",
   },
   {
@@ -112,7 +115,6 @@ const mockGifts = [
     category: "Food & Drink",
     tags: ["coffee", "gourmet"],
     image: "https://images.unsplash.com/photo-1615729947596-a598e5de0ab3",
-    status: "active",
     visibility: "public",
   },
 ];
@@ -127,7 +129,6 @@ const giftFormSchema = z.object({
   price: z.coerce.number().positive({ message: "Price must be positive." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
   tags: z.string(),
-  status: z.enum(["active", "inactive"]),
   visibility: z.enum(["public", "private"]),
   quantity: z.coerce.number().min(0, { message: "Quantity must be 0 or greater." }),
 });
@@ -141,7 +142,6 @@ const GiftCatalog = () => {
   const [editingGift, setEditingGift] = useState<any>(null);
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [filterStatus, setFilterStatus] = useState<string[]>([]);
   const [filterVisibility, setFilterVisibility] = useState<string[]>([]);
   const [openFilters, setOpenFilters] = useState(false);
 
@@ -153,11 +153,19 @@ const GiftCatalog = () => {
       price: 0,
       description: "",
       tags: "",
-      status: "active",
       visibility: "public",
       quantity: 0,
     },
   });
+
+  const handleGiftNameChange = (giftName: string) => {
+    const selectedProduct = mockInventoryProducts.find(product => product.name === giftName);
+    if (selectedProduct) {
+      form.setValue('name', giftName);
+      form.setValue('category', selectedProduct.category);
+      form.setValue('price', selectedProduct.unitCost);
+    }
+  };
 
   const onSubmit = (data: GiftFormValues) => {
     const tagsArray = data.tags.split(",").map(tag => tag.trim());
@@ -170,7 +178,6 @@ const GiftCatalog = () => {
         price: data.price,
         category: data.category,
         tags: tagsArray,
-        status: data.status,
         visibility: data.visibility,
         description: data.description,
         quantity: data.quantity,
@@ -188,7 +195,6 @@ const GiftCatalog = () => {
         category: data.category,
         tags: tagsArray,
         image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=200&fit=crop",
-        status: data.status,
         visibility: data.visibility,
         description: data.description,
         quantity: data.quantity,
@@ -209,7 +215,6 @@ const GiftCatalog = () => {
       price: gift.price,
       description: gift.description,
       tags: gift.tags.join(", "),
-      status: gift.status,
       visibility: gift.visibility,
       quantity: gift.quantity,
     });
@@ -223,10 +228,9 @@ const GiftCatalog = () => {
   const filteredGifts = gifts.filter(gift => {
     const priceInRange = gift.price >= priceRange[0] && gift.price <= priceRange[1];
     const categoryMatch = selectedCategory === "All" || gift.category === selectedCategory;
-    const statusMatch = filterStatus.length === 0 || filterStatus.includes(gift.status);
     const visibilityMatch = filterVisibility.length === 0 || filterVisibility.includes(gift.visibility);
     
-    return priceInRange && categoryMatch && statusMatch && visibilityMatch;
+    return priceInRange && categoryMatch && visibilityMatch;
   });
 
   return (
@@ -283,42 +287,6 @@ const GiftCatalog = () => {
                 <Separator />
                 
                 <div>
-                  <h3 className="font-medium mb-2">Status</h3>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="active" 
-                        checked={filterStatus.includes("active")}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFilterStatus([...filterStatus, "active"]);
-                          } else {
-                            setFilterStatus(filterStatus.filter(s => s !== "active"));
-                          }
-                        }}
-                      />
-                      <Label htmlFor="active">Active</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="inactive"
-                        checked={filterStatus.includes("inactive")}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFilterStatus([...filterStatus, "inactive"]);
-                          } else {
-                            setFilterStatus(filterStatus.filter(s => s !== "inactive"));
-                          }
-                        }}
-                      />
-                      <Label htmlFor="inactive">Inactive</Label>
-                    </div>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div>
                   <h3 className="font-medium mb-2">Visibility</h3>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center space-x-2">
@@ -359,7 +327,6 @@ const GiftCatalog = () => {
                     onClick={() => {
                       setPriceRange([0, 100]);
                       setSelectedCategory("All");
-                      setFilterStatus([]);
                       setFilterVisibility([]);
                     }}
                   >
@@ -376,7 +343,7 @@ const GiftCatalog = () => {
                 <Plus size={16} /> Add New Gift
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Gift</DialogTitle>
               </DialogHeader>
@@ -387,10 +354,21 @@ const GiftCatalog = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Gift name" {...field} />
-                        </FormControl>
+                        <FormLabel>Gift Name</FormLabel>
+                        <Select onValueChange={handleGiftNameChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a gift from inventory" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {mockInventoryProducts.map((product) => (
+                              <SelectItem key={product.id} value={product.name}>
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -402,20 +380,9 @@ const GiftCatalog = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.slice(1).map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input {...field} readOnly className="bg-gray-100" placeholder="Auto-filled from inventory" />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -428,7 +395,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Price ($)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -463,43 +430,23 @@ const GiftCatalog = () => {
                     )}
                   />
                   
-                  <div className="flex justify-between gap-4">
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
-                          <div className="space-y-0.5">
-                            <FormLabel>Active Status</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value === "active"}
-                              onCheckedChange={(checked) => field.onChange(checked ? "active" : "inactive")}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="visibility"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
-                          <div className="space-y-0.5">
-                            <FormLabel>Public Visibility</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value === "public"}
-                              onCheckedChange={(checked) => field.onChange(checked ? "public" : "private")}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="visibility"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Public Visibility</FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value === "public"}
+                            onCheckedChange={(checked) => field.onChange(checked ? "public" : "private")}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                   
                   <FormField
                     control={form.control}
@@ -533,7 +480,7 @@ const GiftCatalog = () => {
 
           {/* Edit Gift Dialog */}
           <Dialog open={openEditGift} onOpenChange={setOpenEditGift}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Gift</DialogTitle>
               </DialogHeader>
@@ -544,10 +491,21 @@ const GiftCatalog = () => {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Gift name" {...field} />
-                        </FormControl>
+                        <FormLabel>Gift Name</FormLabel>
+                        <Select onValueChange={handleGiftNameChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a gift from inventory" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {mockInventoryProducts.map((product) => (
+                              <SelectItem key={product.id} value={product.name}>
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -559,20 +517,9 @@ const GiftCatalog = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.slice(1).map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input {...field} readOnly className="bg-gray-100" placeholder="Auto-filled from inventory" />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -585,7 +532,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Price ($)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -620,43 +567,23 @@ const GiftCatalog = () => {
                     )}
                   />
                   
-                  <div className="flex justify-between gap-4">
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
-                          <div className="space-y-0.5">
-                            <FormLabel>Active Status</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value === "active"}
-                              onCheckedChange={(checked) => field.onChange(checked ? "active" : "inactive")}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="visibility"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-1/2">
-                          <div className="space-y-0.5">
-                            <FormLabel>Public Visibility</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value === "public"}
-                              onCheckedChange={(checked) => field.onChange(checked ? "public" : "private")}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="visibility"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Public Visibility</FormLabel>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value === "public"}
+                            onCheckedChange={(checked) => field.onChange(checked ? "public" : "private")}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                   
                   <FormField
                     control={form.control}
@@ -690,10 +617,10 @@ const GiftCatalog = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {filteredGifts.map((gift) => (
-          <Card key={gift.id} className={`overflow-hidden ${gift.status === 'inactive' ? 'opacity-60' : ''}`}>
-            <div className="aspect-square relative bg-gray-100">
+          <Card key={gift.id} className="overflow-hidden h-fit">
+            <div className="aspect-video relative bg-gray-100">
               <img
                 src={gift.image}
                 alt={gift.name}
@@ -704,39 +631,34 @@ const GiftCatalog = () => {
               </span>
             </div>
             
-            <CardHeader>
-              <CardTitle className="flex justify-between items-start">
-                <span>{gift.name}</span>
-                <span className="text-linden-blue">${gift.price.toFixed(2)}</span>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex justify-between items-start text-sm">
+                <span className="truncate">{gift.name}</span>
+                <span className="text-linden-blue whitespace-nowrap ml-2">${gift.price.toFixed(2)}</span>
               </CardTitle>
             </CardHeader>
             
-            <CardContent>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {gift.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline">{tag}</Badge>
+            <CardContent className="pt-0">
+              <div className="flex flex-wrap gap-1 mb-2">
+                {gift.tags.slice(0, 2).map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mb-2">Category: {gift.category}</p>
-              <p className="text-sm text-gray-500 mb-2">Quantity: {gift.quantity}</p>
-              <p className="text-sm text-gray-500">
-                Status: <span className={gift.status === 'active' ? 'text-green-500' : 'text-gray-500'}>
-                  {gift.status === 'active' ? 'Active' : 'Inactive'}
-                </span>
-              </p>
+              <p className="text-xs text-gray-500 mb-1">Category: {gift.category}</p>
+              <p className="text-xs text-gray-500">Quantity: {gift.quantity}</p>
             </CardContent>
             
-            <CardFooter className="flex justify-end gap-2">
-              <Button variant="outline" size="icon" onClick={() => handleEdit(gift)}>
-                <Edit size={16} />
+            <CardFooter className="flex justify-end gap-1 pt-0">
+              <Button variant="outline" size="sm" onClick={() => handleEdit(gift)}>
+                <Edit size={14} />
               </Button>
               <Button 
                 variant="outline" 
-                size="icon" 
+                size="sm" 
                 className="text-red-500"
                 onClick={() => handleDelete(gift.id)}
               >
-                <Trash size={16} />
+                <Trash size={14} />
               </Button>
             </CardFooter>
           </Card>

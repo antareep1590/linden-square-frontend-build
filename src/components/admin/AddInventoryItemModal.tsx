@@ -19,6 +19,17 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
+interface InventoryItem {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  quantity: number;
+  reorderThreshold: number;
+  unitCost: number;
+  lastRefilledDate: Date;
+}
+
 const categories = [
   "Food & Beverage",
   "Drinkware",
@@ -29,19 +40,6 @@ const categories = [
   "Health & Beauty"
 ];
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  quantity: number;
-  reorderThreshold: number;
-  unitCost: number;
-  status: 'active' | 'inactive';
-  tags?: string;
-  lastRefilledDate: Date;
-}
-
 interface AddInventoryItemModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,14 +49,13 @@ interface AddInventoryItemModalProps {
 
 const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: AddInventoryItemModalProps) => {
   const [formData, setFormData] = useState({
-    name: editingItem?.name || '',
-    sku: editingItem?.sku || '',
-    category: editingItem?.category || '',
-    unitCost: editingItem?.unitCost?.toString() || '',
-    quantity: editingItem?.quantity?.toString() || '',
-    reorderThreshold: editingItem?.reorderThreshold?.toString() || '',
-    status: editingItem?.status || 'active' as const,
-    tags: editingItem?.tags || '',
+    name: '',
+    sku: '',
+    category: '',
+    quantity: '',
+    reorderThreshold: '',
+    unitCost: '',
+    tags: '',
   });
 
   React.useEffect(() => {
@@ -67,21 +64,19 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
         name: editingItem.name,
         sku: editingItem.sku,
         category: editingItem.category,
-        unitCost: editingItem.unitCost.toString(),
         quantity: editingItem.quantity.toString(),
         reorderThreshold: editingItem.reorderThreshold.toString(),
-        status: editingItem.status,
-        tags: editingItem.tags || '',
+        unitCost: editingItem.unitCost.toString(),
+        tags: '',
       });
     } else {
       setFormData({
         name: '',
         sku: '',
         category: '',
-        unitCost: '',
         quantity: '',
         reorderThreshold: '',
-        status: 'active',
+        unitCost: '',
         tags: '',
       });
     }
@@ -90,7 +85,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.sku || !formData.category || !formData.unitCost || !formData.quantity || !formData.reorderThreshold) {
+    if (!formData.name || !formData.sku || !formData.category || !formData.quantity || !formData.reorderThreshold || !formData.unitCost) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -100,11 +95,9 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
       name: formData.name,
       sku: formData.sku,
       category: formData.category,
-      unitCost: parseFloat(formData.unitCost),
       quantity: parseInt(formData.quantity),
       reorderThreshold: parseInt(formData.reorderThreshold),
-      status: formData.status,
-      tags: formData.tags,
+      unitCost: parseFloat(formData.unitCost),
       lastRefilledDate: editingItem?.lastRefilledDate || new Date(),
     };
 
@@ -115,9 +108,9 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
+          <DialogTitle>{editingItem ? 'Edit Inventory Item' : 'Add New Inventory Item'}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,35 +136,21 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="unitCost">Unit Cost *</Label>
-              <Input
-                id="unitCost"
-                type="number"
-                step="0.01"
-                value={formData.unitCost}
-                onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
-                required
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category *</Label>
+            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="quantity">Quantity On Hand *</Label>
               <Input
@@ -193,31 +172,28 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
                 required
               />
             </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (Optional)</Label>
+              <Label htmlFor="unitCost">Unit Cost *</Label>
               <Input
-                id="tags"
-                value={formData.tags}
-                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                placeholder="Comma-separated tags"
+                id="unitCost"
+                type="number"
+                step="0.01"
+                value={formData.unitCost}
+                onChange={(e) => setFormData({ ...formData, unitCost: e.target.value })}
+                required
               />
             </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (optional)</Label>
+            <Input
+              id="tags"
+              value={formData.tags}
+              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              placeholder="Enter tags separated by commas"
+            />
           </div>
           
           <DialogFooter>

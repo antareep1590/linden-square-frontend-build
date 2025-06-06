@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface GiftBox {
@@ -27,22 +26,9 @@ interface GiftBox {
   qtyInHand: number;
   reorderThreshold: number;
   unitCost: number;
-  status: 'active' | 'inactive';
+  size: string;
   lastRefilledDate: Date;
-  componentSkus: string[];
 }
-
-const availableComponents = [
-  "Artisan Chocolates",
-  "Coffee Mug",
-  "Scented Candle",
-  "Custom Notepad",
-  "Leather Journal",
-  "Premium Pen Set",
-  "Holiday Treats",
-  "Gift Card",
-  "Company Swag"
-];
 
 interface AddGiftBoxModalProps {
   isOpen: boolean;
@@ -58,8 +44,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
     qtyInHand: '',
     reorderThreshold: '',
     unitCost: '',
-    status: 'active' as 'active' | 'inactive',
-    componentSkus: [] as string[],
+    size: 'Medium',
   });
 
   React.useEffect(() => {
@@ -70,8 +55,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
         qtyInHand: editingBox.qtyInHand.toString(),
         reorderThreshold: editingBox.reorderThreshold.toString(),
         unitCost: editingBox.unitCost.toString(),
-        status: editingBox.status,
-        componentSkus: [...editingBox.componentSkus],
+        size: editingBox.size,
       });
     } else {
       setFormData({
@@ -80,36 +64,16 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
         qtyInHand: '',
         reorderThreshold: '',
         unitCost: '',
-        status: 'active',
-        componentSkus: [],
+        size: 'Medium',
       });
     }
   }, [editingBox, isOpen]);
-
-  const handleComponentChange = (component: string, checked: boolean) => {
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        componentSkus: [...prev.componentSkus, component]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        componentSkus: prev.componentSkus.filter(c => c !== component)
-      }));
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.boxName || !formData.sku || !formData.qtyInHand || !formData.reorderThreshold || !formData.unitCost) {
       toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (formData.componentSkus.length === 0) {
-      toast.error('Please select at least one component item');
       return;
     }
 
@@ -120,9 +84,8 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
       qtyInHand: parseInt(formData.qtyInHand),
       reorderThreshold: parseInt(formData.reorderThreshold),
       unitCost: parseFloat(formData.unitCost),
-      status: formData.status,
+      size: formData.size,
       lastRefilledDate: editingBox?.lastRefilledDate || new Date(),
-      componentSkus: formData.componentSkus,
     };
 
     onBoxAdded(boxData);
@@ -197,32 +160,17 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'active' | 'inactive' })}>
+            <Label htmlFor="size">Size *</Label>
+            <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="Small">Small</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Large">Large</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Component Items *</Label>
-            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded p-3">
-              {availableComponents.map((component) => (
-                <div key={component} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={component}
-                    checked={formData.componentSkus.includes(component)}
-                    onCheckedChange={(checked) => handleComponentChange(component, !!checked)}
-                  />
-                  <Label htmlFor={component} className="text-sm">{component}</Label>
-                </div>
-              ))}
-            </div>
           </div>
           
           <DialogFooter>
