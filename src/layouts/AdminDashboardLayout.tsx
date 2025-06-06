@@ -15,7 +15,8 @@ import {
   ChevronRight, 
   LogOut,
   User,
-  UserCog
+  UserCog,
+  Archive
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -37,16 +38,15 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { name: 'Team', href: '/admin/users', icon: UserCog },
     { name: 'Client Management', href: '/admin/customers', icon: Users },
     { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
-    { name: 'Personalization Settings', href: '/admin/personalization', icon: Settings },
+    { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: Package },
     { name: 'Packaging & Delivery', href: '/admin/packaging', icon: Package },
-    { name: 'Delivery Management', href: '/admin/delivery', icon: Truck },
-    { name: 'Track Orders', href: '/admin/track-orders', icon: BarChart3 },
-    { name: 'Inventory Management', href: '/admin/inventory', icon: Package },
+    { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
+    { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
     { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { name: 'User Management', href: '/admin/users', icon: UserCog },
   ];
 
   const handleLogout = () => {
