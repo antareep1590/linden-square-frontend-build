@@ -15,7 +15,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { User, Building, Mail, Phone, Calendar, Package, Plus, Eye, Edit } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { User, Building, Mail, Phone, Calendar as CalendarDays, Package, Plus, Eye, Edit } from "lucide-react";
+import AddClientModal from "@/components/admin/AddClientModal";
+import { toast } from "sonner";
 
 interface Client {
   id: string;
@@ -72,13 +79,27 @@ const AdminClientManagement = () => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  // New filters
+  const [dateJoinedFrom, setDateJoinedFrom] = useState<Date>();
+  const [dateJoinedTo, setDateJoinedTo] = useState<Date>();
+  const [minOrders, setMinOrders] = useState("");
+  const [maxOrders, setMaxOrders] = useState("");
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          client.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || client.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    const matchesDateRange = (!dateJoinedFrom || client.joinDate >= dateJoinedFrom) &&
+                            (!dateJoinedTo || client.joinDate <= dateJoinedTo);
+    
+    const matchesOrderRange = (!minOrders || client.totalOrders >= parseInt(minOrders)) &&
+                             (!maxOrders || client.totalOrders <= parseInt(maxOrders));
+    
+    return matchesSearch && matchesStatus && matchesDateRange && matchesOrderRange;
   });
 
   const getStatusBadge = (status: string) => {
@@ -121,6 +142,20 @@ const AdminClientManagement = () => {
     ));
     setIsEditModalOpen(false);
     setEditingClient(null);
+    toast.success('Client updated successfully');
+  };
+
+  const handleAddClient = (newClient: Client) => {
+    setClients([...clients, newClient]);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDateJoinedFrom(undefined);
+    setDateJoinedTo(undefined);
+    setMinOrders("");
+    setMaxOrders("");
   };
 
   return (
@@ -130,15 +165,18 @@ const AdminClientManagement = () => {
           <h1 className="text-2xl font-bold">Client Management</h1>
           <p className="text-gray-600">Manage client relationships and account details</p>
         </div>
-        <Button className="bg-linden-blue hover:bg-linden-blue/90">
+        <Button 
+          className="bg-linden-blue hover:bg-linden-blue/90"
+          onClick={() => setIsAddModalOpen(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Add New Client
         </Button>
       </div>
 
-      {/* Filters with Labels */}
+      {/* Enhanced Filters */}
       <div className="bg-muted/20 p-4 rounded-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Search</Label>
             <Input
@@ -162,6 +200,86 @@ const AdminClientManagement = () => {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Date Joined - From</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateJoinedFrom && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateJoinedFrom ? format(dateJoinedFrom, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dateJoinedFrom}
+                  onSelect={setDateJoinedFrom}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Date Joined - To</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateJoinedTo && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateJoinedTo ? format(dateJoinedTo, "PPP") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dateJoinedTo}
+                  onSelect={setDateJoinedTo}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Min Total Orders</Label>
+            <Input
+              type="number"
+              placeholder="0"
+              value={minOrders}
+              onChange={(e) => setMinOrders(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Max Total Orders</Label>
+            <Input
+              type="number"
+              placeholder="100"
+              value={maxOrders}
+              onChange={(e) => setMaxOrders(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={resetFilters}>
+            Reset Filters
+          </Button>
         </div>
       </div>
 
@@ -257,7 +375,7 @@ const AdminClientManagement = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-gray-500" />
+                    <CalendarDays className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">Date Joined</p>
                       <p className="font-medium">{formatDate(selectedClient.joinDate)}</p>
@@ -358,6 +476,13 @@ const AdminClientManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onClientAdded={handleAddClient}
+      />
     </div>
   );
 };
