@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +20,10 @@ interface Order {
   giftBoxName: string;
   recipientCount: number;
   orderDate: Date;
+  shipDate: Date;
   carrier: string;
   trackingNumber: string;
+  trackingLink: string;
   status: string;
   estimatedDelivery: string;
   recipients: Array<{
@@ -41,10 +42,12 @@ const mockOrders: Order[] = [
     giftBoxName: "Premium Employee Gift",
     recipientCount: 25,
     orderDate: new Date("2023-11-01"),
+    shipDate: new Date("2023-11-02"),
     status: "delivered",
     estimatedDelivery: "2023-11-05",
     carrier: "FedEx",
     trackingNumber: "12345678901",
+    trackingLink: "https://fedex.com/track/12345678901",
     recipients: [
       { name: "John Doe", email: "john@acme.com", address: "123 Main St, San Francisco, CA", status: "delivered", deliveryDate: "2023-11-05" },
       { name: "Jane Smith", email: "jane@acme.com", address: "456 Oak Ave, San Francisco, CA", status: "delivered", deliveryDate: "2023-11-05" },
@@ -56,10 +59,12 @@ const mockOrders: Order[] = [
     giftBoxName: "Client Appreciation",
     recipientCount: 50,
     orderDate: new Date("2023-10-28"),
+    shipDate: new Date("2023-10-29"),
     status: "in-transit",
     estimatedDelivery: "2023-11-08",
     carrier: "UPS",
     trackingNumber: "98765432109",
+    trackingLink: "https://ups.com/track/98765432109",
     recipients: [
       { name: "Bob Johnson", email: "bob@techinno.com", address: "789 Pine St, Chicago, IL", status: "in-transit" },
       { name: "Alice Brown", email: "alice@techinno.com", address: "321 Elm St, Chicago, IL", status: "processing" },
@@ -71,10 +76,12 @@ const mockOrders: Order[] = [
     giftBoxName: "New Client Welcome",
     recipientCount: 40,
     orderDate: new Date("2023-10-20"),
+    shipDate: new Date("2023-10-21"),
     status: "processing",
     estimatedDelivery: "2023-11-10",
     carrier: "DHL",
     trackingNumber: "55566677788",
+    trackingLink: "https://dhl.com/track/55566677788",
     recipients: [
       { name: "Charlie Wilson", email: "charlie@global.com", address: "987 Broadway, New York, NY", status: "processing" },
     ]
@@ -85,10 +92,12 @@ const mockOrders: Order[] = [
     giftBoxName: "Executive Appreciation",
     recipientCount: 15,
     orderDate: new Date("2023-11-02"),
+    shipDate: new Date("2023-11-03"),
     status: "delayed",
     estimatedDelivery: "2023-11-12",
     carrier: "USPS",
     trackingNumber: "44433322211",
+    trackingLink: "https://usps.com/track/44433322211",
     recipients: [
       { name: "Diana Davis", email: "diana@metro.com", address: "555 Wall St, New York, NY", status: "delayed" },
     ]

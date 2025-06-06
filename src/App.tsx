@@ -30,8 +30,6 @@ import AdminDashboard from '@/pages/admin/Dashboard';
 import AdminCustomers from '@/pages/admin/Customers';
 import AdminGiftCatalog from '@/pages/admin/GiftCatalog';
 import PresetGiftBoxSetup from '@/pages/admin/PresetGiftBoxSetup';
-import AdminPersonalization from '@/pages/admin/Personalization';
-import AdminPackaging from '@/pages/admin/Packaging';
 import AdminDelivery from '@/pages/admin/DeliveryManagement';
 import AdminTrackOrders from '@/pages/admin/TrackOrders';
 import AdminInventory from '@/pages/admin/Inventory';
@@ -40,7 +38,7 @@ import AdminSettings from '@/pages/admin/Settings';
 import AdminUsers from '@/pages/admin/Users';
 
 // Layouts
-import ClientDashboardLayout from '@/layouts/ClientDashboardLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
 import AdminDashboardLayout from '@/layouts/AdminDashboardLayout';
 
 const queryClient = new QueryClient();
@@ -58,7 +56,7 @@ function App() {
               <Route path="/view-invoice/:id" element={<ViewInvoice />} />
               
               {/* Client routes */}
-              <Route element={<ClientDashboardLayout />}>
+              <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/gift-box-flow" element={<GiftBoxFlow />} />
@@ -79,8 +77,6 @@ function App() {
                 <Route path="/admin/customers" element={<AdminCustomers />} />
                 <Route path="/admin/gift-catalog" element={<AdminGiftCatalog />} />
                 <Route path="/admin/preset-setup" element={<PresetGiftBoxSetup />} />
-                <Route path="/admin/personalization" element={<AdminPersonalization />} />
-                <Route path="/admin/packaging" element={<AdminPackaging />} />
                 <Route path="/admin/delivery" element={<AdminDelivery />} />
                 <Route path="/admin/track-orders" element={<AdminTrackOrders />} />
                 <Route path="/admin/inventory" element={<AdminInventory />} />
