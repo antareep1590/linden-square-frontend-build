@@ -14,7 +14,8 @@ interface Invoice {
   amount: number;
   date: string;
   status: string;
-  items: string;
+  giftBoxName: string;
+  giftItems: string[];
 }
 
 interface InvoiceDetailsModalProps {
