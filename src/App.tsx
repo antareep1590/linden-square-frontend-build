@@ -27,10 +27,10 @@ import PaymentMethod from '@/pages/PaymentMethod';
 
 // Admin pages  
 import AdminDashboard from '@/pages/admin/Dashboard';
-import AdminCustomers from '@/pages/admin/Customers';
+import AdminClientManagement from '@/pages/admin/ClientManagement';
 import AdminGiftCatalog from '@/pages/admin/GiftCatalog';
 import PresetGiftBoxSetup from '@/pages/admin/PresetGiftBoxSetup';
-import AdminDelivery from '@/pages/admin/DeliveryManagement';
+import AdminPackagingDelivery from '@/pages/admin/PackagingDelivery';
 import AdminTrackOrders from '@/pages/admin/TrackOrders';
 import AdminInventory from '@/pages/admin/Inventory';
 import AdminInvoices from '@/pages/admin/Invoices';
@@ -74,10 +74,10 @@ function App() {
               {/* Admin routes */}
               <Route element={<AdminDashboardLayout />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/admin/customers" element={<AdminCustomers />} />
+                <Route path="/admin/client-management" element={<AdminClientManagement />} />
                 <Route path="/admin/gift-catalog" element={<AdminGiftCatalog />} />
                 <Route path="/admin/preset-setup" element={<PresetGiftBoxSetup />} />
-                <Route path="/admin/delivery" element={<AdminDelivery />} />
+                <Route path="/admin/packaging-delivery" element={<AdminPackagingDelivery />} />
                 <Route path="/admin/track-orders" element={<AdminTrackOrders />} />
                 <Route path="/admin/inventory" element={<AdminInventory />} />
                 <Route path="/admin/invoices" element={<AdminInvoices />} />

@@ -38,10 +38,10 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { name: 'Client Management', href: '/admin/customers', icon: Users },
+    { name: 'Client Management', href: '/admin/client-management', icon: Users },
     { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
     { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: Package },
-    { name: 'Packaging & Delivery', href: '/admin/packaging', icon: Package },
+    { name: 'Packaging & Delivery', href: '/admin/packaging-delivery', icon: Package },
     { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
     { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
     { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },

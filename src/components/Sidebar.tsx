@@ -26,7 +26,7 @@ type MenuItem = {
   icon: React.ReactNode;
 };
 
-// Client menu items - Updated with renamed and removed pages
+// Client menu items
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Recipients', path: '/customers', icon: <Users size={20} /> },
@@ -35,13 +35,13 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-// Admin menu items - Updated with merged sections
+// Updated admin menu items
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Client Management', path: '/admin/customers', icon: <Users size={20} /> },
+  { name: 'Client Management', path: '/admin/client-management', icon: <Users size={20} /> },
   { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
   { name: 'Preset Gift Box Setup', path: '/admin/preset-setup', icon: <Package size={20} /> },
-  { name: 'Packaging & Delivery', path: '/admin/packaging', icon: <Package size={20} /> },
+  { name: 'Packaging & Delivery', path: '/admin/packaging-delivery', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/admin/track-orders', icon: <Truck size={20} /> },
   { name: 'Inventory Management', path: '/admin/inventory', icon: <Archive size={20} /> },
   { name: 'Invoices & Payments', path: '/admin/invoices', icon: <FileText size={20} /> },
