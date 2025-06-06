@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
@@ -35,7 +34,7 @@ const mockInventory = [
     quantity: 120,
     reorderThreshold: 50,
     unitCost: 15.99,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-15")
   },
   {
@@ -46,7 +45,7 @@ const mockInventory = [
     quantity: 35,
     reorderThreshold: 40,
     unitCost: 12.50,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-09-20")
   },
   {
@@ -57,7 +56,7 @@ const mockInventory = [
     quantity: 18,
     reorderThreshold: 25,
     unitCost: 22.00,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-11-01")
   },
   {
@@ -68,7 +67,7 @@ const mockInventory = [
     quantity: 80,
     reorderThreshold: 30,
     unitCost: 8.75,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-10")
   },
   {
@@ -79,7 +78,7 @@ const mockInventory = [
     quantity: 22,
     reorderThreshold: 20,
     unitCost: 35.00,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-25")
   }
 ];
@@ -93,7 +92,7 @@ const mockGiftBoxes = [
     qtyInHand: 15,
     reorderThreshold: 10,
     unitCost: 125.99,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-20"),
     componentSkus: ["Artisan Chocolates", "Leather Journal", "Premium Pen Set"]
   },
@@ -104,7 +103,7 @@ const mockGiftBoxes = [
     qtyInHand: 8,
     reorderThreshold: 15,
     unitCost: 89.99,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-11-01"),
     componentSkus: ["Scented Candle", "Holiday Treats", "Gift Card"]
   },
@@ -115,7 +114,7 @@ const mockGiftBoxes = [
     qtyInHand: 25,
     reorderThreshold: 20,
     unitCost: 45.99,
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     lastRefilledDate: new Date("2023-10-15"),
     componentSkus: ["Coffee Mug", "Custom Notepad", "Company Swag"]
   }
@@ -156,8 +155,8 @@ const categories = [
 ];
 
 const AdminInventory = () => {
-  const [inventory, setInventory] = useState(mockInventory);
-  const [giftBoxes, setGiftBoxes] = useState(mockGiftBoxes);
+  const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory);
+  const [giftBoxes, setGiftBoxes] = useState<GiftBox[]>(mockGiftBoxes);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");

@@ -43,7 +43,7 @@ const AddClientModal = ({ isOpen, onClose, onClientAdded }: AddClientModalProps)
     contactPerson: '',
     email: '',
     phone: '',
-    status: 'active' as const,
+    status: 'active' as 'active' | 'pending' | 'inactive',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -127,7 +127,7 @@ const AddClientModal = ({ isOpen, onClose, onClientAdded }: AddClientModalProps)
           
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: 'active' | 'pending' | 'inactive') => setFormData({ ...formData, status: value })}>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'active' | 'pending' | 'inactive' })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

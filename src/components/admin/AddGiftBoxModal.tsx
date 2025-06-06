@@ -58,7 +58,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
     qtyInHand: '',
     reorderThreshold: '',
     unitCost: '',
-    status: 'active' as const,
+    status: 'active' as 'active' | 'inactive',
     componentSkus: [] as string[],
   });
 
@@ -198,7 +198,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
           
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'active' | 'inactive' })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
