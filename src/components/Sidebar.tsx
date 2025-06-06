@@ -72,19 +72,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
         collapsed ? 'w-20' : 'w-64'
       )}
     >
-      <div className="flex justify-between items-center p-4 border-b border-gray-100">
-        {!collapsed && <LindenSquareLogo size="small" />}
+      <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-white">
+        {!collapsed && (
+          <div className="flex-1">
+            <LindenSquareLogo size="small" />
+          </div>
+        )}
         <Button 
           variant="ghost" 
           size="icon" 
-          className="ml-auto"
+          className="ml-auto flex-shrink-0"
           onClick={toggleSidebar}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </Button>
       </div>
       
-      <div className="flex-grow overflow-y-auto py-4">
+      <div className="flex-grow overflow-y-auto py-4 bg-white">
         <nav className="space-y-1 px-2">
           {menuItems.map((item) => (
             <Link

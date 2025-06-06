@@ -10,6 +10,7 @@ import LandingPage from '@/pages/LandingPage';
 import Login from '@/pages/Login';
 import NotFound from '@/pages/NotFound';
 import ViewInvoice from '@/pages/ViewInvoice';
+import Invoices from '@/pages/Invoices';
 
 // Client pages
 import Dashboard from '@/pages/Dashboard';
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />
+                <Route path="/invoices" element={<Invoices />} />
               </Route>
 
               {/* Admin routes */}
