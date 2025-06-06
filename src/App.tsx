@@ -36,6 +36,7 @@ import AdminInventory from '@/pages/admin/Inventory';
 import AdminInvoices from '@/pages/admin/Invoices';
 import AdminSettings from '@/pages/admin/Settings';
 import AdminUsers from '@/pages/admin/Users';
+import MyProfile from '@/pages/admin/MyProfile';
 
 // Layouts
 import DashboardLayout from '@/layouts/DashboardLayout';
@@ -74,6 +75,7 @@ function App() {
               {/* Admin routes */}
               <Route element={<AdminDashboardLayout />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/client-management" element={<AdminClientManagement />} />
                 <Route path="/admin/gift-catalog" element={<AdminGiftCatalog />} />
                 <Route path="/admin/preset-setup" element={<PresetGiftBoxSetup />} />
@@ -82,7 +84,7 @@ function App() {
                 <Route path="/admin/inventory" element={<AdminInventory />} />
                 <Route path="/admin/invoices" element={<AdminInvoices />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/my-profile" element={<MyProfile />} />
               </Route>
 
               {/* Catch all route */}

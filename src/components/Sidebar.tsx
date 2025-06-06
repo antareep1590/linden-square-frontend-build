@@ -17,7 +17,8 @@ import {
   Users,
   Settings,
   UserCog,
-  Sparkles
+  Sparkles,
+  PackageOpen
 } from 'lucide-react';
 
 type MenuItem = {
@@ -35,18 +36,18 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-// Updated admin menu items
+// Updated admin menu items with reordering and unique icons
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
+  { name: 'Team', path: '/admin/users', icon: <UserCog size={20} /> },
   { name: 'Client Management', path: '/admin/client-management', icon: <Users size={20} /> },
   { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
-  { name: 'Preset Gift Box Setup', path: '/admin/preset-setup', icon: <Package size={20} /> },
+  { name: 'Preset Gift Box Setup', path: '/admin/preset-setup', icon: <PackageOpen size={20} /> },
   { name: 'Packaging & Delivery', path: '/admin/packaging-delivery', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/admin/track-orders', icon: <Truck size={20} /> },
   { name: 'Inventory Management', path: '/admin/inventory', icon: <Archive size={20} /> },
   { name: 'Invoices & Payments', path: '/admin/invoices', icon: <FileText size={20} /> },
   { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
-  { name: 'User Management', path: '/admin/users', icon: <UserCog size={20} /> },
 ];
 
 interface SidebarProps {

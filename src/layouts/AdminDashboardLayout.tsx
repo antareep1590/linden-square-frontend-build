@@ -16,7 +16,8 @@ import {
   LogOut,
   User,
   UserCog,
-  Archive
+  Archive,
+  PackageOpen
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,15 +39,15 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
+    { name: 'Team', href: '/admin/users', icon: UserCog },
     { name: 'Client Management', href: '/admin/client-management', icon: Users },
     { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
-    { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: Package },
+    { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: PackageOpen },
     { name: 'Packaging & Delivery', href: '/admin/packaging-delivery', icon: Package },
     { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
     { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
     { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
-    { name: 'User Management', href: '/admin/users', icon: UserCog },
   ];
 
   const handleLogout = () => {
