@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Dialog,
   DialogContent,
@@ -157,29 +157,6 @@ const RecipientSelection = () => {
     toast.success('Recipient updated successfully');
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'text/csv') {
-      // Mock CSV processing
-      const mockRecipients: Recipient[] = [
-        {
-          id: Date.now().toString(),
-          name: 'Jane Doe',
-          email: 'jane@example.com',
-          phone: '+1234567890',
-          address: '123 Main St, City, State',
-          tag: 'Client',
-          included: true
-        }
-      ];
-      
-      setNewRecipients(prev => [...prev, ...mockRecipients]);
-      toast.success('CSV uploaded successfully');
-    } else {
-      toast.error('Please upload a valid CSV file');
-    }
-  };
-
   const assignRecipientToBox = (boxId: string, recipientId: string, assigned: boolean) => {
     setBoxAssignments(prev => {
       const currentAssignments = prev[boxId] || [];
@@ -229,7 +206,7 @@ const RecipientSelection = () => {
       });
     });
 
-    navigate('/final-summary', { 
+    navigate('/summary', { 
       state: { 
         ...location.state, 
         recipients: selectedRecipients,
@@ -344,11 +321,6 @@ const RecipientSelection = () => {
           Upload CSV
         </Button>
       </div>
-
-      {/* Helper text for CSV */}
-      <p className="text-xs text-gray-500 mb-6">
-        Click to upload CSV file. CSV must include: Name, Email, Phone, Address, Tag
-      </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recipients Table and Assignment */}

@@ -25,6 +25,7 @@ import PersonalizationStep from '@/pages/PersonalizationStep';
 import RecipientSelection from '@/pages/RecipientSelection';
 import FinalSummary from '@/pages/FinalSummary';
 import PaymentMethod from '@/pages/PaymentMethod';
+import Profile from '@/pages/Profile';
 
 // Admin pages  
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -66,12 +67,14 @@ function App() {
                 <Route path="/customize-box" element={<CustomizeBox />} />
                 <Route path="/build-custom-box" element={<BuildCustomBox />} />
                 <Route path="/personalization" element={<PersonalizationStep />} />
+                <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/recipients" element={<RecipientSelection />} />
                 <Route path="/summary" element={<FinalSummary />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />
                 <Route path="/invoices" element={<Invoices />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
 
               {/* Admin routes */}
