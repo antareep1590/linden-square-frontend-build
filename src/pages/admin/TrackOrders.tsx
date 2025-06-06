@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   Tooltip,
   TooltipContent,
@@ -45,6 +46,7 @@ interface Order {
     address: string;
     status: string;
     deliveryDate?: string;
+    estimatedDelivery: string;
   }>;
 }
 
@@ -68,8 +70,22 @@ const mockOrders: Order[] = [
       { name: "Gourmet Chocolates", quantity: 25 }
     ],
     recipients: [
-      { name: "John Doe", email: "john@acme.com", address: "123 Main St, San Francisco, CA", status: "delivered", deliveryDate: "2023-11-05" },
-      { name: "Jane Smith", email: "jane@acme.com", address: "456 Oak Ave, San Francisco, CA", status: "delivered", deliveryDate: "2023-11-05" },
+      { 
+        name: "John Doe", 
+        email: "john@acme.com", 
+        address: "123 Main St, San Francisco, CA", 
+        status: "delivered", 
+        deliveryDate: "2023-11-05",
+        estimatedDelivery: "2023-11-05"
+      },
+      { 
+        name: "Jane Smith", 
+        email: "jane@acme.com", 
+        address: "456 Oak Ave, San Francisco, CA", 
+        status: "delivered", 
+        deliveryDate: "2023-11-05",
+        estimatedDelivery: "2023-11-05"
+      },
     ]
   },
   {
@@ -90,29 +106,20 @@ const mockOrders: Order[] = [
       { name: "Cheese Selection", quantity: 50 }
     ],
     recipients: [
-      { name: "Bob Johnson", email: "bob@techinno.com", address: "789 Pine St, Chicago, IL", status: "in-transit" },
-      { name: "Alice Brown", email: "alice@techinno.com", address: "321 Elm St, Chicago, IL", status: "processing" },
-    ]
-  },
-  {
-    id: "ORD-2023-003",
-    clientName: "Global Consulting",
-    giftBoxName: "New Client Welcome",
-    recipientCount: 40,
-    orderDate: new Date("2023-10-20"),
-    shipDate: new Date("2023-10-21"),
-    status: "processing",
-    estimatedDelivery: "2023-11-10",
-    carrier: "DHL",
-    trackingNumber: "55566677788",
-    trackingLink: "https://dhl.com/track/55566677788",
-    deliveryOwner: "Mike Johnson",
-    giftItems: [
-      { name: "Holiday Treats", quantity: 80 },
-      { name: "Festive Candle", quantity: 40 }
-    ],
-    recipients: [
-      { name: "Charlie Wilson", email: "charlie@global.com", address: "987 Broadway, New York, NY", status: "processing" },
+      { 
+        name: "Bob Johnson", 
+        email: "bob@techinno.com", 
+        address: "789 Pine St, Chicago, IL", 
+        status: "in-transit",
+        estimatedDelivery: "2023-11-08"
+      },
+      { 
+        name: "Alice Brown", 
+        email: "alice@techinno.com", 
+        address: "321 Elm St, Chicago, IL", 
+        status: "processing",
+        estimatedDelivery: "2023-11-10"
+      },
     ]
   }
 ];
@@ -201,53 +208,65 @@ const AdminTrackOrders = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by order ID, client, or gift box name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filters with Labels */}
+      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Search</Label>
+            <Input
+              placeholder="Search by order ID, client, or gift box name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="in-transit">In Transit</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="delayed">Delayed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Client</Label>
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+                {uniqueClients.map(client => (
+                  <SelectItem key={client} value={client}>{client}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Carrier</Label>
+            <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by carrier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Carriers</SelectItem>
+                {uniqueCarriers.map(carrier => (
+                  <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="in-transit">In Transit</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-            <SelectItem value="delayed">Delayed</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by client" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Clients</SelectItem>
-            {uniqueClients.map(client => (
-              <SelectItem key={client} value={client}>{client}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={carrierFilter} onValueChange={setCarrierFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by carrier" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Carriers</SelectItem>
-            {uniqueCarriers.map(carrier => (
-              <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Orders Table */}
@@ -394,7 +413,11 @@ const AdminTrackOrders = () => {
                       )}
                     </TableCell>
                     <TableCell>{getStatusBadge(recipient.status)}</TableCell>
-                    <TableCell></TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600">
+                        {formatDate(recipient.estimatedDelivery)}
+                      </div>
+                    </TableCell>
                     <TableCell></TableCell>
                     <TableCell></TableCell>
                     <TableCell>

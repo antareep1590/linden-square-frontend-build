@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Package, Truck, Clock, CheckCircle, MapPin, User, Gift } from "lucide-react";
 
 interface PackagingOrder {
@@ -33,6 +40,7 @@ const mockPackagingOrders: PackagingOrder[] = [
     recipientName: "John Doe",
     recipientAddress: "123 Main St, San Francisco, CA 94501",
     status: "ready-to-pack",
+    carrier: "FedEx",
     orderDate: new Date("2023-11-01")
   },
   {
@@ -74,6 +82,8 @@ const AdminPackagingDelivery = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [carrierFilter, setCarrierFilter] = useState("all");
   const [packerFilter, setPackerFilter] = useState("all");
+  const [selectedGiftItems, setSelectedGiftItems] = useState<{ name: string; quantity: number }[] | null>(null);
+  const [isGiftItemsModalOpen, setIsGiftItemsModalOpen] = useState(false);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -100,23 +110,10 @@ const AdminPackagingDelivery = () => {
     ));
   };
 
-  const handleCarrierUpdate = (orderId: string, carrier: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, carrier } : order
-    ));
-  };
-
   const handlePackerUpdate = (orderId: string, packer: string) => {
     setOrders(orders.map(order => 
       order.id === orderId ? { ...order, packer } : order
     ));
-  };
-
-  const handleBulkCarrierUpdate = (carrier: string) => {
-    setOrders(orders.map(order => 
-      selectedOrders.has(order.id) ? { ...order, carrier } : order
-    ));
-    setSelectedOrders(new Set());
   };
 
   const handleBulkPackerUpdate = (packer: string) => {
@@ -143,6 +140,15 @@ const AdminPackagingDelivery = () => {
     setSelectedOrders(newSelected);
   };
 
+  const openGiftItemsModal = (giftItems: { name: string; quantity: number }[]) => {
+    setSelectedGiftItems(giftItems);
+    setIsGiftItemsModalOpen(true);
+  };
+
+  const getTotalGiftItems = (giftItems: { name: string; quantity: number }[]) => {
+    return giftItems.reduce((total, item) => total + item.quantity, 0);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -150,45 +156,61 @@ const AdminPackagingDelivery = () => {
         <p className="text-gray-600">Fulfilment console for order preparation and shipment</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="ready-to-pack">Ready to Pack</SelectItem>
-            <SelectItem value="packed">Packed</SelectItem>
-            <SelectItem value="handed-to-carrier">Handed to Carrier</SelectItem>
-            <SelectItem value="in-transit">In Transit</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Filters with Labels */}
+      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="ready-to-pack">Ready to Pack</SelectItem>
+                <SelectItem value="packed">Packed</SelectItem>
+                <SelectItem value="handed-to-carrier">Handed to Carrier</SelectItem>
+                <SelectItem value="in-transit">In Transit</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Select value={carrierFilter} onValueChange={setCarrierFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by carrier" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Carriers</SelectItem>
-            {carriers.map(carrier => (
-              <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Carrier</Label>
+            <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by carrier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Carriers</SelectItem>
+                {carriers.map(carrier => (
+                  <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <Select value={packerFilter} onValueChange={setPackerFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by packer" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Packers</SelectItem>
-            {packers.map(packer => (
-              <SelectItem key={packer} value={packer}>{packer}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Packer</Label>
+            <Select value={packerFilter} onValueChange={setPackerFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by packer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Packers</SelectItem>
+                {packers.map(packer => (
+                  <SelectItem key={packer} value={packer}>{packer}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Order Date</Label>
+            <Input type="date" placeholder="Filter by date" />
+          </div>
+        </div>
       </div>
 
       {/* Bulk Actions */}
@@ -199,16 +221,6 @@ const AdminPackagingDelivery = () => {
               <span className="text-sm text-gray-600">
                 {selectedOrders.size} orders selected
               </span>
-              <Select onValueChange={handleBulkCarrierUpdate}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Assign carrier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {carriers.map(carrier => (
-                    <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <Select onValueChange={handleBulkPackerUpdate}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Assign packer" />
@@ -263,13 +275,17 @@ const AdminPackagingDelivery = () => {
                 <TableCell className="font-medium">{order.id}</TableCell>
                 <TableCell>{order.giftBoxName}</TableCell>
                 <TableCell>
-                  <div className="space-y-1">
-                    {order.giftItems.map((item, index) => (
-                      <div key={index} className="text-sm">
-                        {item.name} × {item.quantity}
-                      </div>
-                    ))}
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openGiftItemsModal(order.giftItems)}
+                    className="h-8"
+                  >
+                    <Badge variant="secondary" className="mr-2">
+                      {getTotalGiftItems(order.giftItems)}
+                    </Badge>
+                    Items
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <div>
@@ -279,19 +295,7 @@ const AdminPackagingDelivery = () => {
                 </TableCell>
                 <TableCell>{getStatusBadge(order.status)}</TableCell>
                 <TableCell>
-                  <Select 
-                    value={order.carrier || ""} 
-                    onValueChange={(value) => handleCarrierUpdate(order.id, value)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {carriers.map(carrier => (
-                        <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="text-sm font-medium">{order.carrier}</div>
                 </TableCell>
                 <TableCell>
                   <Select 
@@ -328,6 +332,20 @@ const AdminPackagingDelivery = () => {
                         Hand to Carrier
                       </Button>
                     )}
+                    {order.status === 'handed-to-carrier' && (
+                      <Button 
+                        size="sm" 
+                        onClick={() => handleStatusUpdate(order.id, 'delivered')}
+                        className="bg-green-500 hover:bg-green-600"
+                      >
+                        Mark Delivered
+                      </Button>
+                    )}
+                    {order.status === 'delivered' && (
+                      <Badge className="bg-gray-500 text-white">
+                        Delivered
+                      </Badge>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -335,6 +353,26 @@ const AdminPackagingDelivery = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Gift Items Modal */}
+      <Dialog open={isGiftItemsModalOpen} onOpenChange={setIsGiftItemsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Gift Items Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {selectedGiftItems?.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Gift className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium">{item.name}</span>
+                </div>
+                <Badge variant="outline">Qty: {item.quantity}</Badge>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { User, Building, Mail, Phone, Calendar, Package, Plus, Eye } from "lucide-react";
+import { User, Building, Mail, Phone, Calendar, Package, Plus, Eye, Edit } from "lucide-react";
 
 interface Client {
   id: string;
@@ -67,6 +69,9 @@ const AdminClientManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const filteredClients = clients.filter(client => {
     const matchesSearch = client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,6 +103,26 @@ const AdminClientManagement = () => {
     });
   };
 
+  const handleViewClient = (client: Client) => {
+    setSelectedClient(client);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditClient = (client: Client) => {
+    setEditingClient({...client});
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingClient) return;
+    
+    setClients(clients.map(client => 
+      client.id === editingClient.id ? editingClient : client
+    ));
+    setIsEditModalOpen(false);
+    setEditingClient(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -111,27 +136,33 @@ const AdminClientManagement = () => {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by company name, contact person, or email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filters with Labels */}
+      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Search</Label>
+            <Input
+              placeholder="Search by company name, contact person, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Clients Table */}
@@ -146,7 +177,7 @@ const AdminClientManagement = () => {
               <TableHead>Phone</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Total Orders</TableHead>
-              <TableHead>Join Date</TableHead>
+              <TableHead>Date Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -161,94 +192,172 @@ const AdminClientManagement = () => {
                 <TableCell>{getStatusBadge(client.status)}</TableCell>
                 <TableCell>{client.totalOrders}</TableCell>
                 <TableCell>{formatDate(client.joinDate)}</TableCell>
-                <TableCell className="text-right">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setSelectedClient(client)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Details
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Client Details - {selectedClient?.companyName}</DialogTitle>
-                      </DialogHeader>
-                      {selectedClient && (
-                        <div className="space-y-6">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <Building className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Company</p>
-                                  <p className="font-medium">{selectedClient.companyName}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <User className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Contact Person</p>
-                                  <p className="font-medium">{selectedClient.contactPerson}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Mail className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Email</p>
-                                  <p className="font-medium">{selectedClient.email}</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <Phone className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Phone</p>
-                                  <p className="font-medium">{selectedClient.phone}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Calendar className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Join Date</p>
-                                  <p className="font-medium">{formatDate(selectedClient.joinDate)}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Package className="h-5 w-5 text-gray-500" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Total Orders</p>
-                                  <p className="font-medium">{selectedClient.totalOrders}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="pt-4 border-t">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-gray-500">Status</span>
-                              {getStatusBadge(selectedClient.status)}
-                            </div>
-                            {selectedClient.lastOrderDate && (
-                              <div className="flex justify-between items-center mt-2">
-                                <span className="text-sm text-gray-500">Last Order</span>
-                                <span className="text-sm">{formatDate(selectedClient.lastOrderDate)}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </DialogContent>
-                  </Dialog>
+                <TableCell>
+                  <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleViewClient(client)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditClient(client)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {/* View Details Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Client Details - {selectedClient?.companyName}</DialogTitle>
+          </DialogHeader>
+          {selectedClient && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Building className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Company</p>
+                      <p className="font-medium">{selectedClient.companyName}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Contact Person</p>
+                      <p className="font-medium">{selectedClient.contactPerson}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium">{selectedClient.email}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium">{selectedClient.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Date Joined</p>
+                      <p className="font-medium">{formatDate(selectedClient.joinDate)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Total Orders</p>
+                      <p className="font-medium">{selectedClient.totalOrders}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Status</span>
+                  {getStatusBadge(selectedClient.status)}
+                </div>
+                {selectedClient.lastOrderDate && (
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-gray-500">Last Order</span>
+                    <span className="text-sm">{formatDate(selectedClient.lastOrderDate)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Client - {editingClient?.companyName}</DialogTitle>
+          </DialogHeader>
+          {editingClient && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Company Name</Label>
+                  <Input
+                    value={editingClient.companyName}
+                    onChange={(e) => setEditingClient({...editingClient, companyName: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Contact Person</Label>
+                  <Input
+                    value={editingClient.contactPerson}
+                    onChange={(e) => setEditingClient({...editingClient, contactPerson: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editingClient.email}
+                    onChange={(e) => setEditingClient({...editingClient, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input
+                    value={editingClient.phone}
+                    onChange={(e) => setEditingClient({...editingClient, phone: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select 
+                  value={editingClient.status} 
+                  onValueChange={(value) => setEditingClient({...editingClient, status: value as Client['status']})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

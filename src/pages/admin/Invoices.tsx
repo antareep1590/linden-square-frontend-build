@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { 
   Tooltip,
   TooltipContent,
@@ -21,7 +23,8 @@ const invoices = [
     client: "Acme Corporation",
     amount: 1250.00,
     date: "2023-11-01",
-    items: "Premium Gift Box Set x25",
+    giftBoxName: "Premium Gift Box Set",
+    giftItems: ["Luxury Candle Set", "Premium Coffee", "Gourmet Chocolates"],
     status: "paid"
   },
   {
@@ -29,7 +32,8 @@ const invoices = [
     client: "Tech Innovations",
     amount: 890.50,
     date: "2023-10-28",
-    items: "Custom Notebooks x50, Coffee Mugs x50",
+    giftBoxName: "Custom Corporate Package",
+    giftItems: ["Custom Notebooks", "Coffee Mugs", "Tech Accessories"],
     status: "unpaid"
   },
   {
@@ -37,7 +41,8 @@ const invoices = [
     client: "Global Consulting",
     amount: 2100.00,
     date: "2023-10-20",
-    items: "Executive Gift Package x40",
+    giftBoxName: "Executive Gift Package",
+    giftItems: ["Wine Bottle", "Cheese Selection", "Premium Leather Journal"],
     status: "paid"
   },
   {
@@ -45,7 +50,8 @@ const invoices = [
     client: "StartupX",
     amount: 450.00,
     date: "2023-11-02",
-    items: "Welcome Kit x15",
+    giftBoxName: "Welcome Kit",
+    giftItems: ["Company Swag", "Welcome Guide", "Gift Card"],
     status: "unpaid"
   },
   {
@@ -53,7 +59,8 @@ const invoices = [
     client: "MegaCorp",
     amount: 5500.00,
     date: "2023-10-15",
-    items: "Holiday Collection x100",
+    giftBoxName: "Holiday Collection",
+    giftItems: ["Holiday Treats", "Festive Candles", "Seasonal Gifts", "Premium Chocolates"],
     status: "overdue"
   }
 ];
@@ -100,6 +107,10 @@ const AdminInvoices = () => {
   const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid');
   const paidAmount = paidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
   const unpaidAmount = unpaidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+
+  const formatGiftBoxWithItems = (giftBoxName: string, giftItems: string[]) => {
+    return `${giftBoxName} (${giftItems.join(', ')})`;
+  };
 
   return (
     <div className="space-y-6">
@@ -162,26 +173,33 @@ const AdminInvoices = () => {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 bg-muted/20 p-4 rounded-lg">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by invoice ID or client name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Filters with Labels */}
+      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Search</Label>
+            <Input
+              placeholder="Search by invoice ID or client name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="unpaid">Unpaid</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Invoices Table */}
@@ -189,13 +207,13 @@ const AdminInvoices = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Invoice ID</TableHead>
+              <TableHead>Invoice #</TableHead>
               <TableHead>Client</TableHead>
+              <TableHead>Gift Box Name</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Items</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -203,9 +221,30 @@ const AdminInvoices = () => {
               <TableRow key={invoice.id}>
                 <TableCell className="font-medium">{invoice.id}</TableCell>
                 <TableCell>{invoice.client}</TableCell>
+                <TableCell className="max-w-xs">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="truncate cursor-help">
+                          {formatGiftBoxWithItems(invoice.giftBoxName, invoice.giftItems)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="max-w-xs">
+                          <p className="font-medium">{invoice.giftBoxName}</p>
+                          <p className="text-sm mt-1">Items:</p>
+                          <ul className="text-sm">
+                            {invoice.giftItems.map((item, index) => (
+                              <li key={index}>• {item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
                 <TableCell className="font-medium">${invoice.amount.toFixed(2)}</TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
-                <TableCell className="max-w-xs truncate">{invoice.items}</TableCell>
                 <TableCell>
                   <Badge className={
                     invoice.status === "paid" 
