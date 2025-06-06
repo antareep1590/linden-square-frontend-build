@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -173,7 +172,7 @@ const BuildCustomBox = () => {
       toast.error('Please create at least one custom box');
       return;
     }
-    navigate('/personalization');
+    navigate('/recipients');
   };
 
   return (
