@@ -381,7 +381,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                          <Input {...field} readOnly className="bg-gray-100" placeholder="Auto-filled from inventory" />
+                          <Input {...field} placeholder="Auto-filled from inventory, can be edited" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -395,7 +395,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Price ($)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory" />
+                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory, can be edited" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -518,7 +518,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                          <Input {...field} readOnly className="bg-gray-100" placeholder="Auto-filled from inventory" />
+                          <Input {...field} placeholder="Auto-filled from inventory, can be edited" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -532,7 +532,7 @@ const GiftCatalog = () => {
                       <FormItem>
                         <FormLabel>Price ($)</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory" />
+                          <Input type="number" step="0.01" {...field} placeholder="Auto-filled from inventory, can be edited" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -617,10 +617,10 @@ const GiftCatalog = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {filteredGifts.map((gift) => (
-          <Card key={gift.id} className="overflow-hidden h-fit">
-            <div className="aspect-video relative bg-gray-100">
+          <Card key={gift.id} className="overflow-hidden h-[320px] flex flex-col">
+            <div className="aspect-[4/3] relative bg-gray-100 flex-shrink-0">
               <img
                 src={gift.image}
                 alt={gift.name}
@@ -631,34 +631,38 @@ const GiftCatalog = () => {
               </span>
             </div>
             
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-start text-sm">
-                <span className="truncate">{gift.name}</span>
-                <span className="text-linden-blue whitespace-nowrap ml-2">${gift.price.toFixed(2)}</span>
+            <CardHeader className="pb-2 px-3 pt-3 flex-shrink-0">
+              <CardTitle className="text-sm font-medium leading-tight">
+                <div className="flex justify-between items-start gap-2">
+                  <span className="truncate flex-1">{gift.name}</span>
+                  <span className="text-linden-blue whitespace-nowrap font-semibold">${gift.price.toFixed(2)}</span>
+                </div>
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="pt-0">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {gift.tags.slice(0, 2).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
-                ))}
+            <CardContent className="pt-0 px-3 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {gift.tags.slice(0, 2).map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs px-1 py-0">{tag}</Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 mb-1">Category: {gift.category}</p>
+                <p className="text-xs text-gray-600">Qty: {gift.quantity}</p>
               </div>
-              <p className="text-xs text-gray-500 mb-1">Category: {gift.category}</p>
-              <p className="text-xs text-gray-500">Quantity: {gift.quantity}</p>
             </CardContent>
             
-            <CardFooter className="flex justify-end gap-1 pt-0">
-              <Button variant="outline" size="sm" onClick={() => handleEdit(gift)}>
-                <Edit size={14} />
+            <CardFooter className="flex justify-end gap-1 pt-0 px-3 pb-3 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={() => handleEdit(gift)} className="h-8 w-8 p-0">
+                <Edit size={12} />
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-red-500"
+                className="text-red-500 hover:text-red-700 h-8 w-8 p-0"
                 onClick={() => handleDelete(gift.id)}
               >
-                <Trash size={14} />
+                <Trash size={12} />
               </Button>
             </CardFooter>
           </Card>

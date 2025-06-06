@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,11 +46,20 @@ interface PresetBox {
 const PresetGiftBoxSetup = () => {
   const [presetBoxes, setPresetBoxes] = useState<PresetBox[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingBox, setEditingBox] = useState<PresetBox | null>(null);
   const [showGiftSelector, setShowGiftSelector] = useState(false);
   const [currentBoxId, setCurrentBoxId] = useState<string>('');
   
   const [newBox, setNewBox] = useState({
+    name: '',
+    description: '',
+    theme: '',
+    size: '',
+    basePrice: 0,
+  });
+
+  const [editBox, setEditBox] = useState({
     name: '',
     description: '',
     theme: '',
@@ -71,6 +79,18 @@ const PresetGiftBoxSetup = () => {
     }
   };
 
+  const handleEditBoxNameChange = (boxName: string) => {
+    const selectedBox = mockInventoryGiftBoxes.find(box => box.boxName === boxName);
+    if (selectedBox) {
+      setEditBox({
+        ...editBox,
+        name: boxName,
+        size: selectedBox.size,
+        basePrice: selectedBox.unitCost,
+      });
+    }
+  };
+
   const handleCreateBox = () => {
     const box: PresetBox = {
       id: `preset-${Date.now()}`,
@@ -82,6 +102,34 @@ const PresetGiftBoxSetup = () => {
     setPresetBoxes([...presetBoxes, box]);
     setNewBox({ name: '', description: '', theme: '', size: '', basePrice: 0 });
     setShowCreateDialog(false);
+  };
+
+  const handleEditBoxSubmit = () => {
+    if (editingBox) {
+      const updatedBox: PresetBox = {
+        ...editingBox,
+        ...editBox,
+      };
+      
+      setPresetBoxes(boxes =>
+        boxes.map(box => box.id === editingBox.id ? updatedBox : box)
+      );
+      setEditingBox(null);
+      setEditBox({ name: '', description: '', theme: '', size: '', basePrice: 0 });
+      setShowEditDialog(false);
+    }
+  };
+
+  const handleEditBoxClick = (box: PresetBox) => {
+    setEditingBox(box);
+    setEditBox({
+      name: box.name,
+      description: box.description,
+      theme: box.theme,
+      size: box.size,
+      basePrice: box.basePrice,
+    });
+    setShowEditDialog(true);
   };
 
   const handleAddGift = (boxId: string, gift: any) => {
@@ -189,13 +237,21 @@ const PresetGiftBoxSetup = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => handleEditBoxClick(box)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit Box
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setCurrentBoxId(box.id);
                       setShowGiftSelector(true);
                     }}
                   >
                     <Edit className="h-4 w-4 mr-1" />
-                    Edit Gifts
+                    Add Gifts to Box
                   </Button>
                 </div>
               </div>
@@ -307,9 +363,8 @@ const PresetGiftBoxSetup = () => {
                 type="number"
                 step="0.01"
                 value={newBox.basePrice}
-                readOnly
-                placeholder="Auto-filled based on selected box"
-                className="bg-gray-100"
+                onChange={(e) => setNewBox({ ...newBox, basePrice: parseFloat(e.target.value) || 0 })}
+                placeholder="Auto-filled, but can be edited"
               />
             </div>
           </div>
@@ -323,6 +378,83 @@ const PresetGiftBoxSetup = () => {
               className="bg-linden-blue hover:bg-linden-blue/90"
             >
               Create Box
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Box Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Preset Box</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="editName">Box Name</Label>
+              <Select onValueChange={handleEditBoxNameChange} value={editBox.name}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a gift box" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mockInventoryGiftBoxes.map((box) => (
+                    <SelectItem key={box.id} value={box.boxName}>
+                      {box.boxName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="editDescription">Description</Label>
+              <Textarea
+                id="editDescription"
+                value={editBox.description}
+                onChange={(e) => setEditBox({ ...editBox, description: e.target.value })}
+                placeholder="Describe this preset box..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="editTheme">Theme</Label>
+              <Input
+                id="editTheme"
+                value={editBox.theme}
+                onChange={(e) => setEditBox({ ...editBox, theme: e.target.value })}
+                placeholder="e.g., Welcome, Birthday, Corporate"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editSize">Size</Label>
+              <Input
+                id="editSize"
+                value={editBox.size}
+                readOnly
+                placeholder="Auto-filled based on selected box"
+                className="bg-gray-100"
+              />
+            </div>
+            <div>
+              <Label htmlFor="editBasePrice">Base Price ($)</Label>
+              <Input
+                id="editBasePrice"
+                type="number"
+                step="0.01"
+                value={editBox.basePrice}
+                onChange={(e) => setEditBox({ ...editBox, basePrice: parseFloat(e.target.value) || 0 })}
+                placeholder="Auto-filled, but can be edited"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEditBoxSubmit}
+              disabled={!editBox.name.trim()}
+              className="bg-linden-blue hover:bg-linden-blue/90"
+            >
+              Update Box
             </Button>
           </DialogFooter>
         </DialogContent>
