@@ -172,7 +172,7 @@ const BuildCustomBox = () => {
       toast.error('Please create at least one custom box');
       return;
     }
-    navigate('/recipients');
+    navigate('/personalization');
   };
 
   return (

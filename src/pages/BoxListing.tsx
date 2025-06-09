@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, Search, Star, Gift, Package, ShoppingCart } from 'lucide-react';
+import { Filter, Search, Star, Gift, Package, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -172,8 +172,12 @@ const BoxListing = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <div>
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Gift Box Flow
+        </Button>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Choose Your Gift Box</h1>
           <p className="text-gray-600">Select from our curated collections or build your own custom box</p>
         </div>
