@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,7 +81,7 @@ const Invoices = () => {
   };
 
   const handleViewInvoice = (invoiceId: string) => {
-    navigate(`/invoices/${invoiceId}`);
+    navigate(`/view-invoice/${invoiceId}`);
   };
 
   // Calculate totals
