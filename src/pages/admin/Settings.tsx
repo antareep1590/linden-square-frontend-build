@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -67,6 +68,7 @@ interface AddOnItem {
   name: string;
   type: string;
   price: number;
+  options: string[];
   image?: string;
 }
 
@@ -84,9 +86,9 @@ const mockBoxSizes: BoxSize[] = [
 ];
 
 const mockAddOns: AddOnItem[] = [
-  { id: '1', name: 'Gift Wrapping', type: 'Service', price: 5.00 },
-  { id: '2', name: 'Personalized Card', type: 'Item', price: 3.50 },
-  { id: '3', name: 'Premium Ribbon', type: 'Accessory', price: 2.00 },
+  { id: '1', name: 'Gift Wrapping', type: 'Service', price: 5.00, options: ['Premium Paper', 'Standard Paper', 'Eco-friendly'] },
+  { id: '2', name: 'Personalized Card', type: 'Item', price: 3.50, options: ['Birthday', 'Thank You', 'Congratulations', 'Custom Message'] },
+  { id: '3', name: 'Premium Ribbon', type: 'Accessory', price: 2.00, options: ['Gold', 'Silver', 'Red', 'Blue', 'Green'] },
 ];
 
 const addOnTypes = ['Service', 'Item', 'Accessory', 'Enhancement'];
@@ -106,7 +108,8 @@ const AdminSettings = () => {
   
   // Add Add-On Modal State
   const [isAddAddOnOpen, setIsAddAddOnOpen] = useState(false);
-  const [newAddOn, setNewAddOn] = useState({ name: '', type: '', price: '', image: '' });
+  const [newAddOn, setNewAddOn] = useState({ name: '', type: '', price: '', options: [] as string[], image: '' });
+  const [newOptionInput, setNewOptionInput] = useState('');
 
   // Carrier Functions
   const handleAddCarrier = () => {
@@ -151,6 +154,23 @@ const AdminSettings = () => {
   };
 
   // Add-On Functions
+  const handleAddOption = () => {
+    if (newOptionInput.trim() && !newAddOn.options.includes(newOptionInput.trim())) {
+      setNewAddOn({
+        ...newAddOn,
+        options: [...newAddOn.options, newOptionInput.trim()]
+      });
+      setNewOptionInput('');
+    }
+  };
+
+  const handleRemoveOption = (optionToRemove: string) => {
+    setNewAddOn({
+      ...newAddOn,
+      options: newAddOn.options.filter(option => option !== optionToRemove)
+    });
+  };
+
   const handleAddAddOn = () => {
     if (!newAddOn.name || !newAddOn.type || !newAddOn.price) {
       toast.error("Please fill in all required fields");
@@ -162,11 +182,13 @@ const AdminSettings = () => {
       name: newAddOn.name,
       type: newAddOn.type,
       price: parseFloat(newAddOn.price),
+      options: newAddOn.options,
       image: newAddOn.image || undefined
     };
 
     setAddOns([...addOns, addOn]);
-    setNewAddOn({ name: '', type: '', price: '', image: '' });
+    setNewAddOn({ name: '', type: '', price: '', options: [], image: '' });
+    setNewOptionInput('');
     setIsAddAddOnOpen(false);
     toast.success("Add-on item added successfully");
   };
@@ -456,7 +478,7 @@ const AdminSettings = () => {
                       Add New Add-On
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Add New Add-On Item</DialogTitle>
                     </DialogHeader>
@@ -483,6 +505,48 @@ const AdminSettings = () => {
                             <option key={type} value={type}>{type}</option>
                           ))}
                         </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="addon-options">Options</Label>
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <Input
+                              id="addon-options"
+                              placeholder="Enter an option"
+                              value={newOptionInput}
+                              onChange={(e) => setNewOptionInput(e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddOption();
+                                }
+                              }}
+                            />
+                            <Button 
+                              type="button" 
+                              onClick={handleAddOption}
+                              disabled={!newOptionInput.trim()}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                          {newAddOn.options.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {newAddOn.options.map((option, index) => (
+                                <Badge key={index} variant="secondary" className="flex items-center gap-2">
+                                  {option}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveOption(option)}
+                                    className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="addon-price">Price ($)</Label>
@@ -530,12 +594,26 @@ const AdminSettings = () => {
                 {addOns.map((addOn) => (
                   <div key={addOn.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">{addOn.name}</p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mt-1">
                           <Badge variant="outline">{addOn.type}</Badge>
                           <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}</span>
                         </div>
+                        {addOn.options.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {addOn.options.slice(0, 3).map((option, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {option}
+                              </Badge>
+                            ))}
+                            {addOn.options.length > 3 && (
+                              <Badge variant="secondary" className="text-xs">
+                                +{addOn.options.length - 3} more
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

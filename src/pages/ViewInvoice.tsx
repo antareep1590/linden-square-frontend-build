@@ -13,7 +13,7 @@ const mockInvoiceData = {
     id: "INV-2023-001",
     client: "Acme Corporation",
     clientAddress: "123 Business St, Corporate City, CA 12345",
-    amount: 1250.00,
+    amount: 1375.00,
     date: "2023-11-01",
     dueDate: "2023-11-30",
     status: "paid",
@@ -26,15 +26,17 @@ const mockInvoiceData = {
       }
     ],
     subtotal: 1250.00,
+    personalization: 75.00,
+    shipping: 50.00,
     tax: 0.00,
-    total: 1250.00,
-    recipients: ["John Smith", "Sarah Johnson", "Mike Wilson", "Emily Davis", "...and 21 more"]
+    total: 1375.00,
+    recipients: ["John Smith", "Sarah Johnson", "Mike Wilson", "Emily Davis", "Robert Brown", "Lisa White", "David Lee", "Maria Garcia", "James Wilson", "Jennifer Taylor", "...and 15 more"]
   },
   "INV-2023-002": {
     id: "INV-2023-002",
-    client: "Tech Innovations",
+    client: "Tech Innovations Inc.",
     clientAddress: "456 Innovation Ave, Tech City, TC 67890",
-    amount: 890.50,
+    amount: 965.50,
     date: "2023-10-28",
     dueDate: "2023-11-27",
     status: "unpaid",
@@ -47,9 +49,11 @@ const mockInvoiceData = {
       }
     ],
     subtotal: 890.50,
+    personalization: 45.00,
+    shipping: 30.00,
     tax: 0.00,
-    total: 890.50,
-    recipients: ["Alice Cooper", "Bob Johnson", "Charlie Brown", "...and 12 more"]
+    total: 965.50,
+    recipients: ["Alice Cooper", "Bob Johnson", "Charlie Brown", "Diana Prince", "Edward Smith", "Fiona Green", "George Wilson", "Helen Davis", "Ivan Lee", "Julia Martinez", "...and 5 more"]
   }
 };
 
@@ -186,7 +190,7 @@ const ViewInvoice = () => {
                             <div>
                               <p className="font-medium">{box.name}</p>
                               <p className="text-sm text-gray-600">
-                                ({box.items.join(", ")})
+                                Includes: {box.items.join(", ")}
                               </p>
                             </div>
                           </td>
@@ -203,9 +207,9 @@ const ViewInvoice = () => {
 
             {/* Recipients */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-900 mb-4">Recipients</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Recipients ({invoice.giftBoxes.reduce((total, box) => total + box.quantity, 0)} total)</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-600">
+                <p className="text-gray-600 leading-relaxed">
                   {invoice.recipients.join(", ")}
                 </p>
               </div>
@@ -215,10 +219,18 @@ const ViewInvoice = () => {
 
             {/* Totals */}
             <div className="flex justify-end">
-              <div className="w-full sm:w-64 space-y-2">
+              <div className="w-full sm:w-80 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal:</span>
                   <span>${invoice.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Personalization:</span>
+                  <span>${invoice.personalization.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping:</span>
+                  <span>${invoice.shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax:</span>
@@ -227,7 +239,7 @@ const ViewInvoice = () => {
                 <Separator />
                 <div className="flex justify-between text-lg font-semibold">
                   <span>Total:</span>
-                  <span>${invoice.total.toFixed(2)}</span>
+                  <span className="text-blue-600">${invoice.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -237,6 +249,13 @@ const ViewInvoice = () => {
               <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-green-800 font-medium">✓ Payment Received</p>
                 <p className="text-green-700 text-sm">Thank you for your payment. This invoice has been paid in full.</p>
+              </div>
+            )}
+
+            {invoice.status === 'unpaid' && (
+              <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 font-medium">⏰ Payment Pending</p>
+                <p className="text-amber-700 text-sm">Payment due by {new Date(invoice.dueDate).toLocaleDateString()}</p>
               </div>
             )}
           </CardContent>
