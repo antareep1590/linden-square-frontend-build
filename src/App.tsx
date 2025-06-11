@@ -17,10 +17,8 @@ import Dashboard from '@/pages/Dashboard';
 import Customers from '@/pages/Customers';
 import AddPersonalization from '@/pages/AddPersonalization';
 import TrackOrders from '@/pages/TrackOrders';
-import GiftBoxFlow from '@/pages/GiftBoxFlow';
 import BoxListing from '@/pages/BoxListing';
 import CustomizeBox from '@/pages/CustomizeBox';
-import BuildCustomBox from '@/pages/BuildCustomBox';
 import PersonalizationStep from '@/pages/PersonalizationStep';
 import RecipientSelection from '@/pages/RecipientSelection';
 import FinalSummary from '@/pages/FinalSummary';
@@ -62,10 +60,9 @@ function App() {
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/customers" element={<Customers />} />
-                <Route path="/gift-box-flow" element={<GiftBoxFlow />} />
+                <Route path="/gift-box-flow" element={<BoxListing />} />
                 <Route path="/box-listing" element={<BoxListing />} />
                 <Route path="/customize-box" element={<CustomizeBox />} />
-                <Route path="/build-custom-box" element={<BuildCustomBox />} />
                 <Route path="/personalization" element={<PersonalizationStep />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/recipients" element={<RecipientSelection />} />

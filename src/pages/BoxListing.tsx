@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, Search, Star, Gift, Package, ShoppingCart, ArrowLeft } from 'lucide-react';
+import { Filter, Search, Star, Gift, Package, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -173,13 +173,9 @@ const BoxListing = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Gift Box Flow
-        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Choose Your Gift Box</h1>
-          <p className="text-gray-600">Select from our curated collections or build your own custom box</p>
+          <p className="text-gray-600">Select from our curated preset collections</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -381,21 +377,6 @@ const BoxListing = () => {
           );
         })}
       </div>
-
-      {/* Custom Box Option */}
-      <Card className="border-2 border-dashed border-gray-300 hover:border-linden-blue transition-colors">
-        <CardContent className="p-8 text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Build Your Own Box</h3>
-          <p className="text-gray-600 mb-4">Create a completely personalized gift box from scratch</p>
-          <Button 
-            onClick={() => navigate('/build-custom-box')}
-            className="bg-purple-500 hover:bg-purple-500/90"
-          >
-            Start Building
-          </Button>
-        </CardContent>
-      </Card>
 
       {filteredBoxes.length === 0 && (
         <Card className="p-8 text-center">
