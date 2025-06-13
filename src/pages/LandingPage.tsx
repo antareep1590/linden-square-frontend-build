@@ -11,6 +11,56 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [isExistingClient, setIsExistingClient] = useState(false);
 
+  // Data arrays for the landing page
+  const valuePropositions = [
+    {
+      icon: <Shield className="h-16 w-16 text-linden-blue mx-auto" />,
+      title: "Enterprise-Grade Security",
+      description: "Your data and your recipients' information are protected with bank-level security and compliance standards."
+    },
+    {
+      icon: <Users className="h-16 w-16 text-linden-gold mx-auto" />,
+      title: "Scalable Solutions",
+      description: "From 10 to 10,000 recipients, our platform grows with your business needs and campaign requirements."
+    },
+    {
+      icon: <Heart className="h-16 w-16 text-green-600 mx-auto" />,
+      title: "Meaningful Connections",
+      description: "Every gift is thoughtfully curated to create lasting impressions and strengthen business relationships."
+    }
+  ];
+
+  const companyLogos = [
+    { name: "Company 1", logo: "/placeholder.svg" },
+    { name: "Company 2", logo: "/placeholder.svg" },
+    { name: "Company 3", logo: "/placeholder.svg" },
+    { name: "Company 4", logo: "/placeholder.svg" }
+  ];
+
+  const testimonials = [
+    {
+      quote: "Linden Square transformed our client appreciation process. The personalization options and tracking made it seamless.",
+      name: "Sarah Johnson",
+      role: "VP Marketing",
+      company: "TechCorp",
+      avatar: "/placeholder.svg"
+    },
+    {
+      quote: "The branded portal feature is incredible. Our clients feel like they're using our own internal gifting system.",
+      name: "Michael Chen",
+      role: "Head of Sales",
+      company: "InnovateNow",
+      avatar: "/placeholder.svg"
+    },
+    {
+      quote: "We've seen a 40% increase in client engagement since using Linden Square for our corporate gifting.",
+      name: "Emily Rodriguez",
+      role: "Client Success Manager",
+      company: "GrowthCo",
+      avatar: "/placeholder.svg"
+    }
+  ];
+
   const handleBrowsePresetBoxes = () => {
     navigate('/box-listing');
   };

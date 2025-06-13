@@ -37,6 +37,8 @@ interface CartContextType {
   addBox: (box: GiftBox) => void;
   removeBox: (boxId: string) => void;
   updateBox: (boxId: string, updates: Partial<GiftBox>) => void;
+  updateBoxGifts: (boxId: string, gifts: GiftBox['gifts']) => void;
+  updateBoxPersonalization: (boxId: string, field: string, value: string) => void;
   clearCart: () => void;
   getTotalCost: () => number;
 }
@@ -68,6 +70,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     ));
   };
 
+  const updateBoxGifts = (boxId: string, gifts: GiftBox['gifts']) => {
+    updateBox(boxId, { gifts });
+  };
+
+  const updateBoxPersonalization = (boxId: string, field: string, value: string) => {
+    setSelectedBoxes(prev => prev.map(box => {
+      if (box.id === boxId) {
+        const updatedPersonalization = {
+          ...box.personalization,
+          selectedOptions: new Map(box.personalization?.selectedOptions || []),
+          cardMessage: box.personalization?.cardMessage || '',
+          tagMessage: box.personalization?.tagMessage || '',
+          addOnsCost: box.personalization?.addOnsCost || 0,
+          selectedAddOns: box.personalization?.selectedAddOns || []
+        };
+        
+        if (field === 'giftMessage') {
+          updatedPersonalization.cardMessage = value;
+        } else if (field === 'senderName' || field === 'specialInstructions') {
+          updatedPersonalization.selectedOptions.set(field, value);
+        }
+        
+        return { ...box, personalization: updatedPersonalization };
+      }
+      return box;
+    }));
+  };
+
   const clearCart = () => {
     setSelectedBoxes([]);
   };
@@ -86,6 +116,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       addBox,
       removeBox,
       updateBox,
+      updateBoxGifts,
+      updateBoxPersonalization,
       clearCart,
       getTotalCost
     }}>
