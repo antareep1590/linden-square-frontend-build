@@ -109,7 +109,7 @@ const BoxListing = () => {
       theme: theme.theme,
       size: theme.size,
       type: theme.type,
-      price: theme.price,
+      basePrice: theme.price,
       image: theme.image,
       campaignType: theme.campaignType,
       gifts: theme.items
