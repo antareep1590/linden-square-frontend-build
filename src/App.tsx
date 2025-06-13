@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,13 +24,13 @@ import Customers from '@/pages/Customers';
 import AddPersonalization from '@/pages/AddPersonalization';
 import TrackOrders from '@/pages/TrackOrders';
 import BoxListing from '@/pages/BoxListing';
-import CustomizeBox from '@/pages/CustomizeBox';
 import PersonalizationStep from '@/pages/PersonalizationStep';
 import CustomizationPage from '@/pages/CustomizationPage';
 import RecipientSelection from '@/pages/RecipientSelection';
 import FinalSummary from '@/pages/FinalSummary';
 import PaymentMethod from '@/pages/PaymentMethod';
 import Profile from '@/pages/Profile';
+import ShippingFulfillment from '@/pages/ShippingFulfillment';
 
 // Admin pages  
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -75,10 +76,10 @@ function App() {
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/gift-box-flow" element={<BoxListing />} />
                 <Route path="/box-listing" element={<BoxListing />} />
-                {/* Removed /customize-box route - existing users go directly to personalization */}
                 <Route path="/personalization" element={<PersonalizationStep />} />
                 <Route path="/customization" element={<CustomizationPage />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
+                <Route path="/shipping-fulfillment" element={<ShippingFulfillment />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />
@@ -113,3 +114,4 @@ function App() {
 }
 
 export default App;
+

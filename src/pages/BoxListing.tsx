@@ -192,7 +192,7 @@ const BoxListing = () => {
       toast.error('Please select at least one gift box');
       return;
     }
-    navigate('/personalization');
+    navigate('/customization');
   };
 
   const isBoxSelected = (boxId: number) => {

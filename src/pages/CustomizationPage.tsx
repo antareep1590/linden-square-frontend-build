@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save } from 'lucide-react';
+import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -104,9 +104,9 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/personalization')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Personalization
+          Back To Gift Boxes
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Boxes</h1>
@@ -129,6 +129,34 @@ const CustomizationPage = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Selected Gift Boxes Display */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5" />
+                Selected Gift Boxes ({selectedBoxes.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedBoxes.map((box) => (
+                  <div key={box.id} className="border rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <Gift className="h-6 w-6 text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{box.name}</h3>
+                        <p className="text-sm text-gray-600">${box.price}</p>
+                        <Badge variant="outline" className="text-xs">{box.theme}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Customization Level Selection */}
           <Card>
             <CardHeader>
@@ -163,194 +191,218 @@ const CustomizationPage = () => {
           </Card>
 
           {/* Custom Elements Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Image className="h-5 w-5" />
-                Custom Gift Elements
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              {/* Branded Notecards */}
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-medium">Branded Notecards</h4>
-                    <p className="text-sm text-gray-600">Add your logo and custom message</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">+$5.00</Badge>
-                    <Switch
-                      checked={orderLevelCustomization.brandedNotecard.enabled}
-                      onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked)}
-                    />
-                  </div>
-                </div>
-
-                {orderLevelCustomization.brandedNotecard.enabled && (
-                  <div className="space-y-4">
+          {customizationLevel === 'order' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Image className="h-5 w-5" />
+                  Custom Gift Elements (Order-Level)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                
+                {/* Branded Notecards */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <Label>Choose Template</Label>
-                      <Select
-                        value={orderLevelCustomization.brandedNotecard.template}
-                        onValueChange={(value) => updateCustomization('brandedNotecard', 'template', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {notecardTemplates.map(template => (
-                            <SelectItem key={template.id} value={template.id}>
-                              {template.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <h4 className="font-medium">Branded Notecards</h4>
+                      <p className="text-sm text-gray-600">Add your logo and custom message</p>
                     </div>
-
-                    <div>
-                      <Label>Upload Your Logo</Label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleFileUpload(e, 'logo')}
-                          className="hidden"
-                          id="logo-upload"
-                        />
-                        <label htmlFor="logo-upload" className="cursor-pointer">
-                          <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-600">
-                            {orderLevelCustomization.brandedNotecard.logo 
-                              ? orderLevelCustomization.brandedNotecard.logo.name 
-                              : 'Click to upload logo (PNG, JPG, max 5MB)'
-                            }
-                          </p>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label>Custom Message</Label>
-                      <Textarea
-                        placeholder="Enter your message for the notecard..."
-                        value={orderLevelCustomization.brandedNotecard.message}
-                        onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value)}
-                        rows={3}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">+$5.00</Badge>
+                      <Switch
+                        checked={orderLevelCustomization.brandedNotecard.enabled}
+                        onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked)}
                       />
                     </div>
                   </div>
-                )}
-              </div>
 
-              {/* Gift Tags */}
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-medium">Gift Tags</h4>
-                    <p className="text-sm text-gray-600">Add special tags to your gifts</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">+$2.00</Badge>
-                    <Switch
-                      checked={orderLevelCustomization.giftTags.enabled}
-                      onCheckedChange={(checked) => toggleCustomization('giftTags', checked)}
-                    />
-                  </div>
-                </div>
-
-                {orderLevelCustomization.giftTags.enabled && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>Tag Type</Label>
-                      <Select
-                        value={orderLevelCustomization.giftTags.type}
-                        onValueChange={(value) => updateCustomization('giftTags', 'type', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="preset">Preset Messages</SelectItem>
-                          <SelectItem value="custom">Custom Message</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {orderLevelCustomization.giftTags.type === 'preset' && (
+                  {orderLevelCustomization.brandedNotecard.enabled && (
+                    <div className="space-y-4">
                       <div>
-                        <Label>Select Preset Message</Label>
+                        <Label>Choose Template</Label>
                         <Select
-                          value={orderLevelCustomization.giftTags.presetMessage}
-                          onValueChange={(value) => updateCustomization('giftTags', 'presetMessage', value)}
+                          value={orderLevelCustomization.brandedNotecard.template}
+                          onValueChange={(value) => updateCustomization('brandedNotecard', 'template', value)}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose a message" />
+                            <SelectValue placeholder="Select a template" />
                           </SelectTrigger>
                           <SelectContent>
-                            {presetGiftTags.map(tag => (
-                              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                            {notecardTemplates.map(template => (
+                              <SelectItem key={template.id} value={template.id}>
+                                {template.name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
-                    )}
 
-                    {orderLevelCustomization.giftTags.type === 'custom' && (
                       <div>
-                        <Label>Custom Tag Message</Label>
-                        <Input
-                          placeholder="Enter your custom tag message"
-                          value={orderLevelCustomization.giftTags.customMessage}
-                          onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value)}
+                        <Label>Upload Your Logo</Label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, 'logo')}
+                            className="hidden"
+                            id="logo-upload"
+                          />
+                          <label htmlFor="logo-upload" className="cursor-pointer">
+                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-600">
+                              {orderLevelCustomization.brandedNotecard.logo 
+                                ? orderLevelCustomization.brandedNotecard.logo.name 
+                                : 'Click to upload logo (PNG, JPG, max 5MB)'
+                              }
+                            </p>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Custom Message</Label>
+                        <Textarea
+                          placeholder="Enter your message for the notecard..."
+                          value={orderLevelCustomization.brandedNotecard.message}
+                          onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value)}
+                          rows={3}
                         />
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Message Cards */}
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-medium">Message Cards</h4>
-                    <p className="text-sm text-gray-600">Include a personal message inside the box</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">+$3.00</Badge>
-                    <Switch
-                      checked={orderLevelCustomization.messageCard.enabled}
-                      onCheckedChange={(checked) => toggleCustomization('messageCard', checked)}
-                    />
-                  </div>
+                    </div>
+                  )}
                 </div>
 
-                {orderLevelCustomization.messageCard.enabled && (
-                  <div className="space-y-4">
+                {/* Gift Tags */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <Label>Message</Label>
-                      <Textarea
-                        placeholder="Enter your personal message..."
-                        value={orderLevelCustomization.messageCard.message}
-                        onChange={(e) => updateCustomization('messageCard', 'message', e.target.value)}
-                        rows={3}
-                      />
+                      <h4 className="font-medium">Gift Tags</h4>
+                      <p className="text-sm text-gray-600">Add special tags to your gifts</p>
                     </div>
-                    <div>
-                      <Label>From (Sender Name)</Label>
-                      <Input
-                        placeholder="Your name or company name"
-                        value={orderLevelCustomization.messageCard.senderName}
-                        onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value)}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">+$2.00</Badge>
+                      <Switch
+                        checked={orderLevelCustomization.giftTags.enabled}
+                        onCheckedChange={(checked) => toggleCustomization('giftTags', checked)}
                       />
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+
+                  {orderLevelCustomization.giftTags.enabled && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Tag Type</Label>
+                        <Select
+                          value={orderLevelCustomization.giftTags.type}
+                          onValueChange={(value) => updateCustomization('giftTags', 'type', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="preset">Preset Messages</SelectItem>
+                            <SelectItem value="custom">Custom Message</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {orderLevelCustomization.giftTags.type === 'preset' && (
+                        <div>
+                          <Label>Select Preset Message</Label>
+                          <Select
+                            value={orderLevelCustomization.giftTags.presetMessage}
+                            onValueChange={(value) => updateCustomization('giftTags', 'presetMessage', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose a message" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {presetGiftTags.map(tag => (
+                                <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {orderLevelCustomization.giftTags.type === 'custom' && (
+                        <div>
+                          <Label>Custom Tag Message</Label>
+                          <Input
+                            placeholder="Enter your custom tag message"
+                            value={orderLevelCustomization.giftTags.customMessage}
+                            onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Message Cards */}
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-medium">Message Cards</h4>
+                      <p className="text-sm text-gray-600">Include a personal message inside the box</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">+$3.00</Badge>
+                      <Switch
+                        checked={orderLevelCustomization.messageCard.enabled}
+                        onCheckedChange={(checked) => toggleCustomization('messageCard', checked)}
+                      />
+                    </div>
+                  </div>
+
+                  {orderLevelCustomization.messageCard.enabled && (
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Message</Label>
+                        <Textarea
+                          placeholder="Enter your personal message..."
+                          value={orderLevelCustomization.messageCard.message}
+                          onChange={(e) => updateCustomization('messageCard', 'message', e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label>From (Sender Name)</Label>
+                        <Input
+                          placeholder="Your name or company name"
+                          value={orderLevelCustomization.messageCard.senderName}
+                          onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Image className="h-5 w-5" />
+                  Individual Gift Box Customizations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {selectedBoxes.map((box, index) => (
+                    <div key={box.id} className="border rounded-lg p-4">
+                      <h4 className="font-medium mb-4">Customize: {box.name}</h4>
+                      <div className="text-sm text-gray-600 mb-4">
+                        Individual customization options would be displayed here for each box separately.
+                        This would include the same options as order-level but applied per box.
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar - Preview & Summary */}
@@ -420,3 +472,4 @@ const CustomizationPage = () => {
 };
 
 export default CustomizationPage;
+
