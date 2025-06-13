@@ -349,13 +349,14 @@ const AdminTrackOrders = () => {
                   </TableCell>
                   <TableCell>
                     <Select 
-                      value={order.deliveryOwner || ""} 
-                      onValueChange={(value) => handleDeliveryOwnerUpdate(order.id, value)}
+                      value={order.deliveryOwner || "unassigned"} 
+                      onValueChange={(value) => handleDeliveryOwnerUpdate(order.id, value === "unassigned" ? "" : value)}
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Assign" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
                         {deliveryOwners.map(owner => (
                           <SelectItem key={owner} value={owner}>{owner}</SelectItem>
                         ))}
