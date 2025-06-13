@@ -17,7 +17,7 @@ import CustomizationPreview from '@/components/CustomizationPreview';
 const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
-  const [customizationLevel, setCustomizationLevel] = useState<'individual'>('individual'); // Default to individual
+  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual'); // Fixed type definition
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
