@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -227,15 +228,15 @@ const BoxListing = () => {
         </div>
       </div>
 
-      {/* Enhanced Filters Section */}
-      <Card>
-        <CardHeader>
+      {/* Modern Filter Section */}
+      <Card className="border-gray-200 shadow-sm">
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg font-medium">
+              <Filter className="h-5 w-5 text-gray-600" />
               Filters
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-2 text-xs">
                   {activeFilterCount}
                 </Badge>
               )}
@@ -243,103 +244,87 @@ const BoxListing = () => {
             <div className="flex gap-2">
               {activeFilterCount > 0 && (
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="text-gray-600"
+                  className="text-gray-500 hover:text-gray-700 text-xs"
                 >
                   Clear All
                 </Button>
               )}
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
+                className="text-gray-500 hover:text-gray-700 text-xs"
               >
-                {showFilters ? 'Hide' : 'Show'} Filters
+                {showFilters ? 'Hide' : 'Show'}
               </Button>
             </div>
           </div>
         </CardHeader>
         {showFilters && (
-          <CardContent className="space-y-6">
-            {/* Search */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Search</label>
+          <CardContent className="pt-0">
+            {/* Search Bar */}
+            <div className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search gift boxes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-gray-200 focus:border-linden-blue focus:ring-linden-blue/20"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* Theme Multi-Select Dropdown */}
-              <div>
-                <label className="text-sm font-medium mb-3 block">Themes</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder={
-                      selectedThemes.length > 0 
-                        ? `${selectedThemes.length} selected` 
-                        : "Select themes"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {themes.map((theme) => (
-                      <div key={theme} className="flex items-center space-x-2 p-2">
-                        <Checkbox
-                          id={theme}
-                          checked={selectedThemes.includes(theme)}
-                          onCheckedChange={(checked) => handleThemeChange(theme, checked as boolean)}
-                        />
-                        <label htmlFor={theme} className="text-sm font-medium leading-none cursor-pointer">
-                          {theme}
-                        </label>
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Theme Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Themes</label>
+                <div className="space-y-2">
+                  {themes.map((theme) => (
+                    <div key={theme} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={theme}
+                        checked={selectedThemes.includes(theme)}
+                        onCheckedChange={(checked) => handleThemeChange(theme, checked as boolean)}
+                        className="border-gray-300"
+                      />
+                      <label htmlFor={theme} className="text-sm text-gray-600 cursor-pointer">
+                        {theme}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Size Multi-Select Dropdown */}
-              <div>
-                <label className="text-sm font-medium mb-3 block">Box Size</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder={
-                      selectedSizes.length > 0 
-                        ? `${selectedSizes.length} selected` 
-                        : "Select sizes"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sizes.map((size) => (
-                      <div key={size} className="flex items-center space-x-2 p-2">
-                        <Checkbox
-                          id={size}
-                          checked={selectedSizes.includes(size)}
-                          onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
-                        />
-                        <label htmlFor={size} className="text-sm font-medium leading-none cursor-pointer">
-                          {size}
-                        </label>
-                      </div>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {/* Size Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Box Size</label>
+                <div className="space-y-2">
+                  {sizes.map((size) => (
+                    <div key={size} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={size}
+                        checked={selectedSizes.includes(size)}
+                        onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
+                        className="border-gray-300"
+                      />
+                      <label htmlFor={size} className="text-sm text-gray-600 cursor-pointer">
+                        {size}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Price Range Filter */}
-              <div>
-                <label className="text-sm font-medium mb-3 block">
-                  Price Range: ${priceRange[0]} - ${priceRange[1]}
+              {/* Price Range */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Price: ${priceRange[0]} - ${priceRange[1]}
                 </label>
-                <div className="px-2">
+                <div className="px-2 py-2">
                   <Slider
                     value={priceRange}
                     onValueChange={setPriceRange}
@@ -355,28 +340,26 @@ const BoxListing = () => {
                 </div>
               </div>
 
-              {/* Results Summary */}
-              <div>
-                <label className="text-sm font-medium mb-3 block">Results</label>
-                <div className="text-sm text-gray-600">
-                  <p>{filteredBoxes.length} gift boxes found</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {selectedBoxes.length} selected
-                  </p>
+              {/* Results */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Results</label>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>{filteredBoxes.length} boxes found</p>
+                  <p className="text-xs">{selectedBoxes.length} selected</p>
                 </div>
               </div>
             </div>
 
-            {/* Active Filters Summary */}
+            {/* Active Filters */}
             {activeFilterCount > 0 && (
-              <div className="border-t pt-4">
+              <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium">Active filters:</span>
+                  <span className="text-sm font-medium text-gray-700">Active:</span>
                   {selectedThemes.map(theme => (
                     <Badge key={theme} variant="secondary" className="text-xs flex items-center gap-1">
                       {theme}
                       <X 
-                        className="h-3 w-3 cursor-pointer" 
+                        className="h-3 w-3 cursor-pointer hover:text-gray-700" 
                         onClick={() => removeFilter('theme', theme)}
                       />
                     </Badge>
@@ -385,7 +368,7 @@ const BoxListing = () => {
                     <Badge key={size} variant="secondary" className="text-xs flex items-center gap-1">
                       {size}
                       <X 
-                        className="h-3 w-3 cursor-pointer" 
+                        className="h-3 w-3 cursor-pointer hover:text-gray-700" 
                         onClick={() => removeFilter('size', size)}
                       />
                     </Badge>
@@ -394,7 +377,7 @@ const BoxListing = () => {
                     <Badge variant="secondary" className="text-xs flex items-center gap-1">
                       ${priceRange[0]} - ${priceRange[1]}
                       <X 
-                        className="h-3 w-3 cursor-pointer" 
+                        className="h-3 w-3 cursor-pointer hover:text-gray-700" 
                         onClick={() => setPriceRange([0, 200])}
                       />
                     </Badge>
@@ -403,7 +386,7 @@ const BoxListing = () => {
                     <Badge variant="secondary" className="text-xs flex items-center gap-1">
                       "{searchTerm}"
                       <X 
-                        className="h-3 w-3 cursor-pointer" 
+                        className="h-3 w-3 cursor-pointer hover:text-gray-700" 
                         onClick={() => setSearchTerm('')}
                       />
                     </Badge>
@@ -415,68 +398,80 @@ const BoxListing = () => {
         )}
       </Card>
 
-      {/* Gift Boxes Grid */}
+      {/* Modern Gift Boxes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredBoxes.map((box) => {
           const Icon = box.icon;
           const isSelected = isBoxSelected(box.id);
           
           return (
-            <Card key={box.id} className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2 ring-linden-blue' : ''}`}>
-              <div className="relative">
+            <Card 
+              key={box.id} 
+              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-gray-200 ${
+                isSelected ? 'ring-2 ring-linden-blue shadow-lg' : 'hover:border-gray-300'
+              }`}
+            >
+              <div className="relative overflow-hidden">
                 <img 
                   src={box.image} 
                   alt={box.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
                 <div className="absolute top-3 left-3">
-                  <Badge variant="secondary" className="bg-white/90 text-gray-700">
+                  <Badge className="bg-white/95 text-gray-700 hover:bg-white/100 border-0 shadow-sm">
                     <Icon className="h-3 w-3 mr-1" />
                     {box.theme}
                   </Badge>
                 </div>
+                
                 <div className="absolute top-3 right-3">
-                  <Badge variant="outline" className="bg-white/90">
+                  <Badge variant="outline" className="bg-white/95 border-0 shadow-sm">
                     {box.size}
                   </Badge>
                 </div>
+                
                 {isSelected && (
-                  <div className="absolute inset-0 bg-linden-blue/20 flex items-center justify-center">
-                    <Badge className="bg-linden-blue text-white">
-                      Selected
+                  <div className="absolute inset-0 bg-linden-blue/10 flex items-center justify-center">
+                    <Badge className="bg-linden-blue text-white shadow-lg">
+                      ✓ Selected
                     </Badge>
                   </div>
                 )}
               </div>
               
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{box.name}</CardTitle>
-                  <span className="text-lg font-bold text-linden-blue">${box.price}</span>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900 leading-tight">{box.name}</h3>
+                  <span className="text-lg font-bold text-linden-blue ml-2">${box.price}</span>
                 </div>
-                <p className="text-sm text-gray-600">{box.description}</p>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
+                
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{box.description}</p>
+                
+                <div className="flex items-center gap-2 mb-4">
+                  <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
                     {box.campaignType}
                   </Badge>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-gray-200 text-gray-600">
                     {box.items.length} items
                   </Badge>
                 </div>
                 
                 <Button 
                   onClick={() => handleSelectBox(box)}
-                  className={`w-full ${
+                  className={`w-full transition-all duration-200 ${
                     isSelected 
                       ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : 'bg-linden-blue hover:bg-linden-blue/90'
+                      : 'bg-linden-blue hover:bg-linden-blue/90 text-white'
                   }`}
                   disabled={isSelected}
                 >
-                  {isSelected ? 'Selected' : 'Select Box'}
+                  {isSelected ? '✓ Selected' : 'Select Box'}
                 </Button>
               </CardContent>
             </Card>
@@ -485,10 +480,13 @@ const BoxListing = () => {
       </div>
 
       {filteredBoxes.length === 0 && (
-        <div className="text-center py-12">
-          <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <div className="text-center py-16">
+          <Package className="mx-auto h-16 w-16 text-gray-300 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No gift boxes found</h3>
-          <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+          <p className="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+          <Button variant="outline" onClick={clearAllFilters}>
+            Clear All Filters
+          </Button>
         </div>
       )}
     </div>

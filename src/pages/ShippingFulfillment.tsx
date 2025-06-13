@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,6 +106,12 @@ const ShippingFulfillment = () => {
     navigate('/payment-method');
   };
 
+  const handlePayLater = () => {
+    // Generate invoice and send email
+    toast.success('Invoice link sent to your email. You can complete the payment later.');
+    console.log('Generating invoice for order and sending to client email');
+  };
+
   const getTotalShippingCost = () => {
     return csvData.reduce((total, recipient) => {
       const cost = parseFloat(recipient.estimatedCost?.replace('$', '') || '0');
@@ -130,7 +135,15 @@ const ShippingFulfillment = () => {
             onClick={handleContinue}
             className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Continue to Payment
+            Continue to Pay
+          </Button>
+          
+          <Button 
+            variant="outline"
+            className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
+            onClick={handlePayLater}
+          >
+            Pay Later
           </Button>
         </div>
       </div>
@@ -375,7 +388,7 @@ const ShippingFulfillment = () => {
                   onClick={handleContinue}
                   disabled={csvData.length === 0}
                 >
-                  Continue to Payment
+                  Continue to Pay
                 </Button>
                 {csvData.length === 0 && (
                   <p className="text-xs text-gray-500 mt-2 text-center">
@@ -403,4 +416,3 @@ const ShippingFulfillment = () => {
 };
 
 export default ShippingFulfillment;
-
