@@ -18,6 +18,7 @@ const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
   const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual'); // Fixed type definition
+  
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -428,6 +429,7 @@ const CustomizationPage = () => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/placeholder.svg';
                           }}
+                          loading="lazy"
                         />
                       </div>
                       <div className="flex-1">
@@ -516,6 +518,7 @@ const CustomizationPage = () => {
                                   const target = e.target as HTMLImageElement;
                                   target.src = '/placeholder.svg';
                                 }}
+                                loading="lazy"
                               />
                             </div>
                             <div>

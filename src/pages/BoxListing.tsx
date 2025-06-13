@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Filter, X, ShoppingCart } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Filter, X, ShoppingCart, ChevronDown, ChevronUp, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 
-// Mock data for gift boxes
+// Mock data for gift boxes with proper images and gift items
 const giftBoxes = [
   {
     id: '1',
@@ -19,8 +20,12 @@ const giftBoxes = [
     size: 'Medium' as const,
     theme: 'Corporate',
     basePrice: 75.00,
-    image: '/placeholder.svg',
-    gifts: [],
+    image: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&h=400&fit=crop',
+    gifts: [
+      { name: 'Artisan Coffee Beans', quantity: 2 },
+      { name: 'Premium Chocolates', quantity: 1 },
+      { name: 'Ceramic Mug', quantity: 1 }
+    ],
     description: 'Premium coffee selection with artisan chocolates'
   },
   {
@@ -30,8 +35,13 @@ const giftBoxes = [
     size: 'Large' as const,
     theme: 'Wellness',
     basePrice: 120.00,
-    image: '/placeholder.svg',
-    gifts: [],
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=400&fit=crop',
+    gifts: [
+      { name: 'Essential Oil Set', quantity: 1 },
+      { name: 'Bamboo Yoga Mat', quantity: 1 },
+      { name: 'Herbal Tea Collection', quantity: 3 },
+      { name: 'Meditation Guide', quantity: 1 }
+    ],
     description: 'Self-care essentials for a balanced lifestyle'
   },
   {
@@ -41,8 +51,12 @@ const giftBoxes = [
     size: 'Small' as const,
     theme: 'Technology',
     basePrice: 45.00,
-    image: '/placeholder.svg',
-    gifts: [],
+    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&h=400&fit=crop',
+    gifts: [
+      { name: 'Wireless Charger', quantity: 1 },
+      { name: 'Phone Stand', quantity: 1 },
+      { name: 'USB Cable Set', quantity: 1 }
+    ],
     description: 'Essential tech accessories for modern professionals'
   },
   {
@@ -52,8 +66,13 @@ const giftBoxes = [
     size: 'Medium' as const,
     theme: 'Food & Beverage',
     basePrice: 85.00,
-    image: '/placeholder.svg',
-    gifts: [],
+    image: 'https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400&h=400&fit=crop',
+    gifts: [
+      { name: 'Artisan Cheese Selection', quantity: 1 },
+      { name: 'Craft Beer Variety Pack', quantity: 6 },
+      { name: 'Gourmet Crackers', quantity: 2 },
+      { name: 'Honey Jar', quantity: 1 }
+    ],
     description: 'Artisanal snacks and premium beverages'
   }
 ];
@@ -62,12 +81,12 @@ const BoxListing = () => {
   const navigate = useNavigate();
   const { addBox } = useCart();
   const [selectedBoxes, setSelectedBoxes] = useState<string[]>([]);
+  const [expandedBoxes, setExpandedBoxes] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     size: '',
     theme: '',
     priceRange: ''
   });
-  const [showFilters, setShowFilters] = useState(false);
 
   const themes = ['Corporate', 'Wellness', 'Technology', 'Food & Beverage'];
   const sizes = ['Small', 'Medium', 'Large'];
@@ -90,6 +109,14 @@ const BoxListing = () => {
   const handleBoxSelect = (boxId: string) => {
     setSelectedBoxes(prev => 
       prev.includes(boxId) 
+        ? prev.filter(id => id !== boxId)
+        : [...prev, boxId]
+    );
+  };
+
+  const toggleBoxExpansion = (boxId: string) => {
+    setExpandedBoxes(prev => 
+      prev.includes(boxId)
         ? prev.filter(id => id !== boxId)
         : [...prev, boxId]
     );
@@ -136,34 +163,22 @@ const BoxListing = () => {
       </div>
 
       {/* Compact Filter Bar */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border rounded-lg p-3">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-500" />
             <span className="text-sm font-medium">Filters</span>
             {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {activeFilterCount} active
+              <Badge variant="secondary" className="text-xs h-5">
+                {activeFilterCount}
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-sm"
-          >
-            {showFilters ? 'Hide' : 'Show'} Filters
-          </Button>
-        </div>
-
-        {/* Filter Controls */}
-        <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 transition-all duration-200 ${showFilters ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-          <div className="space-y-1">
-            <label className="text-xs text-gray-600">Box Size</label>
+          
+          <div className="flex items-center gap-3 flex-1 max-w-2xl">
             <Select value={filters.size} onValueChange={(value) => setFilters(prev => ({ ...prev, size: value }))}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Any size" />
+              <SelectTrigger className="h-8 text-xs min-w-24">
+                <SelectValue placeholder="Size" />
               </SelectTrigger>
               <SelectContent>
                 {sizes.map(size => (
@@ -171,13 +186,10 @@ const BoxListing = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-gray-600">Theme</label>
             <Select value={filters.theme} onValueChange={(value) => setFilters(prev => ({ ...prev, theme: value }))}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Any theme" />
+              <SelectTrigger className="h-8 text-xs min-w-32">
+                <SelectValue placeholder="Theme" />
               </SelectTrigger>
               <SelectContent>
                 {themes.map(theme => (
@@ -185,13 +197,10 @@ const BoxListing = () => {
                 ))}
               </SelectContent>
             </Select>
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-xs text-gray-600">Price Range</label>
             <Select value={filters.priceRange} onValueChange={(value) => setFilters(prev => ({ ...prev, priceRange: value }))}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Any price" />
+              <SelectTrigger className="h-8 text-xs min-w-28">
+                <SelectValue placeholder="Price" />
               </SelectTrigger>
               <SelectContent>
                 {priceRanges.map(range => (
@@ -199,27 +208,38 @@ const BoxListing = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilters({ size: '', theme: '', priceRange: '' })}
+                className="h-8 px-2 text-xs"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Active Filters */}
         {activeFilterCount > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 mt-2">
             {filters.size && (
-              <Badge variant="outline" className="text-xs">
-                Size: {filters.size}
+              <Badge variant="outline" className="text-xs h-6">
+                {filters.size}
                 <X className="h-3 w-3 ml-1 cursor-pointer" onClick={() => clearFilter('size')} />
               </Badge>
             )}
             {filters.theme && (
-              <Badge variant="outline" className="text-xs">
-                Theme: {filters.theme}
+              <Badge variant="outline" className="text-xs h-6">
+                {filters.theme}
                 <X className="h-3 w-3 ml-1 cursor-pointer" onClick={() => clearFilter('theme')} />
               </Badge>
             )}
             {filters.priceRange && (
-              <Badge variant="outline" className="text-xs">
-                Price: {priceRanges.find(r => r.value === filters.priceRange)?.label}
+              <Badge variant="outline" className="text-xs h-6">
+                {priceRanges.find(r => r.value === filters.priceRange)?.label}
                 <X className="h-3 w-3 ml-1 cursor-pointer" onClick={() => clearFilter('priceRange')} />
               </Badge>
             )}
@@ -235,7 +255,6 @@ const BoxListing = () => {
             className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
               selectedBoxes.includes(box.id) ? 'ring-2 ring-linden-blue bg-blue-50' : ''
             }`}
-            onClick={() => handleBoxSelect(box.id)}
           >
             <CardContent className="p-0">
               <div className="relative">
@@ -248,12 +267,13 @@ const BoxListing = () => {
                       const target = e.target as HTMLImageElement;
                       target.src = '/placeholder.svg';
                     }}
+                    loading="lazy"
                   />
                 </div>
                 <div className="absolute top-3 right-3">
                   <Checkbox
                     checked={selectedBoxes.includes(box.id)}
-                    onChange={() => handleBoxSelect(box.id)}
+                    onCheckedChange={() => handleBoxSelect(box.id)}
                     className="bg-white shadow-md"
                   />
                 </div>
@@ -264,7 +284,7 @@ const BoxListing = () => {
                 </div>
               </div>
               
-              <div className="p-4 space-y-2">
+              <div className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <h3 className="font-semibold text-sm leading-tight">{box.name}</h3>
                   <span className="text-lg font-bold text-linden-blue">${box.basePrice}</span>
@@ -272,11 +292,41 @@ const BoxListing = () => {
                 
                 <p className="text-xs text-gray-600 line-clamp-2">{box.description}</p>
                 
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between">
                   <Badge variant="outline" className="text-xs">
                     {box.theme}
                   </Badge>
+                  <span className="text-xs text-gray-500">
+                    {box.gifts.length} items
+                  </span>
                 </div>
+
+                {/* Gift Items Preview */}
+                <Collapsible 
+                  open={expandedBoxes.includes(box.id)} 
+                  onOpenChange={() => toggleBoxExpansion(box.id)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full text-xs h-7">
+                      <Package className="h-3 w-3 mr-1" />
+                      View Contents
+                      {expandedBoxes.includes(box.id) ? 
+                        <ChevronUp className="h-3 w-3 ml-1" /> : 
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      }
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                      {box.gifts.map((gift, index) => (
+                        <div key={index} className="flex justify-between text-xs">
+                          <span className="text-gray-700">{gift.name}</span>
+                          <span className="text-gray-500">×{gift.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </CardContent>
           </Card>
