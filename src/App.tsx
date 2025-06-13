@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,6 +16,8 @@ import Invoices from '@/pages/Invoices';
 import ChooseGiftBox from '@/pages/ChooseGiftBox';
 import ProfileStandalone from '@/pages/ProfileStandalone';
 import CustomizeGiftBox from '@/pages/CustomizeGiftBox';
+import StandaloneCustomization from '@/pages/StandaloneCustomization';
+import StandaloneShipping from '@/pages/StandaloneShipping';
 
 // Client pages
 import Dashboard from '@/pages/Dashboard';
@@ -85,6 +86,8 @@ function App() {
                 <Route path="/track-orders" element={<TrackOrders />} />
                 <Route path="/invoices" element={<Invoices />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/customization-defaults" element={<StandaloneCustomization />} />
+                <Route path="/shipping-defaults" element={<StandaloneShipping />} />
               </Route>
 
               {/* Admin routes */}
@@ -114,4 +117,3 @@ function App() {
 }
 
 export default App;
-
