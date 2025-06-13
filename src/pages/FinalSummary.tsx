@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,22 @@ const FinalSummary = () => {
           from: 'Management Team'
         },
         assignedRecipients: [
-          { id: 1, name: 'John Smith', email: 'john@company.com', department: 'Sales' },
-          { id: 2, name: 'Sarah Johnson', email: 'sarah@company.com', department: 'Marketing' }
+          { 
+            id: 1, 
+            name: 'John Smith', 
+            email: 'john@company.com', 
+            phone: '555-123-4567',
+            address: '123 Main St, Anytown, CA 12345',
+            department: 'Sales' 
+          },
+          { 
+            id: 2, 
+            name: 'Sarah Johnson', 
+            email: 'sarah@company.com', 
+            phone: '',
+            address: '',
+            department: 'Marketing' 
+          }
         ]
       },
       {
@@ -44,8 +59,22 @@ const FinalSummary = () => {
           from: 'HR Department'
         },
         assignedRecipients: [
-          { id: 3, name: 'Mike Chen', email: 'mike@company.com', department: 'Engineering' },
-          { id: 4, name: 'Emily Davis', email: 'emily@company.com', department: 'HR' }
+          { 
+            id: 3, 
+            name: 'Mike Chen', 
+            email: 'mike@company.com', 
+            phone: '555-987-6543',
+            address: '456 Oak Ave, Somewhere, CA 67890',
+            department: 'Engineering' 
+          },
+          { 
+            id: 4, 
+            name: 'Emily Davis', 
+            email: 'emily@company.com', 
+            phone: '',
+            address: '',
+            department: 'HR' 
+          }
         ]
       }
     ],
@@ -96,7 +125,7 @@ const FinalSummary = () => {
               <div className="flex items-center space-x-4">
                 <LindenSquareLogo size="medium" />
                 <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-                <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Order Summary</h1>
+                <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Review Your Order</h1>
               </div>
               <Button variant="outline" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -142,7 +171,7 @@ const FinalSummary = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
-                  Gift Boxes & Recipients ({orderData.selectedBoxes.length} boxes, {getTotalRecipients()} recipients)
+                  Recipients & Assignments ({orderData.selectedBoxes.length} boxes, {getTotalRecipients()} recipients)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -185,24 +214,36 @@ const FinalSummary = () => {
                     {/* Recipients for this box */}
                     <div className="border-t pt-4">
                       <h4 className="font-medium text-gray-900 mb-3">
-                        Recipients ({box.assignedRecipients.length})
+                        Assigned Recipients ({box.assignedRecipients.length})
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {box.assignedRecipients.map((recipient) => (
-                          <div key={recipient.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-sm">{recipient.name}</h5>
-                              <p className="text-xs text-gray-600">{recipient.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <MapPin className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs text-gray-500">Address pending</span>
+                          <div key={recipient.id} className="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h5 className="font-medium text-sm">{recipient.name}</h5>
+                                <p className="text-xs text-gray-600">{recipient.email}</p>
+                                {recipient.phone && (
+                                  <p className="text-xs text-gray-600">{recipient.phone}</p>
+                                )}
+                                {recipient.address ? (
+                                  <div className="flex items-start gap-1 mt-1">
+                                    <MapPin className="h-3 w-3 text-gray-400 mt-0.5" />
+                                    <span className="text-xs text-gray-500">{recipient.address}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <MapPin className="h-3 w-3 text-gray-400" />
+                                    <span className="text-xs text-gray-500">Address will be collected</span>
+                                  </div>
+                                )}
                               </div>
+                              {!isStandalone && recipient.department && (
+                                <Badge variant="outline" className="text-xs">
+                                  {recipient.department}
+                                </Badge>
+                              )}
                             </div>
-                            {recipient.department && (
-                              <Badge variant="outline" className="text-xs">
-                                {recipient.department}
-                              </Badge>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -224,7 +265,7 @@ const FinalSummary = () => {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-medium text-blue-900 mb-2">Address Collection Process</h4>
                   <p className="text-sm text-blue-800">
-                    Recipients will receive an email with a secure link to provide their delivery address and preferences. 
+                    Recipients without addresses will receive an email with a secure link to provide their delivery address and preferences. 
                     You'll be notified once all addresses are collected and shipping can begin.
                   </p>
                 </div>

@@ -64,6 +64,8 @@ function App() {
               {/* Standalone pages for anonymous users */}
               <Route path="/choose-gift-box" element={<ChooseGiftBox />} />
               <Route path="/customize-gift-box" element={<CustomizeGiftBox />} />
+              <Route path="/recipients" element={<RecipientSelection />} />
+              <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
               {/* Client routes */}
@@ -75,8 +77,6 @@ function App() {
                 <Route path="/customize-box" element={<CustomizeBox />} />
                 <Route path="/personalization" element={<PersonalizationStep />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
-                <Route path="/recipients" element={<RecipientSelection />} />
-                <Route path="/summary" element={<FinalSummary />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />

@@ -6,10 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Users, Plus, Package, X, Gift, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Users, Plus, Package, X, Gift, ChevronDown, ChevronUp, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
 import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const RecipientSelection = () => {
   const navigate = useNavigate();
@@ -18,10 +26,10 @@ const RecipientSelection = () => {
   const isStandalone = !window.location.pathname.includes('/dashboard');
   
   const [recipients, setRecipients] = useState([
-    { id: 1, name: 'John Smith', email: 'john@company.com', department: 'Sales' },
-    { id: 2, name: 'Sarah Johnson', email: 'sarah@company.com', department: 'Marketing' },
-    { id: 3, name: 'Mike Chen', email: 'mike@company.com', department: 'Engineering' },
-    { id: 4, name: 'Emily Davis', email: 'emily@company.com', department: 'HR' }
+    { id: 1, name: 'John Smith', email: 'john@company.com', phone: '555-123-4567', address: '123 Main St, Anytown, CA 12345', department: 'Sales' },
+    { id: 2, name: 'Sarah Johnson', email: 'sarah@company.com', phone: '', address: '', department: 'Marketing' },
+    { id: 3, name: 'Mike Chen', email: 'mike@company.com', phone: '555-987-6543', address: '456 Oak Ave, Somewhere, CA 67890', department: 'Engineering' },
+    { id: 4, name: 'Emily Davis', email: 'emily@company.com', phone: '', address: '', department: 'HR' }
   ]);
   
   const [selectedGiftBoxes] = useState([
@@ -38,10 +46,13 @@ const RecipientSelection = () => {
   const [newRecipient, setNewRecipient] = useState({
     name: '',
     email: '',
+    phone: '',
+    address: '',
     department: ''
   });
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingRecipient, setEditingRecipient] = useState<number | null>(null);
 
   const handleAddRecipient = () => {
     if (!newRecipient.name || !newRecipient.email) {
@@ -49,17 +60,43 @@ const RecipientSelection = () => {
       return;
     }
 
-    const newId = Math.max(...recipients.map(r => r.id)) + 1;
-    setRecipients(prev => [...prev, {
-      id: newId,
-      name: newRecipient.name,
-      email: newRecipient.email,
-      department: newRecipient.department
-    }]);
+    if (editingRecipient) {
+      // Update existing recipient
+      setRecipients(prev => prev.map(r => 
+        r.id === editingRecipient 
+          ? { ...r, ...newRecipient }
+          : r
+      ));
+      setEditingRecipient(null);
+      toast.success('Recipient updated successfully');
+    } else {
+      // Add new recipient
+      const newId = Math.max(...recipients.map(r => r.id)) + 1;
+      setRecipients(prev => [...prev, {
+        id: newId,
+        name: newRecipient.name,
+        email: newRecipient.email,
+        phone: newRecipient.phone,
+        address: newRecipient.address,
+        department: newRecipient.department
+      }]);
+      toast.success('Recipient added successfully');
+    }
 
-    setNewRecipient({ name: '', email: '', department: '' });
+    setNewRecipient({ name: '', email: '', phone: '', address: '', department: '' });
     setShowAddForm(false);
-    toast.success('Recipient added successfully');
+  };
+
+  const handleEditRecipient = (recipient: any) => {
+    setNewRecipient({
+      name: recipient.name,
+      email: recipient.email,
+      phone: recipient.phone || '',
+      address: recipient.address || '',
+      department: recipient.department || ''
+    });
+    setEditingRecipient(recipient.id);
+    setShowAddForm(true);
   };
 
   const handleRemoveRecipient = (recipientId: number) => {
@@ -90,6 +127,14 @@ const RecipientSelection = () => {
       
       return updated;
     });
+  };
+
+  const handleAssignAllToBox = (boxId: number) => {
+    setGiftBoxAssignments(prev => ({
+      ...prev,
+      [boxId]: recipients.map(r => r.id)
+    }));
+    toast.success('All recipients assigned to this box');
   };
 
   const toggleBoxExpansion = (boxId: number) => {
@@ -163,10 +208,10 @@ const RecipientSelection = () => {
         {isStandalone && (
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Assign Recipients to Gift Boxes
+              Select Your Recipients
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose who will receive each gift box. Each box can be sent to multiple recipients.
+              Add recipients and assign them to your selected gift boxes.
             </p>
           </div>
         )}
@@ -200,7 +245,7 @@ const RecipientSelection = () => {
                 {showAddForm && (
                   <Card className="border-dashed">
                     <CardContent className="p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="name">Name *</Label>
                           <Input
@@ -221,20 +266,44 @@ const RecipientSelection = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="department">Department</Label>
+                          <Label htmlFor="phone">Phone</Label>
                           <Input
-                            id="department"
-                            value={newRecipient.department}
-                            onChange={(e) => setNewRecipient(prev => ({ ...prev, department: e.target.value }))}
-                            placeholder="Enter department"
+                            id="phone"
+                            value={newRecipient.phone}
+                            onChange={(e) => setNewRecipient(prev => ({ ...prev, phone: e.target.value }))}
+                            placeholder="Enter phone (optional)"
                           />
                         </div>
+                        <div>
+                          <Label htmlFor="address">Address</Label>
+                          <Input
+                            id="address"
+                            value={newRecipient.address}
+                            onChange={(e) => setNewRecipient(prev => ({ ...prev, address: e.target.value }))}
+                            placeholder="Leave blank if unknown, recipient will be asked later"
+                          />
+                        </div>
+                        {!isStandalone && (
+                          <div>
+                            <Label htmlFor="department">Department</Label>
+                            <Input
+                              id="department"
+                              value={newRecipient.department}
+                              onChange={(e) => setNewRecipient(prev => ({ ...prev, department: e.target.value }))}
+                              placeholder="Enter department"
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2 mt-4">
                         <Button onClick={handleAddRecipient} size="sm">
-                          Add Recipient
+                          {editingRecipient ? 'Update Recipient' : 'Add Recipient'}
                         </Button>
-                        <Button variant="outline" onClick={() => setShowAddForm(false)} size="sm">
+                        <Button variant="outline" onClick={() => {
+                          setShowAddForm(false);
+                          setEditingRecipient(null);
+                          setNewRecipient({ name: '', email: '', phone: '', address: '', department: '' });
+                        }} size="sm">
                           Cancel
                         </Button>
                       </div>
@@ -242,30 +311,56 @@ const RecipientSelection = () => {
                   </Card>
                 )}
 
-                {/* Recipients List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {recipients.map((recipient) => (
-                    <div key={recipient.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{recipient.name}</h4>
-                        <p className="text-sm text-gray-600">{recipient.email}</p>
-                        {recipient.department && (
-                          <Badge variant="outline" className="mt-1">
-                            {recipient.department}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRemoveRecipient(recipient.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                {/* Recipients Table */}
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Address</TableHead>
+                        {!isStandalone && <TableHead>Tags</TableHead>}
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recipients.map((recipient) => (
+                        <TableRow key={recipient.id}>
+                          <TableCell className="font-medium">{recipient.name}</TableCell>
+                          <TableCell>{recipient.email}</TableCell>
+                          <TableCell>{recipient.phone || '-'}</TableCell>
+                          <TableCell className="max-w-xs truncate">{recipient.address || '-'}</TableCell>
+                          {!isStandalone && (
+                            <TableCell>
+                              {recipient.department && (
+                                <Badge variant="outline">{recipient.department}</Badge>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditRecipient(recipient)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRemoveRecipient(recipient.id)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
@@ -298,14 +393,23 @@ const RecipientSelection = () => {
                             {assignedRecipients.length} recipient{assignedRecipients.length !== 1 ? 's' : ''} assigned
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleBoxExpansion(box.id)}
-                        >
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          {isExpanded ? 'Hide' : 'Assign'} Recipients
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAssignAllToBox(box.id)}
+                          >
+                            Assign All Recipients to This Box
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleBoxExpansion(box.id)}
+                          >
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            {isExpanded ? 'Hide' : 'Assign'} Recipients
+                          </Button>
+                        </div>
                       </div>
 
                       {isExpanded && (
