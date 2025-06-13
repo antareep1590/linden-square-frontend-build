@@ -1,14 +1,17 @@
+
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Home from 'react-icons/fa6/home';
-import Gift from 'react-icons/fa6/gift';
-import Package from 'react-icons/fa6/package';
-import Users from 'react-icons/fa6/users';
-import FileText from 'react-icons/fa6/file-text';
-import User from 'react-icons/fa6/user';
+import { 
+  Home, 
+  Gift, 
+  Package, 
+  Users, 
+  FileText, 
+  User 
+} from 'lucide-react';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
