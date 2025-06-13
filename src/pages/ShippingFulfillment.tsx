@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,16 +9,56 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+
+interface RecipientAddress {
+  id: number;
+  name: string;
+  email: string;
+  address: string;
+  status: 'pending' | 'confirmed';
+  carrier: string;
+  cost: string;
+}
 
 const ShippingFulfillment = () => {
   const navigate = useNavigate();
   const [bulkShippingMode, setBulkShippingMode] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [csvData, setCsvData] = useState<any[]>([]);
+  
+  // Sample recipient addresses
+  const [recipientAddresses, setRecipientAddresses] = useState<RecipientAddress[]>([
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@company.com',
+      address: '123 Main St, New York, NY 10001',
+      status: 'confirmed',
+      carrier: 'FedEx',
+      cost: '$12.50'
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      email: 'michael.chen@company.com',
+      address: '456 Oak Ave, San Francisco, CA 94102',
+      status: 'confirmed',
+      carrier: 'UPS',
+      cost: '$11.75'
+    },
+    {
+      id: 3,
+      name: 'Emily Rodriguez',
+      email: 'emily.rodriguez@company.com',
+      address: '',
+      status: 'pending',
+      carrier: '',
+      cost: ''
+    }
+  ]);
 
   // Mock shipping carriers data
   const carriers = [
@@ -55,43 +96,10 @@ const ShippingFulfillment = () => {
     }
   ];
 
-  // Mock recipient data for preview
-  const mockRecipients = [
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john@company.com',
-      address: '123 Main St, Anytown, CA 12345',
-      status: 'validated',
-      assignedCarrier: 'FedEx',
-      estimatedCost: '$12.50'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah@company.com',
-      address: '456 Oak Ave, Somewhere, CA 67890',
-      status: 'validated',
-      assignedCarrier: 'UPS',
-      estimatedCost: '$11.75'
-    },
-    {
-      id: 3,
-      name: 'Mike Chen',
-      email: 'mike@company.com',
-      address: 'Invalid address format',
-      status: 'error',
-      assignedCarrier: '',
-      estimatedCost: ''
-    }
-  ];
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadedFile(file);
-      // Mock CSV parsing - in real app this would parse the actual file
-      setCsvData(mockRecipients);
       toast.success('CSV file uploaded and processed successfully');
     }
   };
@@ -102,6 +110,12 @@ const ShippingFulfillment = () => {
   };
 
   const handleContinue = () => {
+    const pendingAddresses = recipientAddresses.filter(r => r.status === 'pending');
+    if (pendingAddresses.length > 0) {
+      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
+      return;
+    }
+    
     toast.success('Shipping configuration saved');
     navigate('/payment-method');
   };
@@ -113,10 +127,24 @@ const ShippingFulfillment = () => {
   };
 
   const getTotalShippingCost = () => {
-    return csvData.reduce((total, recipient) => {
-      const cost = parseFloat(recipient.estimatedCost?.replace('$', '') || '0');
+    return recipientAddresses.reduce((total, recipient) => {
+      const cost = parseFloat(recipient.cost?.replace('$', '') || '0');
       return total + cost;
     }, 0);
+  };
+
+  const updateRecipientAddress = (id: number, address: string) => {
+    setRecipientAddresses(prev => prev.map(r => 
+      r.id === id 
+        ? { 
+            ...r, 
+            address, 
+            status: address ? 'confirmed' : 'pending',
+            carrier: address ? 'FedEx' : '',
+            cost: address ? '$12.50' : ''
+          }
+        : r
+    ));
   };
 
   return (
@@ -152,6 +180,82 @@ const ShippingFulfillment = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Manual Address Entry */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Recipient Address Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Enter or confirm shipping addresses for each recipient. Carrier and cost will be automatically assigned.
+                </p>
+                
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Recipient</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Carrier</TableHead>
+                        <TableHead>Cost</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recipientAddresses.map((recipient) => (
+                        <TableRow key={recipient.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{recipient.name}</p>
+                              <p className="text-sm text-gray-600">{recipient.email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="min-w-64">
+                            <Input
+                              placeholder="Enter shipping address"
+                              value={recipient.address}
+                              onChange={(e) => updateRecipientAddress(recipient.id, e.target.value)}
+                              className={recipient.status === 'pending' ? 'border-orange-300' : 'border-green-300'}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {recipient.status === 'confirmed' ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                <CheckCircle className="mr-1 h-3 w-3" />
+                                Confirmed
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                <AlertCircle className="mr-1 h-3 w-3" />
+                                Pending
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{recipient.carrier || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium">{recipient.cost || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Bulk Shipping Toggle */}
           <Card>
             <CardHeader>
@@ -259,68 +363,12 @@ const ShippingFulfillment = () => {
                   </p>
                   <p className="text-sm text-gray-600">
                     {uploadedFile 
-                      ? 'File uploaded successfully. Preview below.'
+                      ? 'File uploaded successfully. Preview above.'
                       : 'Click to upload or drag and drop your CSV file here'
                     }
                   </p>
                 </label>
               </div>
-
-              {csvData.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-medium mb-4">Address Validation Preview</h4>
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Recipient</TableHead>
-                          <TableHead>Address</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Carrier</TableHead>
-                          <TableHead>Cost</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {csvData.map((recipient) => (
-                          <TableRow key={recipient.id}>
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{recipient.name}</p>
-                                <p className="text-sm text-gray-600">{recipient.email}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-start gap-2">
-                                <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                                <span className="text-sm">{recipient.address}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {recipient.status === 'validated' ? (
-                                <Badge variant="outline" className="text-green-600 border-green-600">
-                                  <CheckCircle className="mr-1 h-3 w-3" />
-                                  Validated
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-red-600 border-red-600">
-                                  <AlertCircle className="mr-1 h-3 w-3" />
-                                  Error
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {recipient.assignedCarrier || '-'}
-                            </TableCell>
-                            <TableCell>
-                              {recipient.estimatedCost || '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -354,45 +402,50 @@ const ShippingFulfillment = () => {
                   </div>
                 )}
 
-                {csvData.length > 0 && (
-                  <>
-                    <Separator />
-                    <div className="flex justify-between text-sm">
-                      <span>Total Recipients:</span>
-                      <span className="font-medium">{csvData.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Validated Addresses:</span>
-                      <span className="font-medium text-green-600">
-                        {csvData.filter(r => r.status === 'validated').length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Address Errors:</span>
-                      <span className="font-medium text-red-600">
-                        {csvData.filter(r => r.status === 'error').length}
-                      </span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
-                      <span>Est. Shipping Cost:</span>
-                      <span>${getTotalShippingCost().toFixed(2)}</span>
-                    </div>
-                  </>
-                )}
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span>Total Recipients:</span>
+                  <span className="font-medium">{recipientAddresses.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Confirmed Addresses:</span>
+                  <span className="font-medium text-green-600">
+                    {recipientAddresses.filter(r => r.status === 'confirmed').length}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Pending Addresses:</span>
+                  <span className="font-medium text-orange-600">
+                    {recipientAddresses.filter(r => r.status === 'pending').length}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Est. Shipping Cost:</span>
+                  <span>${getTotalShippingCost().toFixed(2)}</span>
+                </div>
               </div>
 
               <div className="pt-4">
                 <Button 
-                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
                   onClick={handleContinue}
-                  disabled={csvData.length === 0}
+                  disabled={recipientAddresses.filter(r => r.status === 'pending').length > 0}
                 >
                   Continue to Pay
                 </Button>
-                {csvData.length === 0 && (
+                
+                <Button 
+                  variant="outline"
+                  className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
+                  onClick={handlePayLater}
+                >
+                  Pay Later
+                </Button>
+                
+                {recipientAddresses.filter(r => r.status === 'pending').length > 0 && (
                   <p className="text-xs text-gray-500 mt-2 text-center">
-                    Upload recipient addresses to continue
+                    Complete all addresses to continue
                   </p>
                 )}
               </div>

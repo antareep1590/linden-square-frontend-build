@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Mail, Phone, Building2 } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Mail, Phone, Building2, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
+import BulkUploadModal from '@/components/BulkUploadModal';
 
 interface Recipient {
   id: number;
@@ -27,9 +29,35 @@ interface GiftBoxAssignment {
 const RecipientSelection = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
-  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  
+  // Initialize with sample recipients
+  const [recipients, setRecipients] = useState<Recipient[]>([
+    {
+      id: 1,
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@company.com',
+      phone: '555-0123',
+      department: 'Marketing'
+    },
+    {
+      id: 2,
+      name: 'Michael Chen',
+      email: 'michael.chen@company.com',
+      phone: '555-0124',
+      department: 'Engineering'
+    },
+    {
+      id: 3,
+      name: 'Emily Rodriguez',
+      email: 'emily.rodriguez@company.com',
+      phone: '555-0125',
+      department: 'Sales'
+    }
+  ]);
+  
   const [giftBoxAssignments, setGiftBoxAssignments] = useState<GiftBoxAssignment>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   
   // Form state
@@ -112,6 +140,19 @@ const RecipientSelection = () => {
     toast.success('Recipient removed');
   };
 
+  const handleBulkUpload = (uploadedRecipients: any[]) => {
+    const newRecipients = uploadedRecipients.map(r => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      department: r.department
+    }));
+    
+    setRecipients(prev => [...prev, ...newRecipients]);
+    setIsBulkUploadOpen(false);
+  };
+
   const handleRecipientAssignment = (boxId: string, recipientId: string, assigned: boolean) => {
     setGiftBoxAssignments(prev => {
       const currentAssignments = prev[boxId] || [];
@@ -173,6 +214,15 @@ const RecipientSelection = () => {
           <p className="text-gray-600">Manage recipients and assign them to gift boxes</p>
         </div>
         <div className="flex items-center gap-4">
+          <Button 
+            onClick={() => setIsBulkUploadOpen(true)}
+            variant="outline"
+            className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Bulk Upload
+          </Button>
+          
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
               <Button 
@@ -455,6 +505,13 @@ const RecipientSelection = () => {
           </Card>
         </div>
       </div>
+
+      {/* Bulk Upload Modal */}
+      <BulkUploadModal
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onUploadComplete={handleBulkUpload}
+      />
     </div>
   );
 };

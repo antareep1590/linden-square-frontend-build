@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,15 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
+import CustomizationPreview from '@/components/CustomizationPreview';
 
 const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
-  const [customizationLevel, setCustomizationLevel] = useState<'order' | 'individual'>('individual');
+  const [customizationLevel, setCustomizationLevel] = useState<'individual'>('individual'); // Default to individual
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -64,7 +64,14 @@ const CustomizationPage = () => {
     return initial;
   });
 
-  const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>({});
+  const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>(() => {
+    // Expand first box by default for individual customization
+    const initial: {[key: string]: boolean} = {};
+    if (selectedBoxes.length > 0) {
+      initial[selectedBoxes[0].id] = true;
+    }
+    return initial;
+  });
 
   // Mock templates
   const notecardTemplates = [
@@ -167,6 +174,22 @@ const CustomizationPage = () => {
       ...prev,
       [boxId]: !prev[boxId]
     }));
+  };
+
+  const getCurrentPreviewData = () => {
+    if (customizationLevel === 'order') {
+      return orderLevelCustomization;
+    } else {
+      // Find the first expanded box or first box
+      const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || selectedBoxes[0]?.id;
+      return expandedBoxId ? individualCustomizations[expandedBoxId] : {};
+    }
+  };
+
+  const getCurrentBoxName = () => {
+    if (customizationLevel === 'order') return undefined;
+    const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]);
+    return expandedBoxId ? selectedBoxes.find(box => box.id === expandedBoxId)?.name : selectedBoxes[0]?.name;
   };
 
   const renderCustomizationForm = (boxId?: string) => {
@@ -525,18 +548,20 @@ const CustomizationPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="h-5 w-5" />
-                Customization Preview
+                Live Preview
+                <Button variant="ghost" size="sm" onClick={() => {}}>
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4 min-h-32 flex items-center justify-center">
-                <p className="text-sm text-gray-500 text-center">
-                  Preview will appear here based on your selections
-                </p>
-              </div>
+              <CustomizationPreview 
+                customization={getCurrentPreviewData()}
+                boxName={getCurrentBoxName()}
+              />
 
               <div className="space-y-2 text-sm">
-                <h4 className="font-medium">Active Customizations:</h4>
+                <h4 className="font-medium">Cost Breakdown:</h4>
                 {customizationLevel === 'order' ? (
                   <>
                     {orderLevelCustomization.brandedNotecard.enabled && (
