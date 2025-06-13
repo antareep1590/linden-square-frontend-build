@@ -207,12 +207,6 @@ const LandingPage = () => {
             {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-6">
               <button 
-                onClick={handleLoginClick}
-                className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
-              >
-                Dashboard
-              </button>
-              <button 
                 onClick={() => scrollToSection('faqs')}
                 className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
               >

@@ -26,7 +26,11 @@ const FinalSummary = () => {
           packaging: 'Premium Box',
           message: 'Thank you for your outstanding work this quarter!',
           from: 'Management Team'
-        }
+        },
+        assignedRecipients: [
+          { id: 1, name: 'John Smith', email: 'john@company.com', department: 'Sales' },
+          { id: 2, name: 'Sarah Johnson', email: 'sarah@company.com', department: 'Marketing' }
+        ]
       },
       {
         id: 2,
@@ -38,14 +42,12 @@ const FinalSummary = () => {
           packaging: 'Standard Box',
           message: 'Celebrating our team success!',
           from: 'HR Department'
-        }
+        },
+        assignedRecipients: [
+          { id: 3, name: 'Mike Chen', email: 'mike@company.com', department: 'Engineering' },
+          { id: 4, name: 'Emily Davis', email: 'emily@company.com', department: 'HR' }
+        ]
       }
-    ],
-    recipients: [
-      { id: 1, name: 'John Smith', email: 'john@company.com', assignedBox: 1, address: 'Pending' },
-      { id: 2, name: 'Sarah Johnson', email: 'sarah@company.com', assignedBox: 1, address: 'Pending' },
-      { id: 3, name: 'Mike Chen', email: 'mike@company.com', assignedBox: 2, address: 'Pending' },
-      { id: 4, name: 'Emily Davis', email: 'emily@company.com', assignedBox: 2, address: 'Pending' }
     ],
     costs: {
       subtotal: 271.96,
@@ -81,8 +83,8 @@ const FinalSummary = () => {
     navigate('/recipients');
   };
 
-  const getBoxById = (boxId: number) => {
-    return orderData.selectedBoxes.find(box => box.id === boxId);
+  const getTotalRecipients = () => {
+    return orderData.selectedBoxes.reduce((total, box) => total + box.assignedRecipients.length, 0);
   };
 
   return (
@@ -135,18 +137,18 @@ const FinalSummary = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Selected Gift Boxes */}
+            {/* Selected Gift Boxes with Recipients */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
-                  Selected Gift Boxes ({orderData.selectedBoxes.length})
+                  Gift Boxes & Recipients ({orderData.selectedBoxes.length} boxes, {getTotalRecipients()} recipients)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {orderData.selectedBoxes.map((box) => (
-                  <div key={box.id} className="border rounded-lg p-4">
-                    <div className="flex items-start gap-4">
+                  <div key={box.id} className="border rounded-lg p-6">
+                    <div className="flex items-start gap-4 mb-4">
                       <img 
                         src={box.image} 
                         alt={box.name}
@@ -154,7 +156,7 @@ const FinalSummary = () => {
                       />
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{box.name}</h3>
-                        <p className="text-linden-blue font-semibold">${box.price}</p>
+                        <p className="text-linden-blue font-semibold">${box.price} each</p>
                         
                         <div className="mt-3 space-y-2">
                           <div className="flex items-center gap-2">
@@ -172,48 +174,41 @@ const FinalSummary = () => {
                           </div>
                         </div>
                       </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">{box.assignedRecipients.length} recipients</p>
+                        <p className="font-semibold text-linden-blue">
+                          ${(box.price * box.assignedRecipients.length).toFixed(2)} total
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Recipients for this box */}
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium text-gray-900 mb-3">
+                        Recipients ({box.assignedRecipients.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {box.assignedRecipients.map((recipient) => (
+                          <div key={recipient.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-sm">{recipient.name}</h5>
+                              <p className="text-xs text-gray-600">{recipient.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin className="h-3 w-3 text-gray-400" />
+                                <span className="text-xs text-gray-500">Address pending</span>
+                              </div>
+                            </div>
+                            {recipient.department && (
+                              <Badge variant="outline" className="text-xs">
+                                {recipient.department}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-
-            {/* Recipients Assignment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Recipients & Assignments ({orderData.recipients.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {orderData.recipients.map((recipient) => {
-                  const assignedBox = getBoxById(recipient.assignedBox);
-                  return (
-                    <div key={recipient.id} className="flex items-center gap-4 p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{recipient.name}</h4>
-                        <p className="text-sm text-gray-600">{recipient.email}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <MapPin className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">{recipient.address}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-medium text-sm">{assignedBox?.name}</p>
-                          <p className="text-sm text-linden-blue">${assignedBox?.price}</p>
-                        </div>
-                        <img 
-                          src={assignedBox?.image} 
-                          alt={assignedBox?.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
               </CardContent>
             </Card>
 
@@ -310,7 +305,7 @@ const FinalSummary = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Recipients:</span>
-                      <span>{orderData.recipients.length} people</span>
+                      <span>{getTotalRecipients()} people</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Estimated Delivery:</span>
