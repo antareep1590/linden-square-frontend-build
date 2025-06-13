@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -24,6 +25,7 @@ import TrackOrders from '@/pages/TrackOrders';
 import BoxListing from '@/pages/BoxListing';
 import CustomizeBox from '@/pages/CustomizeBox';
 import PersonalizationStep from '@/pages/PersonalizationStep';
+import CustomizationPage from '@/pages/CustomizationPage';
 import RecipientSelection from '@/pages/RecipientSelection';
 import FinalSummary from '@/pages/FinalSummary';
 import PaymentMethod from '@/pages/PaymentMethod';
