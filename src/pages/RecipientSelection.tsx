@@ -510,7 +510,7 @@ const RecipientSelection = () => {
       <BulkUploadModal
         isOpen={isBulkUploadOpen}
         onClose={() => setIsBulkUploadOpen(false)}
-        onUploadComplete={handleBulkUpload}
+        onUploadSuccess={handleBulkUpload}
       />
     </div>
   );
