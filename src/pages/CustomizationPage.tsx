@@ -104,7 +104,7 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/box-listing')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back To Gift Boxes
         </Button>
@@ -147,7 +147,7 @@ const CustomizationPage = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium">{box.name}</h3>
-                        <p className="text-sm text-gray-600">${box.price}</p>
+                        <p className="text-sm text-gray-600">${box.basePrice}</p>
                         <Badge variant="outline" className="text-xs">{box.theme}</Badge>
                       </div>
                     </div>
@@ -472,4 +472,3 @@ const CustomizationPage = () => {
 };
 
 export default CustomizationPage;
-
