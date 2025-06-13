@@ -61,8 +61,44 @@ const LandingPage = () => {
     }
   ];
 
+  // Sample preset gift boxes for the new client view
+  const presetGiftBoxes = [
+    {
+      id: 1,
+      name: "Executive Appreciation",
+      theme: "Professional",
+      price: 89.99,
+      image: "/placeholder.svg",
+      description: "Premium gifts for senior leadership and key clients"
+    },
+    {
+      id: 2,
+      name: "Team Celebration",
+      theme: "Festive",
+      price: 45.99,
+      image: "/placeholder.svg",
+      description: "Perfect for team milestones and achievements"
+    },
+    {
+      id: 3,
+      name: "Welcome Package",
+      theme: "Onboarding",
+      price: 65.99,
+      image: "/placeholder.svg",
+      description: "Make a great first impression with new hires"
+    },
+    {
+      id: 4,
+      name: "Holiday Wishes",
+      theme: "Seasonal",
+      price: 75.99,
+      image: "/placeholder.svg",
+      description: "Spread joy during the holiday season"
+    }
+  ];
+
   const handleBrowsePresetBoxes = () => {
-    navigate('/box-listing');
+    navigate('/choose-gift-box');
   };
 
   const handleGetStarted = () => {
@@ -73,8 +109,16 @@ const LandingPage = () => {
     navigate('/login');
   };
 
+  const handleLoginAsAdmin = () => {
+    navigate('/admin/dashboard');
+  };
+
   const handleStartCampaign = () => {
     navigate('/dashboard');
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile-standalone');
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -90,7 +134,8 @@ const LandingPage = () => {
         <nav className="flex items-center justify-between">
           <LindenSquareLogo size="medium" />
           <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
+            {/* Client Toggle Section */}
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-50 rounded-lg">
               <span className="text-sm font-medium text-gray-600">New Client</span>
               <Switch 
                 checked={isExistingClient} 
@@ -99,7 +144,9 @@ const LandingPage = () => {
               />
               <span className="text-sm font-medium text-gray-600">Existing Client</span>
             </div>
-            <div className="hidden md:flex items-center space-x-8">
+            
+            {/* Navigation Links */}
+            <div className="hidden md:flex items-center space-x-6">
               <button 
                 onClick={() => scrollToSection('how-it-works')}
                 className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
@@ -112,11 +159,29 @@ const LandingPage = () => {
               >
                 Features
               </button>
+            </div>
+
+            {/* Action Buttons Group */}
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline"
+                onClick={handleLoginClick}
+                className="text-gray-700 border-gray-300 hover:bg-gray-50"
+              >
+                Login
+              </Button>
               <Button 
                 onClick={handleGetStarted}
                 className="bg-linden-blue hover:bg-linden-blue/90"
               >
                 Get Started
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleLoginAsAdmin}
+                className="text-linden-gold border-linden-gold hover:bg-linden-gold hover:text-white"
+              >
+                Login as Admin
               </Button>
             </div>
           </div>
@@ -131,7 +196,8 @@ const LandingPage = () => {
         <nav className="flex items-center justify-between">
           <LindenSquareLogo size="medium" />
           <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
+            {/* Client Toggle Section */}
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-50 rounded-lg">
               <span className="text-sm font-medium text-gray-600">New Client</span>
               <Switch 
                 checked={isExistingClient} 
@@ -140,6 +206,8 @@ const LandingPage = () => {
               />
               <span className="text-sm font-medium text-gray-600">Existing Client</span>
             </div>
+            
+            {/* Navigation Links */}
             <div className="hidden md:flex items-center space-x-6">
               <button 
                 onClick={handleLoginClick}
@@ -159,13 +227,23 @@ const LandingPage = () => {
               >
                 Contact Support
               </button>
+            </div>
+
+            {/* Action Buttons Group */}
+            <div className="flex items-center space-x-3">
               <Button 
                 variant="outline"
-                onClick={() => navigate('/profile')}
-                className="flex items-center gap-2"
+                onClick={handleProfileClick}
+                className="flex items-center gap-2 text-gray-700 border-gray-300 hover:bg-gray-50"
               >
                 <User className="h-4 w-4" />
-                My Profile
+                <span>My Profile</span>
+              </Button>
+              <Button 
+                onClick={handleStartCampaign}
+                className="bg-linden-blue hover:bg-linden-blue/90"
+              >
+                <span>Access Dashboard</span>
               </Button>
             </div>
           </div>
@@ -305,6 +383,7 @@ const LandingPage = () => {
     </section>
   );
 
+  // New preset boxes section that shows directly on the landing page
   const renderPresetBoxesSection = () => (
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -317,24 +396,48 @@ const LandingPage = () => {
           </p>
         </div>
         
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-            <div className="w-16 h-16 bg-linden-blue rounded-lg flex items-center justify-center mx-auto mb-6">
-              <Package className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Preset Gift Boxes
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Browse our collection of thoughtfully curated gift boxes. Each box is designed for specific occasions and can be customized to match your brand and message.
-            </p>
-            <Button 
-              onClick={handleBrowsePresetBoxes}
-              className="w-full bg-linden-blue hover:bg-linden-blue/90"
-            >
-              Browse Preset Boxes
-            </Button>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {presetGiftBoxes.map((box) => (
+            <Card key={box.id} className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="aspect-square bg-gray-200 rounded-t-lg overflow-hidden">
+                <img 
+                  src={box.image} 
+                  alt={box.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-lg text-gray-900">{box.name}</h3>
+                  <span className="text-lg font-bold text-linden-blue">${box.price}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">{box.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs bg-linden-lightblue text-linden-blue px-2 py-1 rounded-full">
+                    {box.theme}
+                  </span>
+                  <Button 
+                    size="sm" 
+                    onClick={handleBrowsePresetBoxes}
+                    className="bg-linden-blue hover:bg-linden-blue/90"
+                  >
+                    Select
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Button 
+            onClick={handleBrowsePresetBoxes}
+            variant="outline"
+            size="lg"
+            className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white"
+          >
+            View All Gift Boxes
+          </Button>
         </div>
       </div>
     </section>
@@ -348,8 +451,11 @@ const LandingPage = () => {
 
       {!isExistingClient && (
         <>
+          {/* Preset Boxes Section - Now shows directly on landing page */}
+          {renderPresetBoxesSection()}
+
           {/* Value Proposition Carousel */}
-          <section className="py-20 bg-gray-50">
+          <section className="py-20 bg-white">
             <div className="container mx-auto px-6">
               <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-linden-blue mb-4">Why Choose Linden Square?</h2>
@@ -380,7 +486,7 @@ const LandingPage = () => {
           </section>
 
           {/* How It Works Section */}
-          <section id="how-it-works" className="py-20 bg-white">
+          <section id="how-it-works" className="py-20 bg-gray-50">
             <div className="container mx-auto px-6">
               <div className="text-center mb-16">
                 <h2 className="text-4xl font-bold text-linden-blue mb-4">How It Works</h2>
@@ -411,9 +517,6 @@ const LandingPage = () => {
               </div>
             </div>
           </section>
-
-          {/* Preset Boxes Section */}
-          {renderPresetBoxesSection()}
 
           {/* Social Proof Section */}
           <section className="py-20 bg-white">

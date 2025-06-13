@@ -12,6 +12,11 @@ import NotFound from '@/pages/NotFound';
 import ViewInvoice from '@/pages/ViewInvoice';
 import Invoices from '@/pages/Invoices';
 
+// New standalone pages
+import ChooseGiftBox from '@/pages/ChooseGiftBox';
+import ProfileStandalone from '@/pages/ProfileStandalone';
+import CustomizeGiftBox from '@/pages/CustomizeGiftBox';
+
 // Client pages
 import Dashboard from '@/pages/Dashboard';
 import Customers from '@/pages/Customers';
@@ -55,6 +60,11 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/view-invoice/:id" element={<ViewInvoice />} />
+              
+              {/* Standalone pages for anonymous users */}
+              <Route path="/choose-gift-box" element={<ChooseGiftBox />} />
+              <Route path="/customize-gift-box" element={<CustomizeGiftBox />} />
+              <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
               {/* Client routes */}
               <Route element={<DashboardLayout />}>
