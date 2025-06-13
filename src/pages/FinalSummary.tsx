@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Users, CreditCard, FileText, Gift, MapPin } from 'lucide-react';
+import { ArrowLeft, Package, Users, CreditCard, FileText, Gift, MapPin, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LindenSquareLogo from '@/components/LindenSquareLogo';
 import { toast } from 'sonner';
@@ -102,14 +101,16 @@ const FinalSummary = () => {
       // Redirect new clients to login/signup  
       navigate('/login');
     } else {
-      // Existing clients can save as draft
-      toast.success('Campaign saved as draft');
+      // Existing clients can save as draft and trigger invoice email
+      toast.success('Campaign saved as draft. Invoice email will be sent to your registered account.');
+      // Here would be the API call to trigger invoice email
+      console.log('Triggering invoice email to client account');
       navigate('/dashboard');
     }
   };
 
   const handleBack = () => {
-    navigate('/recipients');
+    navigate('/recipient-selection');
   };
 
   const getTotalRecipients = () => {
@@ -144,7 +145,7 @@ const FinalSummary = () => {
               Back
             </Button>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">Order Summary</h1>
+              <h1 className="text-2xl font-bold">Review Your Order</h1>
               <p className="text-gray-600">Review your gift campaign before proceeding to payment</p>
             </div>
           </div>
@@ -233,7 +234,7 @@ const FinalSummary = () => {
                                   </div>
                                 ) : (
                                   <div className="flex items-center gap-1 mt-1">
-                                    <MapPin className="h-3 w-3 text-gray-400" />
+                                    <Mail className="h-3 w-3 text-gray-400" />
                                     <span className="text-xs text-gray-500">Address will be collected</span>
                                   </div>
                                 )}
@@ -326,12 +327,18 @@ const FinalSummary = () => {
                     className="w-full"
                     onClick={handlePayLater}
                   >
-                    Pay Later
+                    {isStandalone ? 'Pay Later' : 'Save & Email Invoice'}
                   </Button>
                   
                   {isStandalone && (
                     <p className="text-xs text-center text-gray-500">
                       You'll be prompted to create an account before payment
+                    </p>
+                  )}
+                  
+                  {!isStandalone && (
+                    <p className="text-xs text-center text-gray-500">
+                      Invoice will be sent to your registered email address
                     </p>
                   )}
                 </div>

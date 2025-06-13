@@ -4,7 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search, Filter, Gift, Users, Heart, Briefcase, GraduationCap, Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Search, Filter, Gift, Users, Heart, Briefcase, GraduationCap, Calendar, Package, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -13,12 +16,15 @@ const BoxListing = () => {
   const navigate = useNavigate();
   const { addBox, selectedBoxes } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState('all');
+  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 200]);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const giftThemes = [
+  const giftBoxes = [
     {
       id: 1,
-      name: 'Holiday Appreciation',
+      name: 'Holiday Appreciation Premium',
       theme: 'Holiday Gifts',
       description: 'Celebrate the season with festive gift boxes perfect for team appreciation',
       price: 89.99,
@@ -53,8 +59,8 @@ const BoxListing = () => {
     },
     {
       id: 3,
-      name: 'New Hire Welcome',
-      theme: 'New Hire Kits',
+      name: 'New Hire Welcome Essential',
+      theme: 'Employee Recognition',
       description: 'Welcome new team members with essential onboarding gifts',
       price: 45.99,
       size: 'Medium',
@@ -70,7 +76,7 @@ const BoxListing = () => {
     },
     {
       id: 4,
-      name: 'Executive Recognition',
+      name: 'Executive Recognition Luxury',
       theme: 'Executive Gifts',
       description: 'Premium gifts for leadership and executive appreciation',
       price: 125.99,
@@ -84,47 +90,101 @@ const BoxListing = () => {
         { id: '12', name: 'Premium Wine', price: 35.99, quantity: 1 },
         { id: '13', name: 'Executive Pen', price: 25.99, quantity: 1 }
       ]
+    },
+    {
+      id: 5,
+      name: 'New Hire Basic Kit',
+      theme: 'Employee Recognition',
+      description: 'Essential starter kit for new employees',
+      price: 29.99,
+      size: 'Small',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: GraduationCap,
+      campaignType: 'HR',
+      items: [
+        { id: '14', name: 'Welcome Guide', price: 5.99, quantity: 1 },
+        { id: '15', name: 'Company Pen', price: 8.99, quantity: 1 },
+        { id: '16', name: 'Branded Notebook', price: 12.99, quantity: 1 }
+      ]
+    },
+    {
+      id: 6,
+      name: 'Holiday Standard Package',
+      theme: 'Holiday Gifts',
+      description: 'Traditional holiday gifts for team celebrations',
+      price: 55.99,
+      size: 'Medium',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: Calendar,
+      campaignType: 'marketing',
+      items: [
+        { id: '17', name: 'Holiday Mug', price: 12.99, quantity: 1 },
+        { id: '18', name: 'Seasonal Treats', price: 16.99, quantity: 1 },
+        { id: '19', name: 'Gift Card', price: 20.99, quantity: 1 }
+      ]
     }
   ];
 
-  const themeFilters = [
-    { id: 'all', name: 'All Themes', icon: Gift },
-    { id: 'Holiday Gifts', name: 'Holiday Gifts', icon: Calendar },
-    { id: 'Thank You Gifts', name: 'Thank You Gifts', icon: Heart },
-    { id: 'New Hire Kits', name: 'New Hire Kits', icon: GraduationCap },
-    { id: 'Executive Gifts', name: 'Executive Gifts', icon: Briefcase }
-  ];
+  const themes = ['Holiday Gifts', 'Thank You Gifts', 'Employee Recognition', 'Executive Gifts'];
+  const sizes = ['Small', 'Medium', 'Large'];
 
-  const filteredThemes = giftThemes.filter(theme => {
-    const matchesSearch = theme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         theme.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTheme = selectedTheme === 'all' || theme.theme === selectedTheme;
-    return matchesSearch && matchesTheme;
+  const filteredBoxes = giftBoxes.filter(box => {
+    const matchesSearch = box.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         box.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTheme = selectedThemes.length === 0 || selectedThemes.includes(box.theme);
+    const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(box.size);
+    const matchesPrice = box.price >= priceRange[0] && box.price <= priceRange[1];
+    
+    return matchesSearch && matchesTheme && matchesSize && matchesPrice;
   });
 
-  const handleSelectBox = (theme: any) => {
+  const handleThemeChange = (theme: string, checked: boolean) => {
+    if (checked) {
+      setSelectedThemes([...selectedThemes, theme]);
+    } else {
+      setSelectedThemes(selectedThemes.filter(t => t !== theme));
+    }
+  };
+
+  const handleSizeChange = (size: string, checked: boolean) => {
+    if (checked) {
+      setSelectedSizes([...selectedSizes, size]);
+    } else {
+      setSelectedSizes(selectedSizes.filter(s => s !== size));
+    }
+  };
+
+  const clearAllFilters = () => {
+    setSelectedThemes([]);
+    setSelectedSizes([]);
+    setPriceRange([0, 200]);
+    setSearchTerm('');
+  };
+
+  const handleSelectBox = (box: any) => {
     const newBox = {
-      id: theme.id.toString(),
-      name: theme.name,
-      theme: theme.theme,
-      size: theme.size,
-      type: theme.type,
-      basePrice: theme.price,
-      image: theme.image,
-      campaignType: theme.campaignType,
-      gifts: theme.items
+      id: box.id.toString(),
+      name: box.name,
+      theme: box.theme,
+      size: box.size,
+      type: box.type,
+      basePrice: box.price,
+      image: box.image,
+      campaignType: box.campaignType,
+      gifts: box.items
     };
 
     addBox(newBox);
-    toast.success(`${theme.name} added to your selection`);
+    toast.success(`${box.name} added to your selection`);
   };
 
   const handleContinue = () => {
     if (selectedBoxes.length === 0) {
-      toast.error('Please select at least one gift theme');
+      toast.error('Please select at least one gift box');
       return;
     }
-    // Skip customize box page and go directly to personalization
     navigate('/personalization');
   };
 
@@ -141,11 +201,11 @@ const BoxListing = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Gift Theme Selection</h1>
-          <p className="text-gray-600">Choose from our curated gift themes for your campaign</p>
+          <p className="text-gray-600">Choose from our curated gift boxes for your campaign</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-linden-blue">
-            {selectedBoxes.length} theme{selectedBoxes.length !== 1 ? 's' : ''} selected
+            {selectedBoxes.length} box{selectedBoxes.length !== 1 ? 'es' : ''} selected
           </Badge>
           <Button 
             onClick={handleContinue}
@@ -157,64 +217,165 @@ const BoxListing = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search gift themes..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-        
-        <div className="flex gap-2 overflow-x-auto">
-          {themeFilters.map((filter) => {
-            const Icon = filter.icon;
-            return (
+      {/* Enhanced Filters Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+            <div className="flex gap-2">
               <Button
-                key={filter.id}
-                variant={selectedTheme === filter.id ? "default" : "outline"}
+                variant="outline"
                 size="sm"
-                onClick={() => setSelectedTheme(filter.id)}
-                className={`flex items-center gap-2 whitespace-nowrap ${
-                  selectedTheme === filter.id ? "bg-linden-blue hover:bg-linden-blue/90" : ""
-                }`}
+                onClick={clearAllFilters}
+                className="text-gray-600"
               >
-                <Icon className="h-4 w-4" />
-                {filter.name}
+                Clear All
               </Button>
-            );
-          })}
-        </div>
-      </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                {showFilters ? 'Hide' : 'Show'} Filters
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        {showFilters && (
+          <CardContent className="space-y-6">
+            {/* Search */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search gift boxes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
 
-      {/* Gift Themes Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Theme Filter */}
+              <div>
+                <label className="text-sm font-medium mb-3 block">Themes</label>
+                <div className="space-y-2">
+                  {themes.map((theme) => (
+                    <div key={theme} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={theme}
+                        checked={selectedThemes.includes(theme)}
+                        onCheckedChange={(checked) => handleThemeChange(theme, checked as boolean)}
+                      />
+                      <label htmlFor={theme} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {theme}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Size Filter */}
+              <div>
+                <label className="text-sm font-medium mb-3 block">Box Size</label>
+                <div className="space-y-2">
+                  {sizes.map((size) => (
+                    <div key={size} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={size}
+                        checked={selectedSizes.includes(size)}
+                        onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
+                      />
+                      <label htmlFor={size} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        {size}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range Filter */}
+              <div>
+                <label className="text-sm font-medium mb-3 block">
+                  Price Range: ${priceRange[0]} - ${priceRange[1]}
+                </label>
+                <div className="px-2">
+                  <Slider
+                    value={priceRange}
+                    onValueChange={setPriceRange}
+                    min={0}
+                    max={200}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>$0</span>
+                    <span>$200</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Summary */}
+            {(selectedThemes.length > 0 || selectedSizes.length > 0 || priceRange[0] > 0 || priceRange[1] < 200 || searchTerm) && (
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium">Active filters:</span>
+                  {selectedThemes.map(theme => (
+                    <Badge key={theme} variant="secondary" className="text-xs">
+                      {theme}
+                    </Badge>
+                  ))}
+                  {selectedSizes.map(size => (
+                    <Badge key={size} variant="secondary" className="text-xs">
+                      {size}
+                    </Badge>
+                  ))}
+                  {(priceRange[0] > 0 || priceRange[1] < 200) && (
+                    <Badge variant="secondary" className="text-xs">
+                      ${priceRange[0]} - ${priceRange[1]}
+                    </Badge>
+                  )}
+                  {searchTerm && (
+                    <Badge variant="secondary" className="text-xs">
+                      "{searchTerm}"
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Gift Boxes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredThemes.map((theme) => {
-          const Icon = theme.icon;
-          const isSelected = isBoxSelected(theme.id);
+        {filteredBoxes.map((box) => {
+          const Icon = box.icon;
+          const isSelected = isBoxSelected(box.id);
           
           return (
-            <Card key={theme.id} className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2 ring-linden-blue' : ''}`}>
+            <Card key={box.id} className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2 ring-linden-blue' : ''}`}>
               <div className="relative">
                 <img 
-                  src={theme.image} 
-                  alt={theme.name}
+                  src={box.image} 
+                  alt={box.name}
                   className="w-full h-48 object-cover"
                 />
                 <div className="absolute top-3 left-3">
                   <Badge variant="secondary" className="bg-white/90 text-gray-700">
                     <Icon className="h-3 w-3 mr-1" />
-                    {theme.theme}
+                    {box.theme}
                   </Badge>
                 </div>
                 <div className="absolute top-3 right-3">
                   <Badge variant="outline" className="bg-white/90">
-                    {theme.size}
+                    {box.size}
                   </Badge>
                 </div>
                 {isSelected && (
@@ -228,24 +389,24 @@ const BoxListing = () => {
               
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{theme.name}</CardTitle>
-                  <span className="text-lg font-bold text-linden-blue">${theme.price}</span>
+                  <CardTitle className="text-lg">{box.name}</CardTitle>
+                  <span className="text-lg font-bold text-linden-blue">${box.price}</span>
                 </div>
-                <p className="text-sm text-gray-600">{theme.description}</p>
+                <p className="text-sm text-gray-600">{box.description}</p>
               </CardHeader>
               
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    {theme.campaignType}
+                    {box.campaignType}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {theme.items.length} items
+                    {box.items.length} items
                   </Badge>
                 </div>
                 
                 <Button 
-                  onClick={() => handleSelectBox(theme)}
+                  onClick={() => handleSelectBox(box)}
                   className={`w-full ${
                     isSelected 
                       ? 'bg-green-600 hover:bg-green-700 text-white' 
@@ -253,7 +414,7 @@ const BoxListing = () => {
                   }`}
                   disabled={isSelected}
                 >
-                  {isSelected ? 'Selected' : 'Select Theme'}
+                  {isSelected ? 'Selected' : 'Select Box'}
                 </Button>
               </CardContent>
             </Card>
@@ -261,10 +422,10 @@ const BoxListing = () => {
         })}
       </div>
 
-      {filteredThemes.length === 0 && (
+      {filteredBoxes.length === 0 && (
         <div className="text-center py-12">
-          <Gift className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No themes found</h3>
+          <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No gift boxes found</h3>
           <p className="text-gray-500">Try adjusting your search or filter criteria</p>
         </div>
       )}
