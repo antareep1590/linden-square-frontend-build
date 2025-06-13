@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Search, Filter, Gift, Users, Heart, Briefcase, GraduationCap, Calendar, Package, DollarSign } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Gift, Users, Heart, Briefcase, GraduationCap, Calendar, Package, DollarSign, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -19,7 +18,7 @@ const BoxListing = () => {
   const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 200]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const giftBoxes = [
     {
@@ -163,6 +162,14 @@ const BoxListing = () => {
     setSearchTerm('');
   };
 
+  const removeFilter = (type: string, value: string) => {
+    if (type === 'theme') {
+      setSelectedThemes(selectedThemes.filter(t => t !== value));
+    } else if (type === 'size') {
+      setSelectedSizes(selectedSizes.filter(s => s !== value));
+    }
+  };
+
   const handleSelectBox = (box: any) => {
     const newBox = {
       id: box.id.toString(),
@@ -191,6 +198,9 @@ const BoxListing = () => {
   const isBoxSelected = (boxId: number) => {
     return selectedBoxes.some(box => box.id === boxId.toString());
   };
+
+  const activeFilterCount = selectedThemes.length + selectedSizes.length + 
+    (priceRange[0] > 0 || priceRange[1] < 200 ? 1 : 0) + (searchTerm ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -224,16 +234,23 @@ const BoxListing = () => {
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
               Filters
+              {activeFilterCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {activeFilterCount}
+                </Badge>
+              )}
             </CardTitle>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                className="text-gray-600"
-              >
-                Clear All
-              </Button>
+              {activeFilterCount > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="text-gray-600"
+                >
+                  Clear All
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -260,43 +277,61 @@ const BoxListing = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Theme Filter */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Theme Multi-Select Dropdown */}
               <div>
                 <label className="text-sm font-medium mb-3 block">Themes</label>
-                <div className="space-y-2">
-                  {themes.map((theme) => (
-                    <div key={theme} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={theme}
-                        checked={selectedThemes.includes(theme)}
-                        onCheckedChange={(checked) => handleThemeChange(theme, checked as boolean)}
-                      />
-                      <label htmlFor={theme} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {theme}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      selectedThemes.length > 0 
+                        ? `${selectedThemes.length} selected` 
+                        : "Select themes"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {themes.map((theme) => (
+                      <div key={theme} className="flex items-center space-x-2 p-2">
+                        <Checkbox
+                          id={theme}
+                          checked={selectedThemes.includes(theme)}
+                          onCheckedChange={(checked) => handleThemeChange(theme, checked as boolean)}
+                        />
+                        <label htmlFor={theme} className="text-sm font-medium leading-none cursor-pointer">
+                          {theme}
+                        </label>
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Size Filter */}
+              {/* Size Multi-Select Dropdown */}
               <div>
                 <label className="text-sm font-medium mb-3 block">Box Size</label>
-                <div className="space-y-2">
-                  {sizes.map((size) => (
-                    <div key={size} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={size}
-                        checked={selectedSizes.includes(size)}
-                        onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
-                      />
-                      <label htmlFor={size} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {size}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      selectedSizes.length > 0 
+                        ? `${selectedSizes.length} selected` 
+                        : "Select sizes"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sizes.map((size) => (
+                      <div key={size} className="flex items-center space-x-2 p-2">
+                        <Checkbox
+                          id={size}
+                          checked={selectedSizes.includes(size)}
+                          onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
+                        />
+                        <label htmlFor={size} className="text-sm font-medium leading-none cursor-pointer">
+                          {size}
+                        </label>
+                      </div>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Price Range Filter */}
@@ -319,31 +354,58 @@ const BoxListing = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Results Summary */}
+              <div>
+                <label className="text-sm font-medium mb-3 block">Results</label>
+                <div className="text-sm text-gray-600">
+                  <p>{filteredBoxes.length} gift boxes found</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedBoxes.length} selected
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Active Filters Summary */}
-            {(selectedThemes.length > 0 || selectedSizes.length > 0 || priceRange[0] > 0 || priceRange[1] < 200 || searchTerm) && (
+            {activeFilterCount > 0 && (
               <div className="border-t pt-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium">Active filters:</span>
                   {selectedThemes.map(theme => (
-                    <Badge key={theme} variant="secondary" className="text-xs">
+                    <Badge key={theme} variant="secondary" className="text-xs flex items-center gap-1">
                       {theme}
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => removeFilter('theme', theme)}
+                      />
                     </Badge>
                   ))}
                   {selectedSizes.map(size => (
-                    <Badge key={size} variant="secondary" className="text-xs">
+                    <Badge key={size} variant="secondary" className="text-xs flex items-center gap-1">
                       {size}
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => removeFilter('size', size)}
+                      />
                     </Badge>
                   ))}
                   {(priceRange[0] > 0 || priceRange[1] < 200) && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
                       ${priceRange[0]} - ${priceRange[1]}
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => setPriceRange([0, 200])}
+                      />
                     </Badge>
                   )}
                   {searchTerm && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
                       "{searchTerm}"
+                      <X 
+                        className="h-3 w-3 cursor-pointer" 
+                        onClick={() => setSearchTerm('')}
+                      />
                     </Badge>
                   )}
                 </div>

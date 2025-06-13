@@ -1,289 +1,109 @@
-
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Gift, Heart, Tag, Package } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Package, Gift, Users, CreditCard, FileText, MapPin, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-interface PersonalizationOption {
-  id: string;
-  name: string;
-  type: 'ribbon' | 'card' | 'wrap' | 'tag';
-  price: number;
-  options: string[];
-}
-
-const personalizationOptions: PersonalizationOption[] = [
-  {
-    id: 'ribbon',
-    name: 'Ribbon Color',
-    type: 'ribbon',
-    price: 5,
-    options: ['Red', 'Gold', 'Silver', 'Blue', 'Green', 'Purple']
-  },
-  {
-    id: 'wrap',
-    name: 'Gift Wrap Style',
-    type: 'wrap',
-    price: 8,
-    options: ['Classic Brown', 'Elegant White', 'Festive Pattern', 'Luxury Black', 'Floral Design']
-  },
-  {
-    id: 'card',
-    name: 'Printed Card',
-    type: 'card',
-    price: 3,
-    options: ['Business Card', 'Thank You Card', 'Birthday Card', 'Holiday Card', 'Custom Message']
-  },
-  {
-    id: 'tag',
-    name: 'Gift Tag',
-    type: 'tag',
-    price: 2,
-    options: ['Standard Tag', 'Premium Tag', 'Custom Shape', 'Logo Tag']
-  }
-];
+import { toast } from 'sonner';
 
 const PersonalizationStep = () => {
   const navigate = useNavigate();
-  const { selectedBoxes, updateBox } = useCart();
-  const [personalizations, setPersonalizations] = useState<{ [boxId: string]: any }>({});
+  const { selectedBoxes, updateBoxPersonalization } = useCart();
+  const [personalizations, setPersonalizations] = useState<{[key: string]: string}>({});
 
-  const updatePersonalization = (boxId: string, optionId: string, value: string) => {
-    setPersonalizations(prev => {
-      const boxPersonalization = prev[boxId] || { selectedOptions: new Map(), cardMessage: '', tagMessage: '' };
-      const newOptions = new Map(boxPersonalization.selectedOptions);
-      
-      if (value) {
-        newOptions.set(optionId, value);
-      } else {
-        newOptions.delete(optionId);
-      }
-      
-      return {
-        ...prev,
-        [boxId]: {
-          ...boxPersonalization,
-          selectedOptions: newOptions
-        }
-      };
-    });
-  };
-
-  const updatePersonalizationMessage = (boxId: string, field: string, value: string) => {
+  const handlePersonalizationChange = (boxId: string, field: string, value: string) => {
+    const key = `${boxId}-${field}`;
     setPersonalizations(prev => ({
       ...prev,
-      [boxId]: {
-        ...prev[boxId] || { selectedOptions: new Map() },
-        [field]: value
-      }
+      [key]: value
     }));
-  };
-
-  const calculatePersonalizationCost = (boxId: string): number => {
-    const boxPersonalization = personalizations[boxId];
-    if (!boxPersonalization) return 0;
     
-    const entries = Array.from(boxPersonalization.selectedOptions?.entries() || []) as Array<[string, string]>;
-    return entries.reduce((total: number, [optionId, value]: [string, string]) => {
-      const option = personalizationOptions.find(o => o.id === optionId);
-      return total + (option?.price || 0);
-    }, 0);
+    updateBoxPersonalization(boxId, field, value);
   };
 
   const handleContinue = () => {
-    // Update all boxes with their personalization data
-    selectedBoxes.forEach(box => {
-      const boxPersonalization = personalizations[box.id];
-      if (boxPersonalization) {
-        const selectedAddOns = Array.from(boxPersonalization.selectedOptions?.entries() || []).map(([optionId, value]: [string, string]) => {
-          const option = personalizationOptions.find(o => o.id === optionId);
-          return option ? { name: `${option.name}: ${value}`, price: option.price } : null;
-        }).filter(Boolean) as Array<{ name: string; price: number }>;
-
-        updateBox(box.id, {
-          personalization: {
-            selectedOptions: boxPersonalization.selectedOptions || new Map(),
-            cardMessage: boxPersonalization.cardMessage || '',
-            tagMessage: boxPersonalization.tagMessage || '',
-            addOnsCost: calculatePersonalizationCost(box.id),
-            selectedAddOns
-          }
-        });
-      }
-    });
-
-    navigate('/recipient-selection');
-  };
-
-  const getBoxPersonalization = (boxId: string) => {
-    return personalizations[boxId] || { selectedOptions: new Map(), cardMessage: '', tagMessage: '' };
+    if (selectedBoxes.length === 0) {
+      toast.error('Please select at least one gift box');
+      return;
+    }
+    navigate('/customization');
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Gift Boxes
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Box</h1>
-          <p className="text-gray-600">Add special touches to make each gift memorable</p>
+          <p className="text-gray-600">Personalize your selected gift boxes with custom messages and options</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={handleContinue}
+            className="bg-linden-blue hover:bg-linden-blue/90"
+          >
+            Continue to Customization
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Personalization for Each Box */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Your Gift Boxes ({selectedBoxes.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {selectedBoxes.map((box) => {
-                  const boxPersonalization = getBoxPersonalization(box.id);
-                  const personalizationCost = calculatePersonalizationCost(box.id);
-                  
-                  return (
-                    <AccordionItem key={box.id} value={box.id}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex items-center justify-between w-full mr-4">
-                          <div className="flex items-center gap-4">
-                            <span className="font-medium">{box.name}</span>
-                            <Badge variant="outline">{box.size}</Badge>
-                            <Badge variant="secondary">{box.theme}</Badge>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {personalizationCost > 0 && (
-                              <Badge variant="outline" className="text-linden-blue">
-                                +${personalizationCost}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-6 pt-4">
-                          {/* Personalization Options */}
-                          {personalizationOptions.map(option => (
-                            <div key={option.id} className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {option.type === 'ribbon' && <Gift className="h-4 w-4" />}
-                                  {option.type === 'card' && <Heart className="h-4 w-4" />}
-                                  {option.type === 'wrap' && <Gift className="h-4 w-4" />}
-                                  {option.type === 'tag' && <Tag className="h-4 w-4" />}
-                                  <span className="font-medium">{option.name}</span>
-                                </div>
-                                <Badge variant="outline">+${option.price}</Badge>
-                              </div>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {option.options.map(optionValue => (
-                                  <Button
-                                    key={optionValue}
-                                    variant={boxPersonalization.selectedOptions?.get(option.id) === optionValue ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => {
-                                      const currentValue = boxPersonalization.selectedOptions?.get(option.id);
-                                      updatePersonalization(box.id, option.id, currentValue === optionValue ? '' : optionValue);
-                                    }}
-                                    className={
-                                      boxPersonalization.selectedOptions?.get(option.id) === optionValue 
-                                        ? "bg-linden-blue hover:bg-linden-blue/90" 
-                                        : ""
-                                    }
-                                  >
-                                    {optionValue}
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
+      {selectedBoxes.map((box) => (
+        <Card key={box.id} className="mb-6">
+          <CardHeader>
+            <CardTitle>
+              {box.name} - Personalization
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor={`giftMessage-${box.id}`}>Gift Message</Label>
+              <Textarea
+                id={`giftMessage-${box.id}`}
+                placeholder="Add a personal message to include with this gift box..."
+                value={personalizations[`${box.id}-giftMessage`] || ''}
+                onChange={(e) => handlePersonalizationChange(box.id, 'giftMessage', e.target.value)}
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor={`senderName-${box.id}`}>From (Sender Name)</Label>
+              <Input
+                id={`senderName-${box.id}`}
+                placeholder="Your name or company name"
+                value={personalizations[`${box.id}-senderName`] || ''}
+                onChange={(e) => handlePersonalizationChange(box.id, 'senderName', e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor={`specialInstructions-${box.id}`}>Special Instructions</Label>
+              <Textarea
+                id={`specialInstructions-${box.id}`}
+                placeholder="Any special packaging or delivery instructions..."
+                value={personalizations[`${box.id}-specialInstructions`] || ''}
+                onChange={(e) => handlePersonalizationChange(box.id, 'specialInstructions', e.target.value)}
+                rows={2}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
-                          {/* Custom Messages */}
-                          <div className="space-y-4 border-t pt-4">
-                            <h4 className="font-medium">Custom Messages</h4>
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">Card Message</label>
-                              <Textarea
-                                placeholder="Enter your personalized message for the card..."
-                                value={boxPersonalization.cardMessage || ''}
-                                onChange={(e) => updatePersonalizationMessage(box.id, 'cardMessage', e.target.value)}
-                                className="min-h-20"
-                              />
-                              <p className="text-xs text-gray-500 mt-1">Max 150 characters</p>
-                            </div>
-                            
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">Gift Tag Message</label>
-                              <Input
-                                placeholder="Brief message for the gift tag..."
-                                value={boxPersonalization.tagMessage || ''}
-                                onChange={(e) => updatePersonalizationMessage(box.id, 'tagMessage', e.target.value)}
-                              />
-                              <p className="text-xs text-gray-500 mt-1">Max 50 characters</p>
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Summary */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle>Customization Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                {selectedBoxes.map(box => {
-                  const cost = calculatePersonalizationCost(box.id);
-                  return cost > 0 ? (
-                    <div key={box.id} className="border-b pb-3 last:border-b-0">
-                      <div className="font-medium text-sm mb-2">{box.name}</div>
-                      <div className="flex justify-between text-sm">
-                        <span>Customization</span>
-                        <span className="text-linden-blue">${cost}</span>
-                      </div>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-
-              <div className="border-t pt-3">
-                <div className="flex justify-between font-bold">
-                  <span>Total Customization</span>
-                  <span className="text-linden-blue">
-                    ${selectedBoxes.reduce((total, box) => total + calculatePersonalizationCost(box.id), 0)}
-                  </span>
-                </div>
-              </div>
-
-              <Button 
-                onClick={handleContinue}
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
-              >
-                Continue to Recipients
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleContinue}
+          className="bg-linden-blue hover:bg-linden-blue/90"
+        >
+          Continue to Customization
+        </Button>
       </div>
     </div>
   );

@@ -75,6 +75,7 @@ function App() {
                 <Route path="/box-listing" element={<BoxListing />} />
                 {/* Removed /customize-box route - existing users go directly to personalization */}
                 <Route path="/personalization" element={<PersonalizationStep />} />
+                <Route path="/customization" element={<CustomizationPage />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />

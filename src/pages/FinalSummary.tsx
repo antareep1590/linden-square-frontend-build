@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -101,11 +102,19 @@ const FinalSummary = () => {
       // Redirect new clients to login/signup  
       navigate('/login');
     } else {
-      // Existing clients can save as draft and trigger invoice email
-      toast.success('Campaign saved as draft. Invoice email will be sent to your registered account.');
-      // Here would be the API call to trigger invoice email
-      console.log('Triggering invoice email to client account');
-      navigate('/dashboard');
+      // For existing clients: trigger invoice email and show confirmation
+      // This would be a backend API call in a real application
+      toast.success('Campaign saved as draft. Invoice email has been sent to your registered account.');
+      console.log('Triggering invoice email to client account - Backend API call would go here');
+      
+      // Update order status and log the action
+      console.log('Order status updated: Invoice Sent');
+      console.log('Action logged against client order ID:', Date.now());
+      
+      // Stay on the current page or navigate to dashboard
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     }
   };
 
@@ -319,7 +328,7 @@ const FinalSummary = () => {
                     onClick={handleProceedToCheckout}
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Proceed to Checkout
+                    {isStandalone ? 'Proceed to Checkout' : 'Proceed to Payment'}
                   </Button>
                   
                   <Button 
