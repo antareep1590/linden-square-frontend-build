@@ -21,7 +21,7 @@ const CustomizeGiftBox = () => {
     name: "Executive Appreciation",
     theme: "Professional",
     basePrice: 89.99,
-    image: "/placeholder.svg",
+    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     contents: ["Premium leather notebook", "Artisan coffee selection", "Elegant pen set", "Gourmet chocolates"]
   };
 

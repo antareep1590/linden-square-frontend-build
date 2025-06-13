@@ -68,7 +68,7 @@ const LandingPage = () => {
       name: "Executive Appreciation",
       theme: "Professional",
       price: 89.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Premium gifts for senior leadership and key clients"
     },
     {
@@ -76,7 +76,7 @@ const LandingPage = () => {
       name: "Team Celebration",
       theme: "Festive",
       price: 45.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Perfect for team milestones and achievements"
     },
     {
@@ -84,7 +84,7 @@ const LandingPage = () => {
       name: "Welcome Package",
       theme: "Onboarding",
       price: 65.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Make a great first impression with new hires"
     },
     {
@@ -92,7 +92,7 @@ const LandingPage = () => {
       name: "Holiday Wishes",
       theme: "Seasonal",
       price: 75.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Spread joy during the holiday season"
     }
   ];
@@ -119,6 +119,10 @@ const LandingPage = () => {
 
   const handleProfileClick = () => {
     navigate('/profile-standalone');
+  };
+
+  const handleGiftBoxClick = (boxId: number) => {
+    navigate('/choose-gift-box');
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -164,13 +168,6 @@ const LandingPage = () => {
             {/* Action Buttons Group */}
             <div className="flex items-center space-x-3">
               <Button 
-                variant="outline"
-                onClick={handleLoginClick}
-                className="text-gray-700 border-gray-300 hover:bg-gray-50"
-              >
-                Login
-              </Button>
-              <Button 
                 onClick={handleGetStarted}
                 className="bg-linden-blue hover:bg-linden-blue/90"
               >
@@ -213,7 +210,7 @@ const LandingPage = () => {
                 onClick={handleLoginClick}
                 className="text-gray-600 hover:text-linden-blue transition-colors font-medium"
               >
-                Client Dashboard Login
+                Dashboard
               </button>
               <button 
                 onClick={() => scrollToSection('faqs')}
@@ -238,12 +235,6 @@ const LandingPage = () => {
               >
                 <User className="h-4 w-4" />
                 <span>My Profile</span>
-              </Button>
-              <Button 
-                onClick={handleStartCampaign}
-                className="bg-linden-blue hover:bg-linden-blue/90"
-              >
-                <span>Access Dashboard</span>
               </Button>
             </div>
           </div>
@@ -369,14 +360,6 @@ const LandingPage = () => {
               Start Your Gift Campaign
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={handleLoginClick}
-              className="border-white text-white hover:bg-white hover:text-linden-blue text-lg px-8 py-4"
-            >
-              Access Dashboard
-            </Button>
           </div>
         </div>
       </div>
@@ -398,7 +381,11 @@ const LandingPage = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {presetGiftBoxes.map((box) => (
-            <Card key={box.id} className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+            <Card 
+              key={box.id} 
+              className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+              onClick={() => handleGiftBoxClick(box.id)}
+            >
               <div className="aspect-square bg-gray-200 rounded-t-lg overflow-hidden">
                 <img 
                   src={box.image} 
@@ -416,13 +403,6 @@ const LandingPage = () => {
                   <span className="text-xs bg-linden-lightblue text-linden-blue px-2 py-1 rounded-full">
                     {box.theme}
                   </span>
-                  <Button 
-                    size="sm" 
-                    onClick={handleBrowsePresetBoxes}
-                    className="bg-linden-blue hover:bg-linden-blue/90"
-                  >
-                    Select
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -585,7 +565,7 @@ const LandingPage = () => {
               </p>
               <Button 
                 size="lg"
-                onClick={handleLoginClick}
+                onClick={handleGetStarted}
                 className="bg-linden-gold hover:bg-linden-gold/90 text-linden-blue text-lg px-12 py-4 font-semibold"
               >
                 Get Started Today

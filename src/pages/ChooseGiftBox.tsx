@@ -9,7 +9,7 @@ import LindenSquareLogo from '@/components/LindenSquareLogo';
 
 const ChooseGiftBox = () => {
   const navigate = useNavigate();
-  const [selectedBoxId, setSelectedBoxId] = useState<number | null>(null);
+  const [selectedBoxIds, setSelectedBoxIds] = useState<number[]>([]);
 
   const giftBoxes = [
     {
@@ -18,7 +18,7 @@ const ChooseGiftBox = () => {
       theme: "Professional",
       price: 89.99,
       originalPrice: 99.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Premium gifts for senior leadership and key clients. Includes luxury items that make a lasting impression.",
       contents: ["Premium leather notebook", "Artisan coffee selection", "Elegant pen set", "Gourmet chocolates"],
       rating: 4.9,
@@ -31,7 +31,7 @@ const ChooseGiftBox = () => {
       theme: "Festive",
       price: 45.99,
       originalPrice: 55.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Perfect for team milestones and achievements. Celebrate success with meaningful gifts.",
       contents: ["Celebration banner", "Team photo frame", "Gourmet snacks", "Success journal"],
       rating: 4.7,
@@ -44,7 +44,7 @@ const ChooseGiftBox = () => {
       theme: "Onboarding",
       price: 65.99,
       originalPrice: 75.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Make a great first impression with new hires. Everything they need to feel welcomed.",
       contents: ["Welcome guide", "Company swag", "Desk accessories", "Welcome treats"],
       rating: 4.8,
@@ -57,7 +57,7 @@ const ChooseGiftBox = () => {
       theme: "Seasonal",
       price: 75.99,
       originalPrice: 85.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Spread joy during the holiday season with festive and thoughtful gifts.",
       contents: ["Holiday ornaments", "Seasonal treats", "Warm beverage mix", "Holiday card"],
       rating: 4.6,
@@ -70,7 +70,7 @@ const ChooseGiftBox = () => {
       theme: "Business",
       price: 120.99,
       originalPrice: 135.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Show your valued clients how much they mean to your business with premium selections.",
       contents: ["Premium wine selection", "Artisan cheese board", "Executive desk accessory", "Thank you card"],
       rating: 4.9,
@@ -83,7 +83,7 @@ const ChooseGiftBox = () => {
       theme: "Health",
       price: 55.99,
       originalPrice: 65.99,
-      image: "/placeholder.svg",
+      image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
       description: "Promote wellbeing and self-care with thoughtful wellness-focused gifts.",
       contents: ["Aromatherapy candle", "Herbal tea collection", "Stress relief items", "Wellness journal"],
       rating: 4.8,
@@ -93,18 +93,28 @@ const ChooseGiftBox = () => {
   ];
 
   const handleSelectBox = (boxId: number) => {
-    setSelectedBoxId(boxId);
+    setSelectedBoxIds(prev => 
+      prev.includes(boxId) 
+        ? prev.filter(id => id !== boxId)
+        : [...prev, boxId]
+    );
   };
 
   const handleCustomizeSelected = () => {
-    if (selectedBoxId) {
-      // Navigate to the new personalization page (renamed from PersonalizationStep)
+    if (selectedBoxIds.length > 0) {
       navigate('/customize-gift-box');
     }
   };
 
   const handleBackToHome = () => {
     navigate('/');
+  };
+
+  const calculateTotalPrice = () => {
+    return selectedBoxIds.reduce((total, boxId) => {
+      const box = giftBoxes.find(b => b.id === boxId);
+      return total + (box?.price || 0);
+    }, 0);
   };
 
   return (
@@ -144,7 +154,7 @@ const ChooseGiftBox = () => {
             <Card 
               key={box.id} 
               className={`group cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl ${
-                selectedBoxId === box.id ? 'ring-2 ring-linden-blue shadow-xl' : ''
+                selectedBoxIds.includes(box.id) ? 'ring-2 ring-linden-blue shadow-xl' : ''
               }`}
               onClick={() => handleSelectBox(box.id)}
             >
@@ -174,7 +184,7 @@ const ChooseGiftBox = () => {
                 </div>
 
                 {/* Selection Indicator */}
-                {selectedBoxId === box.id && (
+                {selectedBoxIds.includes(box.id) && (
                   <div className="absolute top-4 right-4">
                     <div className="bg-linden-blue rounded-full p-2">
                       <CheckCircle className="h-5 w-5 text-white" />
@@ -229,13 +239,13 @@ const ChooseGiftBox = () => {
 
                 <Button 
                   className={`w-full transition-colors ${
-                    selectedBoxId === box.id 
+                    selectedBoxIds.includes(box.id) 
                       ? 'bg-linden-blue hover:bg-linden-blue/90' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                   onClick={() => handleSelectBox(box.id)}
                 >
-                  {selectedBoxId === box.id ? 'Selected' : 'Select This Box'}
+                  {selectedBoxIds.includes(box.id) ? 'Selected' : 'Select This Box'}
                 </Button>
               </CardContent>
             </Card>
@@ -246,14 +256,14 @@ const ChooseGiftBox = () => {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              {selectedBoxId && (
+              {selectedBoxIds.length > 0 && (
                 <>
                   <Package className="h-5 w-5 text-linden-blue" />
                   <span className="font-medium text-gray-900">
-                    {giftBoxes.find(box => box.id === selectedBoxId)?.name} selected
+                    {selectedBoxIds.length} box{selectedBoxIds.length > 1 ? 'es' : ''} selected
                   </span>
                   <span className="text-linden-blue font-semibold">
-                    ${giftBoxes.find(box => box.id === selectedBoxId)?.price}
+                    ${calculateTotalPrice().toFixed(2)}
                   </span>
                 </>
               )}
@@ -261,9 +271,9 @@ const ChooseGiftBox = () => {
             <Button 
               size="lg"
               onClick={handleCustomizeSelected}
-              disabled={!selectedBoxId}
+              disabled={selectedBoxIds.length === 0}
               className={`px-8 py-3 ${
-                selectedBoxId 
+                selectedBoxIds.length > 0 
                   ? 'bg-linden-blue hover:bg-linden-blue/90' 
                   : 'bg-gray-300 cursor-not-allowed'
               }`}
