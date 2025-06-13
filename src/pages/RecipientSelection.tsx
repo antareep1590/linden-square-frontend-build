@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,7 @@ const RecipientSelection = () => {
   const navigate = useNavigate();
   
   // Check if this is a standalone flow (new client)
-  const isStandalone = !window.location.pathname.includes('/dashboard');
+  const isStandalone = !window.location.pathname.includes('/dashboard') && !window.location.pathname.includes('/recipient-selection');
   
   const [recipients, setRecipients] = useState([
     { id: 1, name: 'John Smith', email: 'john@company.com', phone: '555-123-4567', address: '123 Main St, Anytown, CA 12345', department: 'Sales' },
@@ -152,7 +151,12 @@ const RecipientSelection = () => {
       return;
     }
 
-    navigate('/summary');
+    if (isStandalone) {
+      navigate('/summary');
+    } else {
+      // For existing clients, go to their own summary page within the app
+      navigate('/summary'); // This will be handled by the layout
+    }
   };
 
   const handleBack = () => {

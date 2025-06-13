@@ -1,388 +1,272 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, Search, Star, Gift, Package, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Gift, Users, Heart, Briefcase, GraduationCap, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 
-interface GiftBoxOption {
-  id: string;
-  name: string;
-  type: 'preset' | 'custom';
-  image: string;
-  size: 'Small' | 'Medium' | 'Large';
-  theme: string;
-  priceRange: string;
-  basePrice: number;
-  defaultGifts: number;
-  rating?: number;
-  description: string;
-  products?: string[];
-  gifts: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-}
-
-const presetBoxes: GiftBoxOption[] = [
-  {
-    id: 'preset-1',
-    name: 'Birthday Celebration Box',
-    type: 'preset',
-    image: 'https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=400&h=300&fit=crop',
-    size: 'Medium',
-    theme: 'Birthday',
-    priceRange: '$75 - $95',
-    basePrice: 85.00,
-    defaultGifts: 5,
-    rating: 4.8,
-    description: 'Pre-curated birthday celebration with premium gifts and festive touches',
-    products: ['chocolates', 'candles', 'coffee', 'cards'],
-    gifts: [
-      { id: '1', name: 'Premium Coffee Set', price: 24.99, quantity: 1 },
-      { id: '2', name: 'Gourmet Chocolate Box', price: 19.99, quantity: 1 },
-      { id: '3', name: 'Scented Candle', price: 15.99, quantity: 1 },
-      { id: '4', name: 'Artisan Tea Collection', price: 22.99, quantity: 1 },
-      { id: '5', name: 'Premium Notebook', price: 18.99, quantity: 1 }
-    ]
-  },
-  {
-    id: 'preset-2',
-    name: 'Professional Welcome Box',
-    type: 'preset',
-    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
-    size: 'Large',
-    theme: 'Professional',
-    priceRange: '$120 - $150',
-    basePrice: 135.00,
-    defaultGifts: 7,
-    rating: 4.9,
-    description: 'Sophisticated welcome package for new team members and clients',
-    products: ['notebook', 'coffee', 'tech-accessories', 'wellness'],
-    gifts: [
-      { id: '6', name: 'Executive Notebook', price: 29.99, quantity: 1 },
-      { id: '7', name: 'Premium Coffee Blend', price: 34.99, quantity: 1 },
-      { id: '8', name: 'Tech Accessories Kit', price: 49.99, quantity: 1 },
-      { id: '9', name: 'Wellness Set', price: 39.99, quantity: 1 }
-    ]
-  },
-  {
-    id: 'preset-3',
-    name: 'Festive Holiday Box',
-    type: 'preset',
-    image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
-    size: 'Small',
-    theme: 'Holiday',
-    priceRange: '$45 - $65',
-    basePrice: 55.00,
-    defaultGifts: 4,
-    rating: 4.7,
-    description: 'Warm holiday greetings with seasonal treats and decorations',
-    products: ['chocolates', 'candles', 'ornaments', 'cards'],
-    gifts: [
-      { id: '10', name: 'Holiday Chocolates', price: 16.99, quantity: 1 },
-      { id: '11', name: 'Festive Candle', price: 12.99, quantity: 1 },
-      { id: '12', name: 'Holiday Ornament', price: 8.99, quantity: 1 },
-      { id: '13', name: 'Greeting Cards Set', price: 5.99, quantity: 1 }
-    ]
-  }
-];
-
 const BoxListing = () => {
   const navigate = useNavigate();
-  const { selectedBoxes, addBox } = useCart();
+  const { addBox, selectedBoxes } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState('All');
-  const [selectedSize, setSelectedSize] = useState('All');
-  const [priceRange, setPriceRange] = useState('All');
-  const [productFilter, setProductFilter] = useState('All');
-  const [productFilterType, setProductFilterType] = useState<'include' | 'exclude'>('include');
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedBoxIds, setSelectedBoxIds] = useState<Set<string>>(new Set());
+  const [selectedTheme, setSelectedTheme] = useState('all');
 
-  const allBoxes = presetBoxes;
-  const themes = ['All', 'Birthday', 'Professional', 'Holiday', 'Custom'];
-  const sizes = ['All', 'Small', 'Medium', 'Large'];
-  const priceRanges = ['All', 'Under $50', '$50 - $100', 'Over $100'];
-  const products = ['All', 'chocolates', 'candles', 'coffee', 'notebook', 'tech-accessories', 'wellness', 'ornaments', 'cards'];
-
-  const filteredBoxes = allBoxes.filter(box => {
-    const matchesSearch = box.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         box.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTheme = selectedTheme === 'All' || box.theme === selectedTheme;
-    const matchesSize = selectedSize === 'All' || box.size === selectedSize;
-    
-    let matchesProduct = true;
-    if (selectedProduct && selectedProduct !== 'All' && box.products) {
-      if (productFilterType === 'include') {
-        matchesProduct = box.products.includes(selectedProduct);
-      } else {
-        matchesProduct = !box.products.includes(selectedProduct);
-      }
+  const giftThemes = [
+    {
+      id: 1,
+      name: 'Holiday Appreciation',
+      theme: 'Holiday Gifts',
+      description: 'Celebrate the season with festive gift boxes perfect for team appreciation',
+      price: 89.99,
+      size: 'Large',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: Calendar,
+      campaignType: 'marketing',
+      items: [
+        { id: '1', name: 'Premium Coffee Blend', price: 24.99, quantity: 1 },
+        { id: '2', name: 'Gourmet Chocolates', price: 18.99, quantity: 1 },
+        { id: '3', name: 'Holiday Candle', price: 15.99, quantity: 1 },
+        { id: '4', name: 'Branded Mug', price: 12.99, quantity: 1 }
+      ]
+    },
+    {
+      id: 2,
+      name: 'Thank You Excellence',
+      theme: 'Thank You Gifts',
+      description: 'Show appreciation with thoughtfully curated thank you gifts',
+      price: 65.99,
+      size: 'Medium',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: Heart,
+      campaignType: 'client appreciation',
+      items: [
+        { id: '5', name: 'Artisan Tea Set', price: 22.99, quantity: 1 },
+        { id: '6', name: 'Thank You Card', price: 3.99, quantity: 1 },
+        { id: '7', name: 'Wellness Kit', price: 19.99, quantity: 1 }
+      ]
+    },
+    {
+      id: 3,
+      name: 'New Hire Welcome',
+      theme: 'New Hire Kits',
+      description: 'Welcome new team members with essential onboarding gifts',
+      price: 45.99,
+      size: 'Medium',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: GraduationCap,
+      campaignType: 'HR',
+      items: [
+        { id: '8', name: 'Company Notebook', price: 12.99, quantity: 1 },
+        { id: '9', name: 'Welcome Letter', price: 2.99, quantity: 1 },
+        { id: '10', name: 'Branded Pen Set', price: 14.99, quantity: 1 }
+      ]
+    },
+    {
+      id: 4,
+      name: 'Executive Recognition',
+      theme: 'Executive Gifts',
+      description: 'Premium gifts for leadership and executive appreciation',
+      price: 125.99,
+      size: 'Large',
+      type: 'preset',
+      image: 'https://images.unsplash.com/photo-1607344645866-009c7d0435c6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      icon: Briefcase,
+      campaignType: 'executive',
+      items: [
+        { id: '11', name: 'Luxury Leather Portfolio', price: 45.99, quantity: 1 },
+        { id: '12', name: 'Premium Wine', price: 35.99, quantity: 1 },
+        { id: '13', name: 'Executive Pen', price: 25.99, quantity: 1 }
+      ]
     }
-    
-    return matchesSearch && matchesTheme && matchesSize && matchesProduct;
+  ];
+
+  const themeFilters = [
+    { id: 'all', name: 'All Themes', icon: Gift },
+    { id: 'Holiday Gifts', name: 'Holiday Gifts', icon: Calendar },
+    { id: 'Thank You Gifts', name: 'Thank You Gifts', icon: Heart },
+    { id: 'New Hire Kits', name: 'New Hire Kits', icon: GraduationCap },
+    { id: 'Executive Gifts', name: 'Executive Gifts', icon: Briefcase }
+  ];
+
+  const filteredThemes = giftThemes.filter(theme => {
+    const matchesSearch = theme.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         theme.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTheme = selectedTheme === 'all' || theme.theme === selectedTheme;
+    return matchesSearch && matchesTheme;
   });
 
-  const handleBoxSelect = (box: GiftBoxOption) => {
-    const newSelectedBoxIds = new Set(selectedBoxIds);
-    
-    if (selectedBoxIds.has(box.id)) {
-      newSelectedBoxIds.delete(box.id);
-      toast.success(`${box.name} removed from selection`);
-    } else {
-      newSelectedBoxIds.add(box.id);
-      const cartBox = {
-        id: `${box.id}-${Date.now()}`, // Unique ID for cart
-        type: box.type,
-        name: box.name,
-        size: box.size,
-        theme: box.theme,
-        basePrice: box.basePrice,
-        gifts: [...box.gifts]
-      };
-      addBox(cartBox);
-      toast.success(`${box.name} added to selection`);
-    }
-    
-    setSelectedBoxIds(newSelectedBoxIds);
+  const handleSelectBox = (theme: any) => {
+    const newBox = {
+      id: theme.id.toString(),
+      name: theme.name,
+      theme: theme.theme,
+      size: theme.size,
+      type: theme.type,
+      price: theme.price,
+      image: theme.image,
+      campaignType: theme.campaignType,
+      gifts: theme.items
+    };
+
+    addBox(newBox);
+    toast.success(`${theme.name} added to your selection`);
   };
 
-  const handleCustomizeSelected = () => {
+  const handleContinue = () => {
     if (selectedBoxes.length === 0) {
-      toast.error('Please select at least one box first');
+      toast.error('Please select at least one gift theme');
       return;
     }
-    navigate('/customize-box');
+    // Skip customize box page and go directly to personalization
+    navigate('/personalization');
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const isBoxSelected = (boxId: number) => {
+    return selectedBoxes.some(box => box.id === boxId.toString());
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">Choose Your Gift Box</h1>
-          <p className="text-gray-600">Select from our curated preset collections</p>
+          <h1 className="text-2xl font-bold">Gift Theme Selection</h1>
+          <p className="text-gray-600">Choose from our curated gift themes for your campaign</p>
         </div>
-        
         <div className="flex items-center gap-4">
-          {selectedBoxes.length > 0 && (
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="font-medium">{selectedBoxes.length} box(es) selected</span>
-            </div>
-          )}
+          <Badge variant="outline" className="text-linden-blue">
+            {selectedBoxes.length} theme{selectedBoxes.length !== 1 ? 's' : ''} selected
+          </Badge>
           <Button 
-            onClick={handleCustomizeSelected}
-            className="bg-linden-blue hover:bg-linden-blue/90"
+            onClick={handleContinue}
             disabled={selectedBoxes.length === 0}
+            className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Customize Selected
+            Continue to Customize
           </Button>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <Card className="bg-gray-50">
-        <CardContent className="p-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search boxes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Theme</label>
-                <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {themes.map(theme => (
-                      <SelectItem key={theme} value={theme}>{theme}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Size</label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sizes.map(size => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Price Range</label>
-                <Select value={priceRange} onValueChange={setPriceRange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Price Range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priceRanges.map(range => (
-                      <SelectItem key={range} value={range}>{range}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Filter by Products</label>
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      variant={productFilterType === 'include' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilterType('include')}
-                      className="text-xs"
-                    >
-                      Include
-                    </Button>
-                    <Button
-                      variant={productFilterType === 'exclude' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductFilterType('exclude')}
-                      className="text-xs"
-                    >
-                      Exclude
-                    </Button>
-                  </div>
-                  <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map(product => (
-                        <SelectItem key={product} value={product}>{product}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search gift themes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <div className="flex gap-2 overflow-x-auto">
+          {themeFilters.map((filter) => {
+            const Icon = filter.icon;
+            return (
+              <Button
+                key={filter.id}
+                variant={selectedTheme === filter.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedTheme(filter.id)}
+                className={`flex items-center gap-2 whitespace-nowrap ${
+                  selectedTheme === filter.id ? "bg-linden-blue hover:bg-linden-blue/90" : ""
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {filter.name}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* Box Grid */}
+      {/* Gift Themes Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBoxes.map((box) => {
-          const isSelected = selectedBoxIds.has(box.id);
+        {filteredThemes.map((theme) => {
+          const Icon = theme.icon;
+          const isSelected = isBoxSelected(theme.id);
           
           return (
-            <Card 
-              key={box.id} 
-              className={`transition-all duration-200 hover:shadow-lg cursor-pointer ${
-                isSelected ? 'ring-2 ring-linden-blue bg-blue-50' : ''
-              }`}
-              onClick={() => handleBoxSelect(box)}
-            >
-              <CardHeader className="p-0">
-                <div className="relative">
-                  <img 
-                    src={box.image} 
-                    alt={box.name}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge 
-                      variant={box.type === 'preset' ? 'default' : 'secondary'}
-                      className={box.type === 'preset' ? 'bg-linden-blue' : ''}
-                    >
-                      {box.type === 'preset' ? 'Preset' : 'Custom'}
-                    </Badge>
-                  </div>
-                  <div className="absolute top-2 right-2">
-                    <Badge variant="outline" className="bg-white/90">
-                      {box.size}
-                    </Badge>
-                  </div>
-                  {isSelected && (
-                    <div className="absolute inset-0 bg-linden-blue/20 flex items-center justify-center">
-                      <div className="bg-white rounded-full p-2">
-                        <ShoppingCart className="h-6 w-6 text-linden-blue" />
-                      </div>
-                    </div>
-                  )}
+            <Card key={theme.id} className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2 ring-linden-blue' : ''}`}>
+              <div className="relative">
+                <img 
+                  src={theme.image} 
+                  alt={theme.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute top-3 left-3">
+                  <Badge variant="secondary" className="bg-white/90 text-gray-700">
+                    <Icon className="h-3 w-3 mr-1" />
+                    {theme.theme}
+                  </Badge>
                 </div>
+                <div className="absolute top-3 right-3">
+                  <Badge variant="outline" className="bg-white/90">
+                    {theme.size}
+                  </Badge>
+                </div>
+                {isSelected && (
+                  <div className="absolute inset-0 bg-linden-blue/20 flex items-center justify-center">
+                    <Badge className="bg-linden-blue text-white">
+                      Selected
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{theme.name}</CardTitle>
+                  <span className="text-lg font-bold text-linden-blue">${theme.price}</span>
+                </div>
+                <p className="text-sm text-gray-600">{theme.description}</p>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{box.name}</CardTitle>
-                    {box.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-gray-600">{box.rating}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <p className="text-sm text-gray-600">{box.description}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">
-                        {box.defaultGifts} items
-                      </span>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {box.theme}
-                    </Badge>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-3 border-t">
-                    <span className="font-bold text-linden-blue">{box.priceRange}</span>
-                    <Button 
-                      variant={isSelected ? "default" : "outline"}
-                      size="sm"
-                      className={isSelected ? "bg-linden-blue hover:bg-linden-blue/90" : "hover:bg-linden-blue hover:text-white"}
-                    >
-                      {isSelected ? 'Selected' : 'Select'}
-                    </Button>
-                  </div>
+              
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {theme.campaignType}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {theme.items.length} items
+                  </Badge>
                 </div>
+                
+                <Button 
+                  onClick={() => handleSelectBox(theme)}
+                  className={`w-full ${
+                    isSelected 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-linden-blue hover:bg-linden-blue/90'
+                  }`}
+                  disabled={isSelected}
+                >
+                  {isSelected ? 'Selected' : 'Select Theme'}
+                </Button>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {filteredBoxes.length === 0 && (
-        <Card className="p-8 text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-gray-500">No boxes match your current filters. Try adjusting your criteria.</p>
-        </Card>
+      {filteredThemes.length === 0 && (
+        <div className="text-center py-12">
+          <Gift className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No themes found</h3>
+          <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+        </div>
       )}
     </div>
   );

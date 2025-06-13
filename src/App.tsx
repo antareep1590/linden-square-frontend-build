@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -74,7 +73,7 @@ function App() {
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/gift-box-flow" element={<BoxListing />} />
                 <Route path="/box-listing" element={<BoxListing />} />
-                <Route path="/customize-box" element={<CustomizeBox />} />
+                {/* Removed /customize-box route - existing users go directly to personalization */}
                 <Route path="/personalization" element={<PersonalizationStep />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />

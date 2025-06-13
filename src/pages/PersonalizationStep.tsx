@@ -133,7 +133,7 @@ const PersonalizationStep = () => {
           Back
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Personalize Your Gift Boxes</h1>
+          <h1 className="text-2xl font-bold">Customize Your Gift Box</h1>
           <p className="text-gray-600">Add special touches to make each gift memorable</p>
         </div>
       </div>
@@ -248,7 +248,7 @@ const PersonalizationStep = () => {
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle>Personalization Summary</CardTitle>
+              <CardTitle>Customization Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -258,7 +258,7 @@ const PersonalizationStep = () => {
                     <div key={box.id} className="border-b pb-3 last:border-b-0">
                       <div className="font-medium text-sm mb-2">{box.name}</div>
                       <div className="flex justify-between text-sm">
-                        <span>Personalization</span>
+                        <span>Customization</span>
                         <span className="text-linden-blue">${cost}</span>
                       </div>
                     </div>
@@ -268,7 +268,7 @@ const PersonalizationStep = () => {
 
               <div className="border-t pt-3">
                 <div className="flex justify-between font-bold">
-                  <span>Total Personalization</span>
+                  <span>Total Customization</span>
                   <span className="text-linden-blue">
                     ${selectedBoxes.reduce((total, box) => total + calculatePersonalizationCost(box.id), 0)}
                   </span>
