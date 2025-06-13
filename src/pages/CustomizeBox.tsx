@@ -1,332 +1,321 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Package, Gift, Plus, Minus, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Plus, Minus, Package, Gift, Trash2, ShoppingCart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-interface AvailableGift {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  category: string;
-}
-
-const availableGifts: AvailableGift[] = [
-  {
-    id: 'gift-1',
-    name: 'Premium Coffee Set',
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=300&h=200&fit=crop',
-    price: 24.99,
-    category: 'Beverages'
-  },
-  {
-    id: 'gift-2',
-    name: 'Gourmet Chocolate Box',
-    image: 'https://images.unsplash.com/photo-1549007953-2f2dc0b24019?w=300&h=200&fit=crop',
-    price: 19.99,
-    category: 'Food'
-  },
-  {
-    id: 'gift-3',
-    name: 'Scented Candle',
-    image: 'https://images.unsplash.com/photo-1602874801031-7ad547c7b2f9?w=300&h=200&fit=crop',
-    price: 15.99,
-    category: 'Home'
-  },
-  {
-    id: 'gift-4',
-    name: 'Artisan Tea Collection',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&h=200&fit=crop',
-    price: 22.99,
-    category: 'Beverages'
-  },
-  {
-    id: 'gift-5',
-    name: 'Premium Notebook',
-    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&h=200&fit=crop',
-    price: 18.99,
-    category: 'Stationery'
-  },
-  {
-    id: 'gift-6',
-    name: 'Wellness Kit',
-    image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=300&h=200&fit=crop',
-    price: 39.99,
-    category: 'Health'
-  }
-];
 
 const CustomizeBox = () => {
   const navigate = useNavigate();
-  const { selectedBoxes, updateBox } = useCart();
+  const { selectedBoxes, updateBoxGifts, updateBoxPersonalization } = useCart();
+  const [selectedBoxIndex, setSelectedBoxIndex] = useState(0);
+  const [personalizations, setPersonalizations] = useState<{[key: string]: string}>({});
 
-  const updateGiftQuantity = (boxId: string, giftId: string, newQuantity: number) => {
-    const box = selectedBoxes.find(b => b.id === boxId);
-    if (!box) return;
+  // For demo purposes, check if user is "logged in" based on current route or state
+  // In a real app, this would come from an auth context
+  const isLoggedIn = window.location.pathname.includes('/dashboard') || false;
 
-    const updatedGifts = [...box.gifts];
-    const existingGiftIndex = updatedGifts.findIndex(g => g.id === giftId);
+  const currentBox = selectedBoxes[selectedBoxIndex];
 
-    if (newQuantity <= 0) {
-      if (existingGiftIndex > -1) {
-        updatedGifts.splice(existingGiftIndex, 1);
-        toast.success('Gift removed from box');
-      }
-    } else {
-      if (existingGiftIndex > -1) {
-        updatedGifts[existingGiftIndex].quantity = newQuantity;
-      } else {
-        const availableGift = availableGifts.find(g => g.id === giftId);
-        if (availableGift) {
-          updatedGifts.push({
-            id: giftId,
-            name: availableGift.name,
-            price: availableGift.price,
-            quantity: newQuantity
-          });
-          toast.success('Gift added to box');
-        }
-      }
-    }
+  if (!currentBox) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Package className="h-16 w-16 text-gray-400" />
+        <h2 className="text-xl font-semibold text-gray-600">No boxes selected</h2>
+        <p className="text-gray-500">Please select a gift box first</p>
+        <Button onClick={() => navigate('/box-listing')}>
+          Select Gift Boxes
+        </Button>
+      </div>
+    );
+  }
 
-    updateBox(boxId, { gifts: updatedGifts });
-  };
-
-  const getGiftQuantity = (boxId: string, giftId: string) => {
-    const box = selectedBoxes.find(b => b.id === boxId);
-    if (!box) return 0;
-    const gift = box.gifts.find(g => g.id === giftId);
-    return gift ? gift.quantity : 0;
-  };
-
-  const calculateBoxTotal = (boxId: string) => {
-    const box = selectedBoxes.find(b => b.id === boxId);
-    if (!box) return 0;
+  const updateGiftQuantity = (giftId: string, newQuantity: number) => {
+    if (newQuantity < 0) return;
     
-    const giftsTotal = box.gifts.reduce((sum, gift) => sum + (gift.price * gift.quantity), 0);
-    return box.basePrice + giftsTotal;
+    const updatedGifts = currentBox.gifts.map(gift =>
+      gift.id === giftId ? { ...gift, quantity: newQuantity } : gift
+    ).filter(gift => gift.quantity > 0);
+
+    updateBoxGifts(currentBox.id, updatedGifts);
   };
 
-  const handleContinue = () => {
-    if (selectedBoxes.some(box => box.gifts.length === 0)) {
-      toast.error('Please add at least one gift to each box');
+  const removeGift = (giftId: string) => {
+    const updatedGifts = currentBox.gifts.filter(gift => gift.id !== giftId);
+    updateBoxGifts(currentBox.id, updatedGifts);
+    toast.success('Gift removed from box');
+  };
+
+  const calculateBoxTotal = () => {
+    return currentBox.gifts.reduce((total, gift) => 
+      total + (gift.price * gift.quantity), 0
+    );
+  };
+
+  const handlePersonalizationChange = (field: string, value: string) => {
+    const key = `${currentBox.id}-${field}`;
+    setPersonalizations(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    
+    updateBoxPersonalization(currentBox.id, field, value);
+  };
+
+  const handleProceedToNextStep = () => {
+    if (selectedBoxes.length === 0) {
+      toast.error('Please add at least one item to your box');
       return;
     }
+    
+    // If user is not logged in (new client), proceed through the flow
+    // but redirect to login when they try to checkout
     navigate('/personalization');
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!isLoggedIn) {
+      // For new clients, redirect to login before checkout
+      toast.info('Please log in to complete your order');
+      navigate('/login');
+      return;
+    }
+    
+    // For existing clients, proceed to payment
+    navigate('/payment-method');
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/box-listing')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Gift Boxes
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Customize Your Box</h1>
-          <p className="text-gray-600">Customize the gifts in each of your selected boxes</p>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold">Customize Your Gift Box</h1>
+          <p className="text-gray-600">Personalize your selection and add custom touches</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={handleProceedToNextStep}
+            className="bg-linden-blue hover:bg-linden-blue/90"
+          >
+            Next: Personalization
+          </Button>
         </div>
       </div>
 
+      {/* Box Selection Tabs */}
+      {selectedBoxes.length > 1 && (
+        <div className="flex gap-2 mb-6">
+          {selectedBoxes.map((box, index) => (
+            <Button
+              key={box.id}
+              variant={selectedBoxIndex === index ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedBoxIndex(index)}
+              className={selectedBoxIndex === index ? "bg-linden-blue" : ""}
+            >
+              {box.name}
+            </Button>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Box Customization */}
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Box Overview */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Your Gift Boxes ({selectedBoxes.length})
+              <CardTitle className="flex items-center justify-between">
+                <span>{currentBox.name}</span>
+                <Badge variant="outline">{currentBox.size}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {selectedBoxes.map((box) => (
-                  <AccordionItem key={box.id} value={box.id}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center justify-between w-full mr-4">
-                        <div className="flex items-center gap-4">
-                          <span className="font-medium">{box.name}</span>
-                          <Badge variant="outline">{box.size}</Badge>
-                          <Badge variant="secondary">{box.theme}</Badge>
-                          <span className="text-sm text-gray-600">{box.gifts.length} items</span>
-                        </div>
-                        <span className="font-bold text-linden-blue">${calculateBoxTotal(box.id).toFixed(2)}</span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-6 pt-4">
-                        {/* Current Gifts */}
-                        <div>
-                          <h4 className="font-medium mb-3">Current Gifts in This Box</h4>
-                          {box.gifts.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {box.gifts.map(gift => (
-                                <div key={gift.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                  <div>
-                                    <div className="font-medium text-sm">{gift.name}</div>
-                                    <div className="text-xs text-gray-600">${gift.price} × {gift.quantity}</div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => updateGiftQuantity(box.id, gift.id, gift.quantity - 1)}
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <Minus className="h-3 w-3" />
-                                    </Button>
-                                    <span className="w-6 text-center text-sm">{gift.quantity}</span>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => updateGiftQuantity(box.id, gift.id, gift.quantity + 1)}
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => updateGiftQuantity(box.id, gift.id, 0)}
-                                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-gray-500 text-sm">No gifts added yet. Add gifts from the catalog below.</p>
-                          )}
-                        </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Theme:</span>
+                  <span className="ml-2 font-medium">{currentBox.theme}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Type:</span>
+                  <span className="ml-2 font-medium capitalize">{currentBox.type}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                        {/* Available Gifts Catalog */}
-                        <div className="border-t pt-4">
-                          <h4 className="font-medium mb-3">Available Gifts Catalog</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {availableGifts.map(gift => {
-                              const quantity = getGiftQuantity(box.id, gift.id);
-                              const isSelected = quantity > 0;
+          {/* Gift Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5" />
+                Gift Items ({currentBox.gifts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {currentBox.gifts.map((gift) => (
+                <div key={gift.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-medium">{gift.name}</h4>
+                    <p className="text-sm text-gray-600">${gift.price.toFixed(2)} each</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateGiftQuantity(gift.id, gift.quantity - 1)}
+                      disabled={gift.quantity <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="w-8 text-center">{gift.quantity}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateGiftQuantity(gift.id, gift.quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="text-right">
+                    <p className="font-medium">${(gift.price * gift.quantity).toFixed(2)}</p>
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => removeGift(gift.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              
+              {currentBox.gifts.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Package className="mx-auto h-12 w-12 mb-4" />
+                  <p>No items in this box. Add some gifts to get started!</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-                              return (
-                                <div 
-                                  key={gift.id}
-                                  className={`border rounded-lg p-3 transition-all ${
-                                    isSelected ? 'border-linden-blue bg-blue-50' : 'border-gray-200'
-                                  }`}
-                                >
-                                  <div className="space-y-3">
-                                    <img 
-                                      src={gift.image} 
-                                      alt={gift.name}
-                                      className="w-full h-24 object-cover rounded"
-                                    />
-                                    <div>
-                                      <h5 className="font-medium text-sm">{gift.name}</h5>
-                                      <div className="flex items-center justify-between mt-1">
-                                        <Badge variant="secondary" className="text-xs">{gift.category}</Badge>
-                                        <span className="font-bold text-linden-blue text-sm">${gift.price}</span>
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => updateGiftQuantity(box.id, gift.id, quantity - 1)}
-                                          disabled={quantity <= 0}
-                                          className="h-6 w-6 p-0"
-                                        >
-                                          <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <span className="w-6 text-center text-sm">{quantity}</span>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => updateGiftQuantity(box.id, gift.id, quantity + 1)}
-                                          className="h-6 w-6 p-0"
-                                        >
-                                          <Plus className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                      <Button
-                                        variant={isSelected ? "default" : "outline"}
-                                        size="sm"
-                                        onClick={() => updateGiftQuantity(box.id, gift.id, isSelected ? 0 : 1)}
-                                        className={isSelected ? "bg-linden-blue hover:bg-linden-blue/90" : ""}
-                                      >
-                                        {isSelected ? 'Added' : 'Add'}
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+          {/* Personalization Options */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Personalization Options</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="giftMessage">Gift Message</Label>
+                <Textarea
+                  id="giftMessage"
+                  placeholder="Add a personal message to include with this gift box..."
+                  value={personalizations[`${currentBox.id}-giftMessage`] || ''}
+                  onChange={(e) => handlePersonalizationChange('giftMessage', e.target.value)}
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="senderName">From (Sender Name)</Label>
+                <Input
+                  id="senderName"
+                  placeholder="Your name or company name"
+                  value={personalizations[`${currentBox.id}-senderName`] || ''}
+                  onChange={(e) => handlePersonalizationChange('senderName', e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="specialInstructions">Special Instructions</Label>
+                <Textarea
+                  id="specialInstructions"
+                  placeholder="Any special packaging or delivery instructions..."
+                  value={personalizations[`${currentBox.id}-specialInstructions`] || ''}
+                  onChange={(e) => handlePersonalizationChange('specialInstructions', e.target.value)}
+                  rows={2}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Summary */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-6">
+        {/* Sidebar - Summary */}
+        <div className="space-y-6">
+          <Card className="sticky top-4">
             <CardHeader>
-              <CardTitle>Customization Summary</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Order Summary
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-4">
-                {selectedBoxes.map(box => (
-                  <div key={box.id} className="border-b pb-3 last:border-b-0">
-                    <div className="font-medium text-sm mb-2">{box.name}</div>
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span>Base Box</span>
-                        <span>${box.basePrice.toFixed(2)}</span>
-                      </div>
-                      {box.gifts.map(gift => (
-                        <div key={gift.id} className="flex justify-between text-gray-600">
-                          <span>{gift.name} (×{gift.quantity})</span>
-                          <span>${(gift.price * gift.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex justify-between font-medium text-sm mt-2 pt-2 border-t">
-                      <span>Box Total</span>
-                      <span className="text-linden-blue">${calculateBoxTotal(box.id).toFixed(2)}</span>
-                    </div>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>${calculateBoxTotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Personalization:</span>
+                  <span>$0.00</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Shipping:</span>
+                  <span>Calculated at checkout</span>
+                </div>
+                <div className="border-t pt-2">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span>${calculateBoxTotal().toFixed(2)}</span>
                   </div>
-                ))}
-              </div>
-
-              <div className="border-t pt-3">
-                <div className="flex justify-between font-bold">
-                  <span>Total All Boxes</span>
-                  <span className="text-linden-blue">
-                    ${selectedBoxes.reduce((total, box) => total + calculateBoxTotal(box.id), 0).toFixed(2)}
-                  </span>
                 </div>
               </div>
+              
+              <div className="space-y-2">
+                <Button 
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                  onClick={handleProceedToNextStep}
+                >
+                  Continue to Personalization
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate('/box-listing')}
+                >
+                  Add More Boxes
+                </Button>
+              </div>
 
-              <Button 
-                onClick={handleContinue}
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
-              >
-                Continue to Personalization
-              </Button>
+              {/* Quick Checkout for Demo */}
+              <div className="pt-4 border-t">
+                <Button 
+                  variant="outline"
+                  className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
+                  onClick={handleProceedToCheckout}
+                >
+                  Quick Checkout
+                </Button>
+                {!isLoggedIn && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    You'll be prompted to log in before payment
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

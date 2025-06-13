@@ -1,197 +1,309 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { 
-  User, 
-  Edit,
-  Save,
-  Shield
-} from "lucide-react";
-import { toast } from "sonner";
-
-interface ProfileData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  company: string;
-}
-
-const mockProfileData: ProfileData = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "+1 (555) 123-4567",
-  address: "123 Main St, Anytown, USA",
-  company: "Acme Corp"
-};
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Upload, User, Building, Mail, Phone, Save, Palette, MessageSquare } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Profile = () => {
-  const [profileData, setProfileData] = useState<ProfileData>(mockProfileData);
-  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: 'John Doe',
+    email: 'john@company.com',
+    phone: '+1 (555) 123-4567',
+    company: 'Acme Corp',
+    address: '123 Main St, City, State, ZIP',
+    website: 'https://company.com'
+  });
 
-  const handleSave = () => {
-    // In a real application, you would save the data to a server here
-    toast.success("Profile updated successfully!");
-    setIsEditing(false);
-  };
+  const [brandingData, setBrandingData] = useState({
+    companyLogo: '',
+    selectedTheme: 'blue',
+    welcomeMessage: 'Welcome to our gifting portal!'
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfileData(prevData => ({
-      ...prevData,
-      [name]: value
+  const themes = [
+    { value: 'blue', label: 'Professional Blue', color: 'bg-blue-500' },
+    { value: 'green', label: 'Natural Green', color: 'bg-green-500' },
+    { value: 'purple', label: 'Creative Purple', color: 'bg-purple-500' },
+    { value: 'orange', label: 'Energetic Orange', color: 'bg-orange-500' },
+    { value: 'dark', label: 'Modern Dark', color: 'bg-gray-800' },
+    { value: 'light', label: 'Clean Light', color: 'bg-gray-100' }
+  ];
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
     }));
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Profile</h1>
-        </div>
+  const handleBrandingChange = (field: string, value: string) => {
+    setBrandingData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-        <Card className="w-full bg-white shadow-sm">
+  const handleSaveProfile = () => {
+    toast.success('Profile updated successfully!');
+  };
+
+  const handleSaveBranding = () => {
+    toast.success('Branding settings saved! Changes will be applied across your portal.');
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // In a real app, you'd upload to a file service
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBrandingData(prev => ({
+          ...prev,
+          companyLogo: e.target?.result as string
+        }));
+      };
+      reader.readAsDataURL(file);
+      toast.success('Logo uploaded successfully!');
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold">My Profile</h1>
+          <p className="text-gray-600">Manage your account settings and branding preferences</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Profile Information */}
+        <Card>
           <CardHeader>
-            <CardTitle>
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="text-lg font-semibold">{profileData.name}</h2>
-                  <Badge variant="secondary">Verified</Badge>
-                </div>
-              </div>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile Information
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="account" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="account">
-                  <User className="mr-2 h-4 w-4" />
-                  Account
-                </TabsTrigger>
-                <TabsTrigger value="security">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Security
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="account" className="space-y-4">
-                <div className="grid gap-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input 
-                        id="name" 
-                        name="name"
-                        value={profileData.name} 
-                        onChange={handleChange}
-                        disabled={!isEditing} 
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input 
-                        id="email" 
-                        name="email"
-                        type="email" 
-                        value={profileData.email} 
-                        onChange={handleChange}
-                        disabled={!isEditing} 
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={profileData.phone}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="company">Company</Label>
-                      <Input
-                        id="company"
-                        name="company"
-                        type="text"
-                        value={profileData.company}
-                        onChange={handleChange}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      type="text"
-                      value={profileData.address}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="security">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Change Password</h3>
-                  <p className="text-sm text-muted-foreground">Update your password to keep your account secure.</p>
-                  <Separator className="my-4" />
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <Input type="password" id="current-password" disabled={!isEditing} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input type="password" id="new-password" disabled={!isEditing} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <Input type="password" id="confirm-password" disabled={!isEditing} />
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange('fullName', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                value={formData.company}
+                onChange={(e) => handleInputChange('company', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="website">Company Website</Label>
+              <Input
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => handleInputChange('website', e.target.value)}
+              />
+            </div>
+
+            <Button onClick={handleSaveProfile} className="w-full">
+              <Save className="h-4 w-4 mr-2" />
+              Save Profile
+            </Button>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            {isEditing ? (
-              <div className="space-x-2">
-                <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                <Button onClick={handleSave}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </Button>
+        </Card>
+
+        {/* Custom Branding Setup */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Custom Branding Setup
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <Label>Company Logo</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                {brandingData.companyLogo ? (
+                  <div className="space-y-2">
+                    <img 
+                      src={brandingData.companyLogo} 
+                      alt="Company Logo" 
+                      className="mx-auto h-16 w-auto"
+                    />
+                    <p className="text-sm text-gray-600">Logo uploaded successfully</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                    <p className="text-sm text-gray-600">Upload your company logo</p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-linden-blue file:text-white hover:file:bg-linden-blue/90"
+                />
               </div>
-            ) : (
-              <Button onClick={() => setIsEditing(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Profile
-              </Button>
-            )}
-          </CardFooter>
+              <p className="text-xs text-gray-500">Supported formats: JPG, PNG, SVG (Max 5MB)</p>
+            </div>
+
+            {/* Theme Selection */}
+            <div className="space-y-2">
+              <Label>Portal Theme</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {themes.map((theme) => (
+                  <div
+                    key={theme.value}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      brandingData.selectedTheme === theme.value
+                        ? 'border-linden-blue bg-linden-blue/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleBrandingChange('selectedTheme', theme.value)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
+                      <span className="text-sm font-medium">{theme.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Welcome Message */}
+            <div className="space-y-2">
+              <Label htmlFor="welcomeMessage">Custom Welcome Message</Label>
+              <Textarea
+                id="welcomeMessage"
+                value={brandingData.welcomeMessage}
+                onChange={(e) => handleBrandingChange('welcomeMessage', e.target.value)}
+                placeholder="Enter a custom welcome message for your portal..."
+                rows={3}
+              />
+            </div>
+
+            {/* Theme Preview */}
+            <div className="space-y-2">
+              <Label>Theme Preview</Label>
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center gap-3 mb-3">
+                  {brandingData.companyLogo ? (
+                    <img src={brandingData.companyLogo} alt="Logo" className="h-8 w-auto" />
+                  ) : (
+                    <div className="w-8 h-8 bg-gray-300 rounded"></div>
+                  )}
+                  <div className="flex-1">
+                    <div className="h-2 bg-gray-300 rounded w-24 mb-1"></div>
+                    <div className="h-2 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+                <div className={`p-3 rounded ${themes.find(t => t.value === brandingData.selectedTheme)?.color || 'bg-blue-500'} text-white`}>
+                  <p className="text-sm">{brandingData.welcomeMessage}</p>
+                </div>
+              </div>
+            </div>
+
+            <Button onClick={handleSaveBranding} className="w-full bg-linden-gold hover:bg-linden-gold/90">
+              <Save className="h-4 w-4 mr-2" />
+              Save Branding Settings
+            </Button>
+          </CardContent>
         </Card>
       </div>
+
+      {/* Additional Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Portal Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="font-semibold">Notification Preferences</h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Email notifications for delivery updates</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Campaign completion alerts</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Weekly summary reports</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="font-semibold">Portal Features</h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Allow recipient address changes</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" defaultChecked className="rounded" />
+                  <span className="text-sm">Enable gift customization options</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Require delivery confirmation</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
