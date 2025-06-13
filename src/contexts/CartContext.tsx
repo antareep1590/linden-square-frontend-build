@@ -8,6 +8,7 @@ export interface GiftBox {
   size: 'Small' | 'Medium' | 'Large';
   theme: string;
   basePrice: number;
+  image?: string; // Added image property
   gifts: Array<{
     id: string;
     name: string;
