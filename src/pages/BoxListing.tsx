@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,9 +21,9 @@ const giftBoxes = [
     basePrice: 75.00,
     image: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&h=400&fit=crop',
     gifts: [
-      { name: 'Artisan Coffee Beans', quantity: 2 },
-      { name: 'Premium Chocolates', quantity: 1 },
-      { name: 'Ceramic Mug', quantity: 1 }
+      { id: '1', name: 'Artisan Coffee Beans', price: 25.00, quantity: 2 },
+      { id: '2', name: 'Premium Chocolates', price: 15.00, quantity: 1 },
+      { id: '3', name: 'Ceramic Mug', price: 20.00, quantity: 1 }
     ],
     description: 'Premium coffee selection with artisan chocolates'
   },
@@ -37,10 +36,10 @@ const giftBoxes = [
     basePrice: 120.00,
     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400&h=400&fit=crop',
     gifts: [
-      { name: 'Essential Oil Set', quantity: 1 },
-      { name: 'Bamboo Yoga Mat', quantity: 1 },
-      { name: 'Herbal Tea Collection', quantity: 3 },
-      { name: 'Meditation Guide', quantity: 1 }
+      { id: '4', name: 'Essential Oil Set', price: 30.00, quantity: 1 },
+      { id: '5', name: 'Bamboo Yoga Mat', price: 45.00, quantity: 1 },
+      { id: '6', name: 'Herbal Tea Collection', price: 15.00, quantity: 3 },
+      { id: '7', name: 'Meditation Guide', price: 12.00, quantity: 1 }
     ],
     description: 'Self-care essentials for a balanced lifestyle'
   },
@@ -53,9 +52,9 @@ const giftBoxes = [
     basePrice: 45.00,
     image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&h=400&fit=crop',
     gifts: [
-      { name: 'Wireless Charger', quantity: 1 },
-      { name: 'Phone Stand', quantity: 1 },
-      { name: 'USB Cable Set', quantity: 1 }
+      { id: '8', name: 'Wireless Charger', price: 20.00, quantity: 1 },
+      { id: '9', name: 'Phone Stand', price: 15.00, quantity: 1 },
+      { id: '10', name: 'USB Cable Set', price: 10.00, quantity: 1 }
     ],
     description: 'Essential tech accessories for modern professionals'
   },
@@ -68,10 +67,10 @@ const giftBoxes = [
     basePrice: 85.00,
     image: 'https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400&h=400&fit=crop',
     gifts: [
-      { name: 'Artisan Cheese Selection', quantity: 1 },
-      { name: 'Craft Beer Variety Pack', quantity: 6 },
-      { name: 'Gourmet Crackers', quantity: 2 },
-      { name: 'Honey Jar', quantity: 1 }
+      { id: '11', name: 'Artisan Cheese Selection', price: 25.00, quantity: 1 },
+      { id: '12', name: 'Craft Beer Variety Pack', price: 30.00, quantity: 6 },
+      { id: '13', name: 'Gourmet Crackers', price: 8.00, quantity: 2 },
+      { id: '14', name: 'Honey Jar', price: 12.00, quantity: 1 }
     ],
     description: 'Artisanal snacks and premium beverages'
   }

@@ -1,361 +1,266 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerWithRange } from "@/components/ui/date-picker";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Package, Truck, Clock, CheckCircle, AlertCircle, Eye, MapPin, Calendar, ChevronDown, ChevronRight, User } from "lucide-react";
-import OrderDetailsModal from "@/components/tracking/OrderDetailsModal";
-
-interface SubOrder {
-  recipientName: string;
-  recipientEmail: string;
-  shippingAddress: string;
-  deliveryStatus: string;
-  estimatedDelivery: string;
-  giftBoxName: string;
-  giftBoxContents: string[];
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Search, Package, Truck, MapPin, Eye, Calendar, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Order {
   id: string;
-  recipientCount: number;
-  shipDate: Date;
-  carrier: string;
-  trackingLink: string;
-  status: string;
+  orderNumber: string;
+  recipientName: string;
   items: string;
-  shippingAddress: string;
-  estimatedDelivery: string;
-  giftBoxName: string;
-  giftBoxItems: string[];
-  subOrders: SubOrder[];
+  orderDate: string;
+  status: 'placed' | 'fulfilled' | 'shipped' | 'delivered';
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  shippingCarrier?: string;
 }
 
-const mockOrders: Order[] = [
-  {
-    id: "ORD-2023-001",
-    shipDate: new Date("2023-11-15"),
-    items: "Premium Gift Box Set",
-    shippingAddress: "Multiple Recipients",
-    status: "shipped",
-    estimatedDelivery: "2023-11-20",
-    recipientCount: 3,
-    carrier: "FedEx",
-    trackingLink: "https://fedex.com/track/TRACK12345",
-    giftBoxName: "Premium Gift Box Set",
-    giftBoxItems: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"],
-    subOrders: [
-      {
-        recipientName: "John Smith",
-        recipientEmail: "john@company.com",
-        shippingAddress: "123 Main St, Anytown, CA 12345",
-        deliveryStatus: "delivered",
-        estimatedDelivery: "2023-11-18",
-        giftBoxName: "Premium Gift Box Set",
-        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
-      },
-      {
-        recipientName: "Sarah Johnson",
-        recipientEmail: "sarah@partner.com",
-        shippingAddress: "456 Oak Ave, Somewhere, NY 67890",
-        deliveryStatus: "in-transit",
-        estimatedDelivery: "2023-11-20",
-        giftBoxName: "Premium Gift Box Set",
-        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
-      },
-      {
-        recipientName: "Mike Wilson",
-        recipientEmail: "mike@team.com",
-        shippingAddress: "789 Pine Rd, Nowhere, TX 54321",
-        deliveryStatus: "processing",
-        estimatedDelivery: "2023-11-22",
-        giftBoxName: "Premium Gift Box Set",
-        giftBoxContents: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
-      }
-    ]
-  },
-  {
-    id: "ORD-2023-002",
-    shipDate: new Date("2023-11-10"),
-    items: "Custom Corporate Gifts",
-    shippingAddress: "456 Elm St, Anytown USA",
-    status: "processing",
-    estimatedDelivery: "2023-11-22",
-    recipientCount: 1,
-    carrier: "UPS",
-    trackingLink: "https://ups.com/track/TRACK67890",
-    giftBoxName: "Custom Corporate Gifts",
-    giftBoxItems: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"],
-    subOrders: [
-      {
-        recipientName: "Emily Davis",
-        recipientEmail: "emily@corp.com",
-        shippingAddress: "456 Elm St, Anytown, USA 12345",
-        deliveryStatus: "processing",
-        estimatedDelivery: "2023-11-22",
-        giftBoxName: "Custom Corporate Gifts",
-        giftBoxContents: ["Tech Accessories Kit", "Premium Notebook Set", "Wellness Kit"]
-      }
-    ]
-  }
-];
-
 const TrackOrders = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [deliveryDateRange, setDeliveryDateRange] = useState<any>(null);
-  const [orderDateRange, setOrderDateRange] = useState<any>(null);
-  const [recipientCountFilter, setRecipientCountFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [showTimeline, setShowTimeline] = useState(false);
 
-  const filteredOrders = mockOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    const matchesRecipientCount = !recipientCountFilter || order.recipientCount.toString() === recipientCountFilter;
-    return matchesSearch && matchesStatus && matchesRecipientCount;
-  });
-
-  // Calculate overall status based on sub-orders
-  const getOverallStatus = (order: Order) => {
-    if (!order.subOrders || order.subOrders.length === 0) return order.status;
-    
-    const statuses = order.subOrders.map(sub => sub.deliveryStatus);
-    if (statuses.every(s => s === 'delivered')) return 'delivered';
-    if (statuses.some(s => s === 'processing')) return 'processing';
-    if (statuses.some(s => s === 'in-transit')) return 'in-transit';
-    return 'shipped';
-  };
-
-  // Get the latest delivery date
-  const getLatestDeliveryDate = (order: Order) => {
-    if (!order.subOrders || order.subOrders.length === 0) return order.estimatedDelivery;
-    
-    const dates = order.subOrders.map(sub => new Date(sub.estimatedDelivery));
-    const latestDate = new Date(Math.max(...dates.map(d => d.getTime())));
-    return latestDate.toISOString().split('T')[0];
-  };
-
-  const handleViewOrder = (order: Order) => {
-    setSelectedOrder(order);
-    setIsDetailsModalOpen(true);
-  };
-
-  const toggleOrderExpansion = (orderId: string) => {
-    const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderId)) {
-      newExpanded.delete(orderId);
-    } else {
-      newExpanded.add(orderId);
+  // Mock orders data
+  const orders: Order[] = [
+    {
+      id: '1',
+      orderNumber: 'ORD-2024-001',
+      recipientName: 'Sarah Johnson',
+      items: 'Premium Coffee Set',
+      orderDate: '2024-01-15',
+      status: 'delivered',
+      trackingNumber: 'FX123456789',
+      estimatedDelivery: '2024-01-18',
+      shippingCarrier: 'FedEx'
+    },
+    {
+      id: '2',
+      orderNumber: 'ORD-2024-002',
+      recipientName: 'Michael Chen',
+      items: 'Wellness Package',
+      orderDate: '2024-01-16',
+      status: 'shipped',
+      trackingNumber: 'UP987654321',
+      estimatedDelivery: '2024-01-20',
+      shippingCarrier: 'UPS'
+    },
+    {
+      id: '3',
+      orderNumber: 'ORD-2024-003',
+      recipientName: 'Emily Rodriguez',
+      items: 'Tech Starter Kit',
+      orderDate: '2024-01-17',
+      status: 'fulfilled',
+      trackingNumber: 'DH456789123',
+      estimatedDelivery: '2024-01-21',
+      shippingCarrier: 'DHL'
+    },
+    {
+      id: '4',
+      orderNumber: 'ORD-2024-004',
+      recipientName: 'David Wilson',
+      items: 'Gourmet Treats',
+      orderDate: '2024-01-18',
+      status: 'placed',
+      estimatedDelivery: '2024-01-23'
     }
-    setExpandedOrders(newExpanded);
-  };
-
-  const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  ];
 
   const getStatusBadge = (status: string) => {
-    const statusColors = {
-      "shipped": "bg-blue-500 text-white border-0",
-      "delivered": "bg-green-500 text-white border-0",
-      "processing": "bg-amber-500 text-white border-0",
-      "pending": "bg-gray-500 text-white border-0",
-      "in-transit": "bg-blue-600 text-white border-0"
+    const configs = {
+      placed: { color: 'bg-blue-100 text-blue-800', label: 'Placed' },
+      fulfilled: { color: 'bg-yellow-100 text-yellow-800', label: 'Fulfilled' },
+      shipped: { color: 'bg-purple-100 text-purple-800', label: 'Shipped' },
+      delivered: { color: 'bg-green-100 text-green-800', label: 'Delivered' }
     };
     
+    const config = configs[status as keyof typeof configs];
     return (
-      <Badge className={statusColors[status as keyof typeof statusColors] || "bg-gray-500 text-white border-0"}>
-        {status === "in-transit" ? "In Transit" : status.charAt(0).toUpperCase() + status.slice(1)}
+      <Badge className={config.color}>
+        {config.label}
       </Badge>
     );
   };
 
-  const formatGiftBoxItems = (giftBoxName: string, giftBoxItems: string[]) => {
-    return `${giftBoxName} (${giftBoxItems.join(", ")})`;
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'placed': return <Package className="h-4 w-4" />;
+      case 'fulfilled': return <Clock className="h-4 w-4" />;
+      case 'shipped': return <Truck className="h-4 w-4" />;
+      case 'delivered': return <MapPin className="h-4 w-4" />;
+      default: return <Package className="h-4 w-4" />;
+    }
+  };
+
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.recipientName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || order.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleViewTimeline = (order: Order) => {
+    setSelectedOrder(order);
+    setShowTimeline(true);
+  };
+
+  const renderTimeline = (order: Order) => {
+    const timelineSteps = [
+      { status: 'placed', label: 'Order Placed', date: order.orderDate, completed: true },
+      { status: 'fulfilled', label: 'Order Fulfilled', date: '2024-01-17', completed: ['fulfilled', 'shipped', 'delivered'].includes(order.status) },
+      { status: 'shipped', label: 'Shipped', date: '2024-01-18', completed: ['shipped', 'delivered'].includes(order.status) },
+      { status: 'delivered', label: 'Delivered', date: order.estimatedDelivery, completed: order.status === 'delivered' }
+    ];
+
+    return (
+      <div className="space-y-4">
+        {timelineSteps.map((step, index) => (
+          <div key={step.status} className="flex items-center gap-4">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+            }`}>
+              {getStatusIcon(step.status)}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <span className={`font-medium ${step.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {step.label}
+                </span>
+                <span className="text-sm text-gray-500">{step.date}</span>
+              </div>
+              {step.status === 'shipped' && order.trackingNumber && (
+                <div className="text-sm text-gray-600 mt-1">
+                  Tracking: {order.trackingNumber} ({order.shippingCarrier})
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Track Orders</h1>
-      </div>
-
-      {/* Enhanced Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 bg-muted/20 p-4 rounded-lg">
+      <div className="flex items-center justify-between">
         <div>
-          <Input
-            placeholder="Search by order ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <h1 className="text-2xl font-bold">Track Orders</h1>
+          <p className="text-gray-600">Monitor the status and delivery progress of your gift orders</p>
         </div>
-        
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="shipped">Shipped</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <DatePickerWithRange
-          date={deliveryDateRange}
-          onDateChange={setDeliveryDateRange}
-          placeholder="Delivery Date Range"
-        />
-
-        <DatePickerWithRange
-          date={orderDateRange}
-          onDateChange={setOrderDateRange}
-          placeholder="Order Date Range"
-        />
-
-        <Input
-          placeholder="Recipients count"
-          type="number"
-          value={recipientCountFilter}
-          onChange={(e) => setRecipientCountFilter(e.target.value)}
-        />
       </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search by order number or recipient name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="placed">Placed</SelectItem>
+                <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Orders Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10"></TableHead>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Recipients</TableHead>
-              <TableHead>Gift Box Items</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Estimated Delivery</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredOrders.map((order) => {
-              const overallStatus = getOverallStatus(order);
-              const latestDelivery = getLatestDeliveryDate(order);
-              
-              return (
-                <React.Fragment key={order.id}>
-                  {/* Main Order Row */}
-                  <TableRow className="hover:bg-gray-50">
-                    <TableCell>
-                      {order.recipientCount > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleOrderExpansion(order.id)}
-                          className="p-0 h-6 w-6"
-                        >
-                          {expandedOrders.has(order.id) ? 
-                            <ChevronDown className="h-4 w-4" /> : 
-                            <ChevronRight className="h-4 w-4" />
-                          }
-                        </Button>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>{formatDate(order.shipDate)}</TableCell>
-                    <TableCell>{order.recipientCount} recipient{order.recipientCount > 1 ? 's' : ''}</TableCell>
-                    <TableCell className="max-w-xs">
-                      <div className="text-sm text-gray-600 truncate" title={formatGiftBoxItems(order.giftBoxName, order.giftBoxItems)}>
-                        {formatGiftBoxItems(order.giftBoxName, order.giftBoxItems)}
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders ({filteredOrders.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order Number</TableHead>
+                <TableHead>Recipient</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Order Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Tracking</TableHead>
+                <TableHead>Est. Delivery</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                  <TableCell>{order.recipientName}</TableCell>
+                  <TableCell>{order.items}</TableCell>
+                  <TableCell>{order.orderDate}</TableCell>
+                  <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell>
+                    {order.trackingNumber ? (
+                      <div>
+                        <div className="text-sm font-medium">{order.trackingNumber}</div>
+                        <div className="text-xs text-gray-500">{order.shippingCarrier}</div>
                       </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(overallStatus)}</TableCell>
-                    <TableCell>{formatDate(latestDelivery)}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => handleViewOrder(order)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>View Order Details</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {/* Sub-order Rows */}
-                  {expandedOrders.has(order.id) && order.subOrders?.map((subOrder, index) => (
-                    <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
-                      <TableCell></TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 pl-4">
-                          <User className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium">{subOrder.recipientName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600 max-w-xs truncate">
-                          <MapPin className="h-3 w-3 inline mr-1" />
-                          {subOrder.shippingAddress}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="text-sm text-gray-600 truncate" title={formatGiftBoxItems(subOrder.giftBoxName, subOrder.giftBoxContents)}>
-                          {formatGiftBoxItems(subOrder.giftBoxName, subOrder.giftBoxContents)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(subOrder.deliveryStatus)}</TableCell>
-                      <TableCell>{formatDate(subOrder.estimatedDelivery)}</TableCell>
-                      <TableCell>
-                        <div className="text-xs text-gray-500">
-                          {subOrder.giftBoxContents?.length || 0} items
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{order.estimatedDelivery}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewTimeline(order)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      <OrderDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        order={selectedOrder}
-      />
+      {/* Order Timeline Modal */}
+      <Dialog open={showTimeline} onOpenChange={setShowTimeline}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Order Timeline</DialogTitle>
+          </DialogHeader>
+          
+          {selectedOrder && (
+            <div className="space-y-4">
+              <div className="border-b pb-4">
+                <div className="font-medium">{selectedOrder.orderNumber}</div>
+                <div className="text-sm text-gray-600">Recipient: {selectedOrder.recipientName}</div>
+                <div className="text-sm text-gray-600">Items: {selectedOrder.items}</div>
+              </div>
+              
+              {renderTimeline(selectedOrder)}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

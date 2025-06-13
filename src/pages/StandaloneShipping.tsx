@@ -1,16 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Upload, Download, Package, Truck, Users, Save, RefreshCw, Edit, Trash2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import AddRecipientModal from '@/components/AddRecipientModal';
@@ -28,17 +24,14 @@ interface Recipient {
   source: 'manual' | 'bulk' | 'auto';
 }
 
-const ShippingFulfillment = () => {
-  const navigate = useNavigate();
-  const [bulkShippingMode, setBulkShippingMode] = useState(false);
-  const [selectedCarrier, setSelectedCarrier] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+const StandaloneShipping = () => {
+  const [autoAssignCarriers, setAutoAssignCarriers] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
   
-  // Sample recipient addresses with mixed sources
+  // Sample recipient addresses
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -63,92 +56,33 @@ const ShippingFulfillment = () => {
       shippingMode: 'UPS Ground',
       cost: '$11.75',
       source: 'bulk'
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      email: 'emily.rodriguez@company.com',
-      phone: '+1 (555) 345-6789',
-      department: 'Sales',
-      address: '789 Pine St, Chicago, IL 60601',
-      status: 'confirmed',
-      shippingMode: 'FedEx Standard',
-      cost: '$10.99',
-      source: 'manual'
     }
   ]);
 
-  // Mock shipping carriers data
-  const carriers = [
-    {
-      id: 'fedex',
-      name: 'FedEx',
-      logo: '/placeholder.svg',
-      services: ['Standard', 'Express', 'Overnight'],
-      estimatedCost: '$12.50',
-      estimatedDays: '2-3 business days'
-    },
-    {
-      id: 'ups',
-      name: 'UPS',
-      logo: '/placeholder.svg',
-      services: ['Ground', 'Express', 'Next Day'],
-      estimatedCost: '$11.75',
-      estimatedDays: '3-5 business days'
-    },
-    {
-      id: 'dhl',
-      name: 'DHL',
-      logo: '/placeholder.svg',
-      services: ['Standard', 'Express', 'Priority'],
-      estimatedCost: '$15.20',
-      estimatedDays: '2-4 business days'
-    },
-    {
-      id: 'usps',
-      name: 'USPS',
-      logo: '/placeholder.svg',
-      services: ['Priority', 'Express', 'Ground'],
-      estimatedCost: '$9.99',
-      estimatedDays: '3-5 business days'
+  const handleSaveDefaults = () => {
+    // Save shipping defaults to local storage or backend
+    const shippingDefaults = {
+      autoAssignCarriers,
+      recipients: recipients.filter(r => r.status === 'confirmed')
+    };
+    localStorage.setItem('shippingDefaults', JSON.stringify(shippingDefaults));
+    toast.success('Shipping defaults saved successfully');
+    console.log('Saved shipping defaults:', shippingDefaults);
+  };
+
+  const handleLoadDefaults = () => {
+    // Load shipping defaults from local storage or backend
+    const saved = localStorage.getItem('shippingDefaults');
+    if (saved) {
+      const defaults = JSON.parse(saved);
+      setAutoAssignCarriers(defaults.autoAssignCarriers || false);
+      if (defaults.recipients) {
+        setRecipients(defaults.recipients);
+      }
+      toast.success('Shipping defaults loaded');
+    } else {
+      toast.info('No saved defaults found');
     }
-  ];
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      toast.success('CSV file uploaded and processed successfully');
-    }
-  };
-
-  const downloadTemplate = () => {
-    // Mock template download
-    toast.success('CSV template downloaded');
-  };
-
-  const handleContinue = () => {
-    const pendingAddresses = recipients.filter(r => r.status === 'pending');
-    if (pendingAddresses.length > 0) {
-      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
-      return;
-    }
-    
-    toast.success('Shipping configuration saved');
-    navigate('/payment-method');
-  };
-
-  const handlePayLater = () => {
-    // Generate invoice and send email
-    toast.success('Invoice link sent to your email. You can complete the payment later.');
-    console.log('Generating invoice for order and sending to client email');
-  };
-
-  const getTotalShippingCost = () => {
-    return recipients.reduce((total, recipient) => {
-      const cost = parseFloat(recipient.cost?.replace('$', '') || '0');
-      return total + cost;
-    }, 0);
   };
 
   const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
@@ -224,32 +158,28 @@ const ShippingFulfillment = () => {
     }
   };
 
+  const downloadTemplate = () => {
+    toast.success('CSV template downloaded');
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/recipient-selection')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipients
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold">Shipping & Fulfillment</h1>
-          <p className="text-gray-600">Configure delivery options and manage recipient addresses</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Shipping & Fulfillment Defaults</h1>
+          <p className="text-gray-600">Set up default shipping preferences and recipient addresses</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button 
-            onClick={handleContinue}
-            className="bg-linden-blue hover:bg-linden-blue/90"
-            disabled={recipients.filter(r => r.status === 'pending').length > 0}
-          >
-            Continue to Pay
+          <Button variant="outline" onClick={handleLoadDefaults}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Load Saved
           </Button>
-          
           <Button 
-            variant="outline"
-            className="border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
-            onClick={handlePayLater}
+            onClick={handleSaveDefaults}
+            className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Pay Later
+            <Save className="h-4 w-4 mr-2" />
+            Save Defaults
           </Button>
         </div>
       </div>
@@ -258,12 +188,64 @@ const ShippingFulfillment = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                About Shipping Defaults
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm text-gray-600">
+                <p>
+                  Configure your default shipping preferences and recipient addresses here. 
+                  These settings will automatically populate in future gift orders.
+                </p>
+                <p>
+                  You can add frequently used recipient addresses, set carrier preferences, 
+                  and enable auto-assignment rules to streamline your order process.
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Tip:</strong> Recipients added here will be available as quick-select 
+                    options during order creation, saving you time on repeated shipments.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Shipping Preferences */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Default Shipping Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">Auto-assign carriers</h4>
+                  <p className="text-sm text-gray-600">
+                    Automatically select the best carrier for each recipient based on location and preferences
+                  </p>
+                </div>
+                <Switch
+                  checked={autoAssignCarriers}
+                  onCheckedChange={setAutoAssignCarriers}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* CSV Upload Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Bulk Upload Recipient Addresses
+                Bulk Upload Recipients
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -279,25 +261,13 @@ const ShippingFulfillment = () => {
 
               <div className="flex gap-3">
                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="csv-upload"
-                  />
-                  <label htmlFor="csv-upload" className="cursor-pointer">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-lg font-medium text-gray-900 mb-2">
-                      {uploadedFile ? uploadedFile.name : 'Upload CSV File'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {uploadedFile 
-                        ? 'File uploaded successfully. Preview below.'
-                        : 'Click to upload or drag and drop your CSV file here'
-                      }
-                    </p>
-                  </label>
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-lg font-medium text-gray-900 mb-2">
+                    Upload CSV File
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Upload recipient addresses to add to your defaults
+                  </p>
                 </div>
                 
                 <Button
@@ -311,13 +281,13 @@ const ShippingFulfillment = () => {
             </CardContent>
           </Card>
 
-          {/* Recipient Address Management */}
+          {/* Recipient Management */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Recipient Address Management ({recipients.length})
+                  Default Recipients ({recipients.length})
                 </CardTitle>
                 <Button
                   onClick={() => setShowAddRecipient(true)}
@@ -331,7 +301,7 @@ const ShippingFulfillment = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Manage all recipients including manually added, bulk uploaded, and auto-filled entries.
+                  Manage your default recipient list. These addresses will be available for quick selection in future orders.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -347,8 +317,7 @@ const ShippingFulfillment = () => {
                         <TableHead>Recipient</TableHead>
                         <TableHead>Address</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Shipping</TableHead>
-                        <TableHead>Cost</TableHead>
+                        <TableHead>Default Shipping</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -377,21 +346,16 @@ const ShippingFulfillment = () => {
                           <TableCell>
                             {recipient.status === 'confirmed' ? (
                               <Badge variant="outline" className="text-green-600 border-green-600">
-                                <CheckCircle className="mr-1 h-3 w-3" />
                                 Confirmed
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-orange-600 border-orange-600">
-                                <AlertCircle className="mr-1 h-3 w-3" />
                                 Pending
                               </Badge>
                             )}
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">{recipient.shippingMode || '-'}</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm font-medium">{recipient.cost || '-'}</span>
                           </TableCell>
                           <TableCell>
                             <Badge className={`text-xs ${getSourceBadgeColor(recipient.source)}`}>
@@ -428,7 +392,7 @@ const ShippingFulfillment = () => {
                       {selectedRecipients.length} recipient(s) selected
                     </span>
                     <Button variant="outline" size="sm">
-                      Assign Carrier
+                      Assign Default Carrier
                     </Button>
                     <Button variant="outline" size="sm">
                       Export Selected
@@ -438,167 +402,53 @@ const ShippingFulfillment = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Bulk Shipping Toggle */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Shipping Mode
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">Auto-assign carriers for this order</h4>
-                  <p className="text-sm text-gray-600">
-                    Automatically select the best carrier for each recipient based on location and preferences
-                  </p>
-                </div>
-                <Switch
-                  checked={bulkShippingMode}
-                  onCheckedChange={setBulkShippingMode}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Carrier Selection */}
-          {!bulkShippingMode && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Choose Shipping Carrier
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {carriers.map((carrier) => (
-                    <div
-                      key={carrier.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedCarrier === carrier.id
-                          ? 'border-linden-blue bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedCarrier(carrier.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Truck className="h-6 w-6 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium">{carrier.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {carrier.services.join(', ')}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs">
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              <span>{carrier.estimatedCost}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{carrier.estimatedDays}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Sidebar - Summary */}
         <div className="space-y-6">
           <Card className="sticky top-4">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Shipping Summary
-              </CardTitle>
+              <CardTitle>Defaults Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              
-              {/* Shipping Configuration */}
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span>Shipping Mode:</span>
-                  <span className="font-medium">
-                    {bulkShippingMode ? 'Auto-assign' : 'Manual selection'}
+                  <span>Auto-assign Carriers:</span>
+                  <span className={autoAssignCarriers ? 'text-green-600' : 'text-gray-400'}>
+                    {autoAssignCarriers ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
                 
-                {!bulkShippingMode && selectedCarrier && (
-                  <div className="flex justify-between text-sm">
-                    <span>Selected Carrier:</span>
-                    <span className="font-medium">
-                      {carriers.find(c => c.id === selectedCarrier)?.name}
-                    </span>
-                  </div>
-                )}
-
-                <Separator />
                 <div className="flex justify-between text-sm">
                   <span>Total Recipients:</span>
                   <span className="font-medium">{recipients.length}</span>
                 </div>
+                
                 <div className="flex justify-between text-sm">
                   <span>Confirmed Addresses:</span>
                   <span className="font-medium text-green-600">
                     {recipients.filter(r => r.status === 'confirmed').length}
                   </span>
                 </div>
+                
                 <div className="flex justify-between text-sm">
                   <span>Pending Addresses:</span>
                   <span className="font-medium text-orange-600">
                     {recipients.filter(r => r.status === 'pending').length}
                   </span>
                 </div>
-                <Separator />
-                <div className="flex justify-between font-semibold">
-                  <span>Est. Shipping Cost:</span>
-                  <span>${getTotalShippingCost().toFixed(2)}</span>
-                </div>
               </div>
 
-              <div className="pt-4">
-                <Button 
-                  className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
-                  onClick={handleContinue}
-                  disabled={recipients.filter(r => r.status === 'pending').length > 0}
-                >
-                  Continue to Pay
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
-                  onClick={handlePayLater}
-                >
-                  Pay Later
-                </Button>
-                
-                {recipients.filter(r => r.status === 'pending').length > 0 && (
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Complete all addresses to continue
-                  </p>
-                )}
-              </div>
+              <Button 
+                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                onClick={handleSaveDefaults}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save These Defaults
+              </Button>
 
-              {/* Tracking Information */}
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-3">After Shipment</h4>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                  <p>✓ Tracking numbers will be automatically generated</p>
-                  <p>✓ Recipients will receive email notifications</p>
-                  <p>✓ Real-time tracking available in dashboard</p>
-                  <p>✓ Delivery confirmations sent to you</p>
-                </div>
+              <div className="text-xs text-gray-500 text-center">
+                These settings will be used as defaults in future orders
               </div>
             </CardContent>
           </Card>
@@ -625,4 +475,4 @@ const ShippingFulfillment = () => {
   );
 };
 
-export default ShippingFulfillment;
+export default StandaloneShipping;

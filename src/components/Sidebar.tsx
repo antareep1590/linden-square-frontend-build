@@ -33,7 +33,9 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Recipients', path: '/customers', icon: <Users size={20} /> },
   { name: 'Order Management', path: '/gift-box-flow', icon: <ShoppingCart size={20} /> },
-  { name: 'Track Orders', path: '/track-orders', icon: <Truck size={20} /> },
+  { name: 'Customization', path: '/customization-defaults', icon: <Sparkles size={20} /> },
+  { name: 'Shipping & Fulfillment', path: '/shipping-defaults', icon: <Truck size={20} /> },
+  { name: 'Track Orders', path: '/track-orders', icon: <Package size={20} /> },
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
