@@ -11,9 +11,6 @@ import {
   Search, 
   Download, 
   CreditCard, 
-  Calendar, 
-  Clock, 
-  AlertCircle, 
   Eye,
   DollarSign,
   FileText,
@@ -42,7 +39,10 @@ const Invoices = () => {
   const [scheduleFilter, setScheduleFilter] = useState('all');
   const [dueDateFilter, setDueDateFilter] = useState('all');
 
-  // Mock invoices data
+  const currentYear = new Date().getFullYear();
+  const today = new Date().toISOString().split('T')[0];
+
+  // Mock invoices data with current year dates
   const [invoices, setInvoices] = useState<Invoice[]>([
     {
       id: '1',
@@ -50,8 +50,8 @@ const Invoices = () => {
       orderNumber: 'ORD-2024-001',
       amount: 75.00,
       status: 'paid',
-      issueDate: '2024-01-15',
-      dueDate: '2024-01-30',
+      issueDate: `${currentYear}-01-15`,
+      dueDate: `${currentYear}-01-30`,
       paymentSchedule: 'one-time'
     },
     {
@@ -60,19 +60,19 @@ const Invoices = () => {
       orderNumber: 'ORD-2024-002',
       amount: 120.00,
       status: 'pending',
-      issueDate: '2024-01-16',
-      dueDate: '2024-01-31',
+      issueDate: `${currentYear}-01-16`,
+      dueDate: `${currentYear}-12-31`,
       paymentSchedule: 'monthly',
-      nextDueDate: '2024-02-28'
+      nextDueDate: today
     },
     {
       id: '3',
       invoiceNumber: 'INV-2024-003',
       orderNumber: 'ORD-2024-003',
       amount: 45.00,
-      status: 'overdue',
-      issueDate: '2024-01-10',
-      dueDate: '2024-01-25',
+      status: 'pending',
+      issueDate: `${currentYear}-01-10`,
+      dueDate: today,
       paymentSchedule: 'one-time'
     },
     {
@@ -81,8 +81,8 @@ const Invoices = () => {
       orderNumber: 'ORD-2024-004',
       amount: 85.00,
       status: 'pending',
-      issueDate: '2024-01-18',
-      dueDate: '2024-02-15',
+      issueDate: `${currentYear}-01-18`,
+      dueDate: `${currentYear}-12-15`,
       paymentSchedule: 'milestone',
       milestone: '50% upfront'
     }
@@ -103,20 +103,20 @@ const Invoices = () => {
     );
   };
 
-  const getPaymentScheduleBadge = (schedule: string) => {
-    const configs = {
-      'one-time': { color: 'bg-blue-100 text-blue-800', label: 'One-time' },
-      'monthly': { color: 'bg-purple-100 text-purple-800', label: 'Monthly' },
-      'quarterly': { color: 'bg-orange-100 text-orange-800', label: 'Quarterly' },
-      'milestone': { color: 'bg-cyan-100 text-cyan-800', label: 'Milestone' }
-    };
+  const shouldShowPayNow = (invoice: Invoice) => {
+    if (invoice.status === 'paid') return false;
     
-    const config = configs[schedule as keyof typeof configs];
-    return (
-      <Badge variant="outline" className={config.color}>
-        {config.label}
-      </Badge>
-    );
+    switch (invoice.paymentSchedule) {
+      case 'one-time':
+        return invoice.status === 'pending';
+      case 'monthly':
+      case 'quarterly':
+        return invoice.nextDueDate && invoice.nextDueDate <= today;
+      case 'milestone':
+        return true; // Always show for milestone-based
+      default:
+        return false;
+    }
   };
 
   const handleScheduleChange = (invoiceId: string, newSchedule: string) => {
@@ -141,15 +141,11 @@ const Invoices = () => {
   });
 
   const handleViewInvoice = (invoice: Invoice) => {
-    navigate(`/view-invoice/${invoice.id}`);
+    navigate(`/view-invoice/${invoice.invoiceNumber}`);
   };
 
   const handlePayNow = (invoice: Invoice) => {
-    if (invoice.paymentSchedule === 'one-time' || invoice.status === 'overdue') {
-      navigate('/payment-method', { state: { invoiceId: invoice.id, amount: invoice.amount } });
-    } else {
-      toast.info('Payment not currently due for this schedule');
-    }
+    navigate('/payment-method', { state: { invoiceId: invoice.id, amount: invoice.amount } });
   };
 
   const handleDownloadInvoice = (invoice: Invoice) => {
@@ -362,8 +358,7 @@ const Invoices = () => {
                         <Download className="h-4 w-4" />
                       </Button>
                       
-                      {(invoice.status === 'pending' || invoice.status === 'overdue') && 
-                       (invoice.paymentSchedule === 'one-time' || invoice.status === 'overdue') && (
+                      {shouldShowPayNow(invoice) && (
                         <Button
                           size="sm"
                           onClick={() => handlePayNow(invoice)}

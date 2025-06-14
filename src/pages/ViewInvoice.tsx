@@ -5,41 +5,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Download, Mail, Printer } from "lucide-react";
+import { ArrowLeft, Download, Mail, Printer, CreditCard } from "lucide-react";
 
 // Mock invoice data
 const mockInvoiceData = {
-  "INV-2023-001": {
-    id: "INV-2023-001",
+  "INV-2024-001": {
+    id: "INV-2024-001",
     client: "Acme Corporation",
     clientAddress: "123 Business St, Corporate City, CA 12345",
-    amount: 1375.00,
-    date: "2023-11-01",
-    dueDate: "2023-11-30",
+    amount: 1620.00,
+    date: "2024-11-01",
+    dueDate: "2024-11-30",
     status: "paid",
+    paymentSchedule: "one-time",
     giftBoxes: [
       {
         name: "Premium Gift Box Set",
         quantity: 25,
-        unitPrice: 50.00,
+        unitPrice: 45.00,
         items: ["Premium Coffee Set", "Gourmet Chocolate Box", "Scented Candle"]
       }
     ],
-    subtotal: 1250.00,
+    subtotal: 1125.00,
+    customPackaging: 200.00,
     personalization: 75.00,
     shipping: 50.00,
-    tax: 0.00,
-    total: 1375.00,
+    tax: 170.00,
+    total: 1620.00,
     recipients: ["John Smith", "Sarah Johnson", "Mike Wilson", "Emily Davis", "Robert Brown", "Lisa White", "David Lee", "Maria Garcia", "James Wilson", "Jennifer Taylor", "...and 15 more"]
   },
-  "INV-2023-002": {
-    id: "INV-2023-002",
+  "INV-2024-002": {
+    id: "INV-2024-002",
     client: "Tech Innovations Inc.",
     clientAddress: "456 Innovation Ave, Tech City, TC 67890",
     amount: 965.50,
-    date: "2023-10-28",
-    dueDate: "2023-11-27",
-    status: "unpaid",
+    date: "2024-10-28",
+    dueDate: "2024-11-27",
+    status: "pending",
+    paymentSchedule: "milestone",
     giftBoxes: [
       {
         name: "Custom Corporate Gifts",
@@ -49,6 +52,7 @@ const mockInvoiceData = {
       }
     ],
     subtotal: 890.50,
+    customPackaging: 0,
     personalization: 45.00,
     shipping: 30.00,
     tax: 0.00,
@@ -84,6 +88,23 @@ const ViewInvoice = () => {
     );
   }
 
+  const shouldShowPayNow = () => {
+    if (invoice.status === 'paid') return false;
+    
+    switch (invoice.paymentSchedule) {
+      case 'one-time':
+        return invoice.status === 'pending';
+      case 'milestone':
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const handlePayNow = () => {
+    navigate('/payment-method', { state: { invoiceId: invoice.id, amount: invoice.amount } });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -105,7 +126,17 @@ const ViewInvoice = () => {
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
-            {invoice.status === 'unpaid' && (
+            {shouldShowPayNow() && (
+              <Button 
+                size="sm"
+                onClick={handlePayNow}
+                className="bg-linden-blue hover:bg-linden-blue/90"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                Pay Now
+              </Button>
+            )}
+            {invoice.status === 'pending' && (
               <Button variant="outline" size="sm">
                 <Mail className="mr-2 h-4 w-4" />
                 Send Reminder
@@ -125,6 +156,7 @@ const ViewInvoice = () => {
                   <p><strong>Invoice #:</strong> {invoice.id}</p>
                   <p><strong>Date:</strong> {new Date(invoice.date).toLocaleDateString()}</p>
                   <p><strong>Due Date:</strong> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                  <p><strong>Payment Schedule:</strong> <span className="capitalize">{invoice.paymentSchedule.replace('-', ' ')}</span></p>
                 </div>
               </div>
               <div className="text-left lg:text-right">
@@ -169,15 +201,15 @@ const ViewInvoice = () => {
 
             <Separator className="mb-8" />
 
-            {/* Gift Box Items */}
+            {/* Itemized Breakdown */}
             <div className="mb-8">
-              <h3 className="font-semibold text-gray-900 mb-4">Gift Box Items</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Itemized Breakdown</h3>
               <div className="border rounded-lg overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[600px]">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-4 font-medium">Gift Box</th>
+                        <th className="text-left p-4 font-medium">Description</th>
                         <th className="text-center p-4 font-medium">Quantity</th>
                         <th className="text-right p-4 font-medium">Unit Price</th>
                         <th className="text-right p-4 font-medium">Total</th>
@@ -199,6 +231,17 @@ const ViewInvoice = () => {
                           <td className="text-right p-4">${(box.quantity * box.unitPrice).toFixed(2)}</td>
                         </tr>
                       ))}
+                      {invoice.customPackaging > 0 && (
+                        <tr className="border-t">
+                          <td className="p-4">
+                            <p className="font-medium">Custom Packaging</p>
+                            <p className="text-sm text-gray-600">Premium presentation boxes</p>
+                          </td>
+                          <td className="text-center p-4">25</td>
+                          <td className="text-right p-4">${(invoice.customPackaging / 25).toFixed(2)}</td>
+                          <td className="text-right p-4">${invoice.customPackaging.toFixed(2)}</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -252,10 +295,13 @@ const ViewInvoice = () => {
               </div>
             )}
 
-            {invoice.status === 'unpaid' && (
+            {invoice.status === 'pending' && (
               <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                 <p className="text-amber-800 font-medium">⏰ Payment Pending</p>
-                <p className="text-amber-700 text-sm">Payment due by {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                <p className="text-amber-700 text-sm">
+                  Payment due by {new Date(invoice.dueDate).toLocaleDateString()}
+                  {invoice.paymentSchedule === 'milestone' && " (Milestone-based payment)"}
+                </p>
               </div>
             )}
           </CardContent>
