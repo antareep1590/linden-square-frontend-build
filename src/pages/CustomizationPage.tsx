@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -273,7 +272,15 @@ const CustomizationPage = () => {
     } else {
       // Find the first expanded box or first box
       const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || boxesToUse[0]?.id;
-      return expandedBoxId ? individualCustomizations[expandedBoxId] : {};
+      if (expandedBoxId && individualCustomizations[expandedBoxId]) {
+        return individualCustomizations[expandedBoxId];
+      }
+      // Return empty object with proper structure if no data found
+      return {
+        brandedNotecard: { enabled: false, template: '', message: '', logo: null },
+        giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
+        messageCard: { enabled: false, message: '', senderName: '' }
+      };
     }
   };
 

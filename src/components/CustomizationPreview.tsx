@@ -25,14 +25,17 @@ interface PreviewData {
 }
 
 interface CustomizationPreviewProps {
-  customization: PreviewData;
+  customization: PreviewData | undefined;
   boxName?: string;
 }
 
 const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customization, boxName }) => {
-  const hasAnyCustomization = customization.brandedNotecard?.enabled || 
-                             customization.giftTags?.enabled || 
-                             customization.messageCard?.enabled;
+  // Handle undefined or empty customization object
+  const safeCustomization = customization || {};
+  
+  const hasAnyCustomization = safeCustomization.brandedNotecard?.enabled || 
+                             safeCustomization.giftTags?.enabled || 
+                             safeCustomization.messageCard?.enabled;
 
   if (!hasAnyCustomization) {
     return (
@@ -52,7 +55,7 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
       )}
       
       {/* Branded Notecard Preview */}
-      {customization.brandedNotecard?.enabled && (
+      {safeCustomization.brandedNotecard?.enabled && (
         <Card className="border-2 border-dashed border-blue-200 bg-blue-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -62,20 +65,20 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="bg-white rounded-md p-3 min-h-20 text-xs">
-              {customization.brandedNotecard.logo && (
+              {safeCustomization.brandedNotecard.logo && (
                 <div className="mb-2">
                   <Badge variant="outline" className="text-xs">
-                    Logo: {customization.brandedNotecard.logo.name}
+                    Logo: {safeCustomization.brandedNotecard.logo.name}
                   </Badge>
                 </div>
               )}
-              {customization.brandedNotecard.template && (
+              {safeCustomization.brandedNotecard.template && (
                 <div className="text-gray-600 mb-2">
-                  Template: {customization.brandedNotecard.template}
+                  Template: {safeCustomization.brandedNotecard.template}
                 </div>
               )}
               <div className="font-medium">
-                {customization.brandedNotecard.message || 'Your custom message will appear here...'}
+                {safeCustomization.brandedNotecard.message || 'Your custom message will appear here...'}
               </div>
             </div>
           </CardContent>
@@ -83,7 +86,7 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
       )}
 
       {/* Gift Tags Preview */}
-      {customization.giftTags?.enabled && (
+      {safeCustomization.giftTags?.enabled && (
         <Card className="border-2 border-dashed border-green-200 bg-green-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -93,9 +96,9 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
           </CardHeader>
           <CardContent>
             <div className="inline-block bg-white rounded-full px-3 py-1 text-xs font-medium shadow-sm">
-              {customization.giftTags.type === 'preset' 
-                ? customization.giftTags.presetMessage || 'Select a preset message'
-                : customization.giftTags.customMessage || 'Your custom tag message'
+              {safeCustomization.giftTags.type === 'preset' 
+                ? safeCustomization.giftTags.presetMessage || 'Select a preset message'
+                : safeCustomization.giftTags.customMessage || 'Your custom tag message'
               }
             </div>
           </CardContent>
@@ -103,7 +106,7 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
       )}
 
       {/* Message Card Preview */}
-      {customization.messageCard?.enabled && (
+      {safeCustomization.messageCard?.enabled && (
         <Card className="border-2 border-dashed border-purple-200 bg-purple-50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -114,11 +117,11 @@ const CustomizationPreview: React.FC<CustomizationPreviewProps> = ({ customizati
           <CardContent>
             <div className="bg-white rounded-md p-3 text-xs">
               <div className="mb-2 font-medium">
-                {customization.messageCard.message || 'Your personal message will appear here...'}
+                {safeCustomization.messageCard.message || 'Your personal message will appear here...'}
               </div>
-              {customization.messageCard.senderName && (
+              {safeCustomization.messageCard.senderName && (
                 <div className="text-right text-gray-600 italic">
-                  - {customization.messageCard.senderName}
+                  - {safeCustomization.messageCard.senderName}
                 </div>
               )}
             </div>
