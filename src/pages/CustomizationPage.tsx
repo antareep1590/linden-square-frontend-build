@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -17,8 +17,44 @@ import CustomizationPreview from '@/components/CustomizationPreview';
 const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
-  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual'); // Fixed type definition
+  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual');
+  const [defaultsLoaded, setDefaultsLoaded] = useState(false);
   
+  // Mock gift boxes for order flow
+  const selectedBoxes = [
+    {
+      id: '1',
+      name: 'Premium Coffee Collection',
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
+      theme: 'Appreciation',
+      basePrice: 49.99
+    },
+    {
+      id: '2',
+      name: 'Wellness Package',
+      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
+      theme: 'Wellness',
+      basePrice: 79.99
+    }
+  ];
+
+  // Load defaults from localStorage on component mount
+  useEffect(() => {
+    const savedDefaults = localStorage.getItem('customizationDefaults');
+    if (savedDefaults) {
+      try {
+        const defaults = JSON.parse(savedDefaults);
+        setCustomizationLevel(defaults.customizationLevel || 'individual');
+        setOrderLevelCustomization(defaults.orderLevelCustomization || orderLevelCustomization);
+        setIndividualCustomizations(defaults.individualCustomizations || individualCustomizations);
+        setDefaultsLoaded(true);
+        toast.success('Loaded your customization defaults');
+      } catch (error) {
+        console.error('Error loading customization defaults:', error);
+      }
+    }
+  }, []);
+
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -382,26 +418,39 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/box-listing')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back To Gift Boxes
-        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Boxes</h1>
-          <p className="text-gray-600">Add personal touches and branding to make your gifts special</p>
+          <p className="text-gray-600">Add personalized touches to make your gifts special</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-linden-blue">
-            ${calculateCustomizationCost().toFixed(2)} customization cost
+            ${calculateCustomizationCost().toFixed(2)} total
           </Badge>
           <Button 
-            onClick={handleContinue}
+            onClick={() => console.log('Continue to next step')}
             className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Continue to Recipients
+            Continue
           </Button>
         </div>
       </div>
+
+      {/* Defaults Loaded Notification */}
+      {defaultsLoaded && (
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-green-800 text-sm">
+                  <strong>Defaults loaded:</strong> Your saved customization preferences have been applied. 
+                  You can edit any of these settings below.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
