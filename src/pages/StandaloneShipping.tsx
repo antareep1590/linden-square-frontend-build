@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,29 +10,10 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithRange } from '@/components/ui/date-picker';
-import { 
-  Truck, 
-  Upload, 
-  Download, 
-  Users, 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  MapPin, 
-  Save,
-  Info,
-  Package,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  X
-} from 'lucide-react';
-import { DateRange } from 'react-day-picker';
+import { Upload, Download, Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
-import AddRecipientModal from '@/components/AddRecipientModal';
 import BulkUploadModal from '@/components/BulkUploadModal';
+import AddRecipientModal from '@/components/AddRecipientModal';
 
 interface GiftBox {
   id: string;
@@ -264,32 +246,18 @@ const StandaloneShipping = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Shipping & Fulfillment Defaults</h1>
-          <p className="text-gray-600">Configure default shipping preferences and recipient management</p>
+          <p className="text-gray-600">Set up default shipping preferences and recipient management</p>
         </div>
-        <Button 
-          onClick={handleSaveDefaults}
-          className="bg-linden-blue hover:bg-linden-blue/90"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save Defaults
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button 
+            onClick={handleSaveDefaults}
+            className="bg-linden-blue hover:bg-linden-blue/90"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Defaults
+          </Button>
+        </div>
       </div>
-
-      {/* How This Works Note */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-blue-800 mb-1">How This Works</h4>
-              <p className="text-blue-800 text-sm">
-                All shipping preferences and recipient data added here will auto-fill during the order process. 
-                You can still make edits while placing an order.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -561,7 +529,7 @@ const StandaloneShipping = () => {
                                 size="sm"
                                 onClick={() => handleEditRecipient(recipient)}
                               >
-                                <Pencil className="h-3 w-3" />
+                                <Edit className="h-3 w-3" />
                               </Button>
                               <Button 
                                 variant="ghost" 

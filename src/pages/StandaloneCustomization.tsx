@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,19 +16,19 @@ import CustomizationPreview from '@/components/CustomizationPreview';
 const StandaloneCustomization = () => {
   const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual');
   
-  // Mock gift boxes with proper image handling
+  // Mock gift boxes for defaults page
   const selectedBoxes = [
     {
       id: '1',
       name: 'Premium Coffee Collection',
-      image: '/lovable-uploads/74e1121a-c665-4758-8b7c-4e54e623d9d8.png',
+      image: '/placeholder.svg',
       theme: 'Appreciation',
       basePrice: 49.99
     },
     {
       id: '2',
       name: 'Wellness Package',
-      image: '/lovable-uploads/8c92ffaf-d69e-4208-84c4-cb23767a0a90.png',
+      image: '/placeholder.svg',
       theme: 'Wellness',
       basePrice: 79.99
     }
@@ -209,12 +210,6 @@ const StandaloneCustomization = () => {
     if (customizationLevel === 'order') return undefined;
     const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]);
     return expandedBoxId ? selectedBoxes.find(box => box.id === expandedBoxId)?.name : selectedBoxes[0]?.name;
-  };
-
-  // Helper function for proper image handling
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const target = e.target as HTMLImageElement;
-    target.src = '/placeholder.svg';
   };
 
   const renderCustomizationForm = (boxId?: string) => {
@@ -458,10 +453,13 @@ const StandaloneCustomization = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
-                          src={box.image} 
+                          src={box.image || '/placeholder.svg'} 
                           alt={box.name}
                           className="w-full h-full object-cover"
-                          onError={handleImageError}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder.svg';
+                          }}
                           loading="lazy"
                         />
                       </div>

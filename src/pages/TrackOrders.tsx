@@ -1,15 +1,13 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DateRange } from 'react-day-picker';
 
 interface SubOrder {
   recipientName: string;
@@ -39,8 +37,6 @@ const TrackOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
-  const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
-  const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>();
 
   // Mock orders data with sub-orders
   const orders: Order[] = [
@@ -144,57 +140,8 @@ const TrackOrders = () => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
-    
-    // Filter by order date range
-    let matchesOrderDate = true;
-    if (orderDateRange?.from) {
-      const orderDate = new Date(order.orderDate);
-      matchesOrderDate = orderDate >= orderDateRange.from && 
-                        (!orderDateRange.to || orderDate <= orderDateRange.to);
-    }
-    
-    // Filter by delivery date range
-    let matchesDeliveryDate = true;
-    if (deliveryDateRange?.from && order.estimatedDelivery) {
-      const deliveryDate = new Date(order.estimatedDelivery);
-      matchesDeliveryDate = deliveryDate >= deliveryDateRange.from && 
-                           (!deliveryDateRange.to || deliveryDate <= deliveryDateRange.to);
-    }
-    
-    return matchesSearch && matchesStatus && matchesOrderDate && matchesDeliveryDate;
+    return matchesSearch && matchesStatus;
   });
-
-  // Calculate summary statistics based on filtered orders
-  const getSummaryStats = () => {
-    const stats = {
-      placed: 0,
-      fulfilled: 0,
-      shipped: 0,
-      delivered: 0
-    };
-
-    filteredOrders.forEach(order => {
-      const status = getOverallStatus(order.subOrders);
-      switch (status) {
-        case 'placed':
-          stats.placed++;
-          break;
-        case 'fulfilled':
-          stats.fulfilled++;
-          break;
-        case 'shipped':
-          stats.shipped++;
-          break;
-        case 'delivered':
-          stats.delivered++;
-          break;
-      }
-    });
-
-    return stats;
-  };
-
-  const summaryStats = getSummaryStats();
 
   const handleViewTimeline = (order: Order) => {
     setSelectedOrder(order);
@@ -266,63 +213,11 @@ const TrackOrders = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Orders Placed</p>
-                <p className="text-2xl font-bold">{summaryStats.placed}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Orders Fulfilled</p>
-                <p className="text-2xl font-bold">{summaryStats.fulfilled}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Orders Shipped</p>
-                <p className="text-2xl font-bold">{summaryStats.shipped}</p>
-              </div>
-              <Truck className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Orders Delivered</p>
-                <p className="text-2xl font-bold">{summaryStats.delivered}</p>
-              </div>
-              <MapPin className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Search</Label>
+          <div className="flex gap-4">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -333,40 +228,18 @@ const TrackOrders = () => {
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="placed">Placed</SelectItem>
-                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Order Date</Label>
-              <DatePickerWithRange
-                date={orderDateRange}
-                onDateChange={setOrderDateRange}
-                placeholder="Select order date range"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Estimated Delivery Date</Label>
-              <DatePickerWithRange
-                date={deliveryDateRange}
-                onDateChange={setDeliveryDateRange}
-                placeholder="Select delivery date range"
-              />
-            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="placed">Placed</SelectItem>
+                <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
