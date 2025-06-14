@@ -321,9 +321,9 @@ const RecipientSelection = () => {
 
       {/* Bulk Upload Modal */}
       <BulkUploadModal
-        open={showBulkModal}
-        onOpenChange={setShowBulkModal}
-        onUploadComplete={(newRecipients) => {
+        isOpen={showBulkModal}
+        onClose={() => setShowBulkModal(false)}
+        onUploadSuccess={(newRecipients) => {
           setRecipients(prev => [
             ...prev,
             ...newRecipients.map((r, idx) => ({

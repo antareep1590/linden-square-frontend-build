@@ -6,6 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { 
   Truck, 
@@ -17,11 +20,18 @@ import {
   Trash2, 
   MapPin, 
   Save,
-  Info
+  Info,
+  Package,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import AddRecipientModal from '@/components/AddRecipientModal';
+import BulkUploadModal from '@/components/BulkUploadModal';
 
 interface GiftBox {
   id: string;
