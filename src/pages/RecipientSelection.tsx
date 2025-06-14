@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Plus, Upload, Edit, Trash2, Users, Filter } from 'lucide-react';
+import { toast } from 'sonner';
 import AddRecipientModal from '@/components/AddRecipientModal';
 
 interface Recipient {
