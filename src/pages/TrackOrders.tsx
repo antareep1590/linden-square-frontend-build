@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DateRange } from 'react-day-picker';
 
 interface SubOrder {
   recipientName: string;
@@ -34,6 +36,8 @@ interface Order {
 const TrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
+  const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -99,6 +103,45 @@ const TrackOrders = () => {
           estimatedDelivery: '2024-01-21'
         }
       ]
+    },
+    {
+      id: '3',
+      orderNumber: 'ORD-2024-003',
+      items: 'Tech Accessories Kit',
+      orderDate: '2024-01-17',
+      status: 'shipped',
+      trackingNumber: 'DH555666777',
+      estimatedDelivery: '2024-01-22',
+      shippingCarrier: 'DHL',
+      subOrders: [
+        {
+          recipientName: 'John Smith',
+          recipientEmail: 'john@company.com',
+          address: '789 Broadway, Los Angeles, CA 90210',
+          carrier: 'DHL',
+          status: 'shipped',
+          trackingNumber: 'DH555666777',
+          estimatedDelivery: '2024-01-22'
+        }
+      ]
+    },
+    {
+      id: '4',
+      orderNumber: 'ORD-2024-004',
+      items: 'Holiday Gift Box',
+      orderDate: '2024-01-18',
+      status: 'placed',
+      estimatedDelivery: '2024-01-25',
+      subOrders: [
+        {
+          recipientName: 'Emma Wilson',
+          recipientEmail: 'emma@company.com',
+          address: '456 Oak Street, Chicago, IL 60601',
+          carrier: 'USPS',
+          status: 'placed',
+          estimatedDelivery: '2024-01-25'
+        }
+      ]
     }
   ];
 
@@ -140,8 +183,21 @@ const TrackOrders = () => {
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    // Date filtering logic would go here
+    let matchesOrderDate = true;
+    let matchesDeliveryDate = true;
+    
+    return matchesSearch && matchesStatus && matchesOrderDate && matchesDeliveryDate;
   });
+
+  // Calculate summary stats
+  const summaryStats = {
+    placed: filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'placed').length,
+    fulfilled: filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'fulfilled').length,
+    shipped: filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'shipped').length,
+    delivered: filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'delivered').length,
+  };
 
   const handleViewTimeline = (order: Order) => {
     setSelectedOrder(order);
@@ -213,33 +269,117 @@ const TrackOrders = () => {
         </div>
       </div>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Package className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Orders Placed</p>
+                <p className="text-2xl font-bold text-blue-600">{summaryStats.placed}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Clock className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Orders Fulfilled</p>
+                <p className="text-2xl font-bold text-yellow-600">{summaryStats.fulfilled}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Truck className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Orders Shipped</p>
+                <p className="text-2xl font-bold text-purple-600">{summaryStats.shipped}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Orders Delivered</p>
+                <p className="text-2xl font-bold text-green-600">{summaryStats.delivered}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search Orders</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by order number or recipient name..."
+                  placeholder="Search by order number or recipient..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="placed">Placed</SelectItem>
-                <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="placed">Placed</SelectItem>
+                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Order Date</label>
+              <DatePickerWithRange
+                date={orderDateRange}
+                onDateChange={setOrderDateRange}
+                placeholder="Select order date range"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Delivery Date</label>
+              <DatePickerWithRange
+                date={deliveryDateRange}
+                onDateChange={setDeliveryDateRange}
+                placeholder="Select delivery date range"
+                className="w-full"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
