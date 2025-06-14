@@ -1,14 +1,25 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Download, Package, Truck, Users, Save, RefreshCw, Edit, Trash2, Plus } from 'lucide-react';
+import { Upload, Download, Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import AddRecipientModal from '@/components/AddRecipientModal';
+
+interface GiftBox {
+  id: string;
+  name: string;
+  theme: string;
+}
 
 interface Recipient {
   id: number;
@@ -21,17 +32,27 @@ interface Recipient {
   shippingMode: string;
   cost: string;
   source: 'manual' | 'bulk' | 'auto';
+  assignedGiftBoxes?: string[];
 }
 
 const StandaloneShipping = () => {
-  const [autoAssignCarriers, setAutoAssignCarriers] = useState(false);
+  const [autoAssignMode, setAutoAssignMode] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
-  
-  // Sample recipient addresses
+
+  // Mock available gift boxes for defaults
+  const availableGiftBoxes: GiftBox[] = [
+    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation' },
+    { id: '2', name: 'Wellness Package', theme: 'Wellness' },
+    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional' },
+    { id: '4', name: 'Gourmet Snacks Box', theme: 'Hospitality' }
+  ];
+
+  // Sample default recipients with gift box assignments
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -43,7 +64,8 @@ const StandaloneShipping = () => {
       status: 'confirmed',
       shippingMode: 'FedEx Express',
       cost: '$12.50',
-      source: 'auto'
+      source: 'manual',
+      assignedGiftBoxes: ['1', '2']
     },
     {
       id: 2,
@@ -55,7 +77,8 @@ const StandaloneShipping = () => {
       status: 'confirmed',
       shippingMode: 'UPS Ground',
       cost: '$11.75',
-      source: 'bulk'
+      source: 'bulk',
+      assignedGiftBoxes: ['3']
     }
   ]);
 
@@ -92,31 +115,27 @@ const StandaloneShipping = () => {
   ];
 
   const handleSaveDefaults = () => {
-    // Save shipping defaults to local storage or backend
     const shippingDefaults = {
-      autoAssignCarriers,
+      autoAssignMode,
       selectedCarrier,
-      recipients: recipients.filter(r => r.status === 'confirmed')
+      recipients,
+      savedAt: new Date().toISOString()
     };
     localStorage.setItem('shippingDefaults', JSON.stringify(shippingDefaults));
     toast.success('Shipping defaults saved successfully');
     console.log('Saved shipping defaults:', shippingDefaults);
   };
 
-  const handleLoadDefaults = () => {
-    // Load shipping defaults from local storage or backend
-    const saved = localStorage.getItem('shippingDefaults');
-    if (saved) {
-      const defaults = JSON.parse(saved);
-      setAutoAssignCarriers(defaults.autoAssignCarriers || false);
-      setSelectedCarrier(defaults.selectedCarrier || '');
-      if (defaults.recipients) {
-        setRecipients(defaults.recipients);
-      }
-      toast.success('Shipping defaults loaded');
-    } else {
-      toast.info('No saved defaults found');
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      toast.success('CSV file uploaded and processed successfully');
     }
+  };
+
+  const downloadTemplate = () => {
+    toast.success('CSV template downloaded');
   };
 
   const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
@@ -157,10 +176,11 @@ const StandaloneShipping = () => {
       phone: r.phone || '',
       department: r.department || '',
       address: r.address || '',
-      status: r.address ? 'confirmed' : 'pending',
+      status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
       shippingMode: r.address ? 'FedEx Standard' : '',
       cost: r.address ? '$12.50' : '',
-      source: 'bulk'
+      source: 'bulk',
+      assignedGiftBoxes: r.assignedGiftBoxes || []
     }));
     
     setRecipients(prev => [...prev, ...formattedRecipients]);
@@ -183,6 +203,23 @@ const StandaloneShipping = () => {
     }
   };
 
+  const handleGiftBoxAssignment = (recipientId: number, giftBoxIds: string[]) => {
+    setRecipients(prev => prev.map(r => {
+      if (r.id === recipientId) {
+        const hasAddress = r.address.trim() !== '';
+        const hasGiftBoxes = giftBoxIds.length > 0;
+        const newStatus = hasAddress && hasGiftBoxes ? 'confirmed' : 'pending';
+        
+        return {
+          ...r,
+          assignedGiftBoxes: giftBoxIds,
+          status: newStatus
+        };
+      }
+      return r;
+    }));
+  };
+
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case 'manual': return 'bg-blue-100 text-blue-800';
@@ -192,8 +229,16 @@ const StandaloneShipping = () => {
     }
   };
 
-  const downloadTemplate = () => {
-    toast.success('CSV template downloaded');
+  const getGiftBoxDisplayName = (giftBoxId: string) => {
+    const giftBox = availableGiftBoxes.find(box => box.id === giftBoxId);
+    return giftBox ? `${giftBox.name} (${giftBox.theme})` : 'Unknown Gift Box';
+  };
+
+  const getTotalShippingCost = () => {
+    return recipients.reduce((total, recipient) => {
+      const cost = parseFloat(recipient.cost?.replace('$', '') || '0');
+      return total + cost;
+    }, 0);
   };
 
   return (
@@ -201,13 +246,9 @@ const StandaloneShipping = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Shipping & Fulfillment Defaults</h1>
-          <p className="text-gray-600">Set up default shipping preferences and recipient addresses</p>
+          <p className="text-gray-600">Set up default shipping preferences and recipient management</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleLoadDefaults}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Load Saved
-          </Button>
           <Button 
             onClick={handleSaveDefaults}
             className="bg-linden-blue hover:bg-linden-blue/90"
@@ -222,35 +263,7 @@ const StandaloneShipping = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Information Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                About Shipping Defaults
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 text-sm text-gray-600">
-                <p>
-                  Configure your default shipping preferences and recipient addresses here. 
-                  These settings will automatically populate in future gift orders.
-                </p>
-                <p>
-                  You can add frequently used recipient addresses, set carrier preferences, 
-                  and enable auto-assignment rules to streamline your order process.
-                </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-blue-800 text-sm">
-                    <strong>Tip:</strong> Recipients added here will be available as quick-select 
-                    options during order creation, saving you time on repeated shipments.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Preferences */}
+          {/* Default Shipping Preferences */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -261,21 +274,21 @@ const StandaloneShipping = () => {
             <CardContent>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <h4 className="font-medium">Auto-assign carriers</h4>
+                  <h4 className="font-medium">Auto-assign carriers by default</h4>
                   <p className="text-sm text-gray-600">
                     Automatically select the best carrier for each recipient based on location and preferences
                   </p>
                 </div>
                 <Switch
-                  checked={autoAssignCarriers}
-                  onCheckedChange={setAutoAssignCarriers}
+                  checked={autoAssignMode}
+                  onCheckedChange={setAutoAssignMode}
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Choose Shipping Carrier */}
-          {!autoAssignCarriers && (
+          {/* Choose Default Shipping Carrier */}
+          {!autoAssignMode && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -306,9 +319,11 @@ const StandaloneShipping = () => {
                           </p>
                           <div className="flex items-center gap-4 text-xs">
                             <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
                               <span>{carrier.estimatedCost}</span>
                             </div>
                             <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
                               <span>{carrier.estimatedDays}</span>
                             </div>
                           </div>
@@ -321,12 +336,12 @@ const StandaloneShipping = () => {
             </Card>
           )}
 
-          {/* CSV Upload Section */}
+          {/* Bulk Upload Default Recipients */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
-                Bulk Upload Recipients
+                Bulk Upload Default Recipients
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -342,13 +357,25 @@ const StandaloneShipping = () => {
 
               <div className="flex gap-3">
                 <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <p className="text-lg font-medium text-gray-900 mb-2">
-                    Upload CSV File
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Upload recipient addresses to add to your defaults
-                  </p>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="csv-upload"
+                  />
+                  <label htmlFor="csv-upload" className="cursor-pointer">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-900 mb-2">
+                      {uploadedFile ? uploadedFile.name : 'Upload CSV File'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {uploadedFile 
+                        ? 'File uploaded successfully. Preview below.'
+                        : 'Click to upload or drag and drop your CSV file here'
+                      }
+                    </p>
+                  </label>
                 </div>
                 
                 <Button
@@ -362,13 +389,13 @@ const StandaloneShipping = () => {
             </CardContent>
           </Card>
 
-          {/* Recipient Management */}
+          {/* Default Recipient Management */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  Default Recipients ({recipients.length})
+                  Default Recipient Management ({recipients.length})
                 </CardTitle>
                 <Button
                   onClick={() => setShowAddRecipient(true)}
@@ -382,7 +409,7 @@ const StandaloneShipping = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Manage your default recipient list. These addresses will be available for quick selection in future orders.
+                  Manage default recipients that will pre-populate in your orders. Each recipient must have an address and at least one gift box assigned to be confirmed.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -397,8 +424,10 @@ const StandaloneShipping = () => {
                         </TableHead>
                         <TableHead>Recipient</TableHead>
                         <TableHead>Address</TableHead>
+                        <TableHead>Gift Box Assignment</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Default Shipping</TableHead>
+                        <TableHead>Shipping</TableHead>
+                        <TableHead>Cost</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -424,19 +453,69 @@ const StandaloneShipping = () => {
                           <TableCell className="max-w-48">
                             <p className="text-sm truncate">{recipient.address || 'Not provided'}</p>
                           </TableCell>
+                          <TableCell className="max-w-64">
+                            <div className="space-y-1">
+                              <Select
+                                onValueChange={(value) => {
+                                  const currentBoxes = recipient.assignedGiftBoxes || [];
+                                  if (!currentBoxes.includes(value)) {
+                                    handleGiftBoxAssignment(recipient.id, [...currentBoxes, value]);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue placeholder="Assign gift box" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {availableGiftBoxes
+                                    .filter(box => !recipient.assignedGiftBoxes?.includes(box.id))
+                                    .map((giftBox) => (
+                                      <SelectItem key={giftBox.id} value={giftBox.id} className="text-xs">
+                                        {getGiftBoxDisplayName(giftBox.id)}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                              
+                              {/* Display assigned gift boxes */}
+                              {recipient.assignedGiftBoxes && recipient.assignedGiftBoxes.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {recipient.assignedGiftBoxes.map((giftBoxId) => (
+                                    <Badge key={giftBoxId} variant="secondary" className="text-xs flex items-center gap-1">
+                                      {availableGiftBoxes.find(box => box.id === giftBoxId)?.name || 'Unknown'}
+                                      <button
+                                        onClick={() => {
+                                          const updatedBoxes = recipient.assignedGiftBoxes?.filter(id => id !== giftBoxId) || [];
+                                          handleGiftBoxAssignment(recipient.id, updatedBoxes);
+                                        }}
+                                        className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                                      >
+                                        <X className="h-2 w-2" />
+                                      </button>
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             {recipient.status === 'confirmed' ? (
                               <Badge variant="outline" className="text-green-600 border-green-600">
+                                <CheckCircle className="mr-1 h-3 w-3" />
                                 Confirmed
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                <AlertCircle className="mr-1 h-3 w-3" />
                                 Pending
                               </Badge>
                             )}
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">{recipient.shippingMode || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium">{recipient.cost || '-'}</span>
                           </TableCell>
                           <TableCell>
                             <Badge className={`text-xs ${getSourceBadgeColor(recipient.source)}`}>
@@ -473,7 +552,7 @@ const StandaloneShipping = () => {
                       {selectedRecipients.length} recipient(s) selected
                     </span>
                     <Button variant="outline" size="sm">
-                      Assign Default Carrier
+                      Assign Carrier
                     </Button>
                     <Button variant="outline" size="sm">
                       Export Selected
@@ -494,13 +573,13 @@ const StandaloneShipping = () => {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span>Auto-assign Carriers:</span>
-                  <span className={autoAssignCarriers ? 'text-green-600' : 'text-gray-400'}>
-                    {autoAssignCarriers ? 'Enabled' : 'Disabled'}
+                  <span>Shipping Mode:</span>
+                  <span className="font-medium">
+                    {autoAssignMode ? 'Auto-assign' : 'Manual selection'}
                   </span>
                 </div>
                 
-                {!autoAssignCarriers && selectedCarrier && (
+                {!autoAssignMode && selectedCarrier && (
                   <div className="flex justify-between text-sm">
                     <span>Default Carrier:</span>
                     <span className="font-medium">
@@ -508,24 +587,28 @@ const StandaloneShipping = () => {
                     </span>
                   </div>
                 )}
-                
+
+                <Separator />
                 <div className="flex justify-between text-sm">
                   <span>Total Recipients:</span>
                   <span className="font-medium">{recipients.length}</span>
                 </div>
-                
                 <div className="flex justify-between text-sm">
-                  <span>Confirmed Addresses:</span>
+                  <span>Confirmed:</span>
                   <span className="font-medium text-green-600">
                     {recipients.filter(r => r.status === 'confirmed').length}
                   </span>
                 </div>
-                
                 <div className="flex justify-between text-sm">
-                  <span>Pending Addresses:</span>
+                  <span>Pending:</span>
                   <span className="font-medium text-orange-600">
                     {recipients.filter(r => r.status === 'pending').length}
                   </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Est. Default Cost:</span>
+                  <span>${getTotalShippingCost().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -538,7 +621,7 @@ const StandaloneShipping = () => {
               </Button>
 
               <div className="text-xs text-gray-500 text-center">
-                These settings will be used as defaults in future orders
+                These settings will pre-fill in future orders and can be edited during order creation
               </div>
             </CardContent>
           </Card>
@@ -560,6 +643,7 @@ const StandaloneShipping = () => {
         }}
         onAddRecipient={handleAddRecipient}
         editingRecipient={editingRecipient}
+        availableGiftBoxes={availableGiftBoxes}
       />
     </div>
   );
