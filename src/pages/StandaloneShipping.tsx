@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Download, Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X } from 'lucide-react';
+import { Upload, Download, Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import AddRecipientModal from '@/components/AddRecipientModal';
@@ -258,6 +258,21 @@ const StandaloneShipping = () => {
           </Button>
         </div>
       </div>
+
+      {/* How This Works Section */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium text-blue-900 mb-2">How This Works</h3>
+              <p className="text-sm text-blue-800">
+                All shipping preferences and recipient data added here will auto-fill during the order process. You can still make edits while placing an order.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
