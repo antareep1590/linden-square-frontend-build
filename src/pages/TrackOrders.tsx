@@ -1,16 +1,13 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DateRange } from 'react-day-picker';
 
 interface SubOrder {
   recipientName: string;
@@ -37,8 +34,6 @@ interface Order {
 const TrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
-  const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -104,45 +99,6 @@ const TrackOrders = () => {
           estimatedDelivery: '2024-01-21'
         }
       ]
-    },
-    {
-      id: '3',
-      orderNumber: 'ORD-2024-003',
-      items: 'Tech Accessories Kit',
-      orderDate: '2024-01-17',
-      status: 'shipped',
-      trackingNumber: 'DH456789123',
-      estimatedDelivery: '2024-01-19',
-      shippingCarrier: 'DHL',
-      subOrders: [
-        {
-          recipientName: 'Alex Turner',
-          recipientEmail: 'alex@company.com',
-          address: '654 Broadway, Chicago, IL 60601',
-          carrier: 'DHL',
-          status: 'shipped',
-          trackingNumber: 'DH456789123',
-          estimatedDelivery: '2024-01-19'
-        }
-      ]
-    },
-    {
-      id: '4',
-      orderNumber: 'ORD-2024-004',
-      items: 'Holiday Gift Bundle',
-      orderDate: '2024-01-14',
-      status: 'placed',
-      estimatedDelivery: '2024-01-22',
-      subOrders: [
-        {
-          recipientName: 'Emma Wilson',
-          recipientEmail: 'emma@company.com',
-          address: '987 Market St, Seattle, WA 98101',
-          carrier: 'USPS',
-          status: 'placed',
-          estimatedDelivery: '2024-01-22'
-        }
-      ]
     }
   ];
 
@@ -152,37 +108,6 @@ const TrackOrders = () => {
     const minStatus = Math.min(...subOrders.map(sub => statusPriority[sub.status]));
     return Object.keys(statusPriority).find(key => statusPriority[key as keyof typeof statusPriority] === minStatus) as Order['status'];
   };
-
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
-      const overallStatus = getOverallStatus(order.subOrders);
-      const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
-      
-      // Date filtering logic
-      const orderDate = new Date(order.orderDate);
-      const estimatedDelivery = new Date(order.estimatedDelivery || '');
-      
-      const matchesOrderDate = !orderDateRange?.from || 
-        (orderDate >= orderDateRange.from && (!orderDateRange.to || orderDate <= orderDateRange.to));
-      
-      const matchesDeliveryDate = !deliveryDateRange?.from || 
-        (estimatedDelivery >= deliveryDateRange.from && (!deliveryDateRange.to || estimatedDelivery <= deliveryDateRange.to));
-      
-      return matchesSearch && matchesStatus && matchesOrderDate && matchesDeliveryDate;
-    });
-  }, [orders, searchTerm, statusFilter, orderDateRange, deliveryDateRange]);
-
-  // Calculate summary stats based on filtered orders
-  const summaryStats = useMemo(() => {
-    const stats = { placed: 0, fulfilled: 0, shipped: 0, delivered: 0 };
-    filteredOrders.forEach(order => {
-      const status = getOverallStatus(order.subOrders);
-      stats[status]++;
-    });
-    return stats;
-  }, [filteredOrders]);
 
   const getStatusBadge = (status: string) => {
     const configs = {
@@ -209,6 +134,14 @@ const TrackOrders = () => {
       default: return <Package className="h-4 w-4" />;
     }
   };
+
+  const filteredOrders = orders.filter(order => {
+    const overallStatus = getOverallStatus(order.subOrders);
+    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleViewTimeline = (order: Order) => {
     setSelectedOrder(order);
@@ -280,104 +213,33 @@ const TrackOrders = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Orders Placed</p>
-                <p className="text-2xl font-bold">{summaryStats.placed}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Orders Fulfilled</p>
-                <p className="text-2xl font-bold">{summaryStats.fulfilled}</p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Orders Shipped</p>
-                <p className="text-2xl font-bold">{summaryStats.shipped}</p>
-              </div>
-              <Truck className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Orders Delivered</p>
-                <p className="text-2xl font-bold">{summaryStats.delivered}</p>
-              </div>
-              <MapPin className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Search</Label>
+          <div className="flex gap-4">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by order number or recipient..."
+                  placeholder="Search by order number or recipient name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="placed">Placed</SelectItem>
-                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Order Date</Label>
-              <DatePickerWithRange
-                date={orderDateRange}
-                onDateChange={setOrderDateRange}
-                placeholder="Select order date range"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Estimated Delivery Date</Label>
-              <DatePickerWithRange
-                date={deliveryDateRange}
-                onDateChange={setDeliveryDateRange}
-                placeholder="Select delivery date range"
-              />
-            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="placed">Placed</SelectItem>
+                <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

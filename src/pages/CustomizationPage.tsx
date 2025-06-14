@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle, Sparkles, Eye, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -17,47 +17,8 @@ import CustomizationPreview from '@/components/CustomizationPreview';
 const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
-  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual');
-  const [defaultsLoaded, setDefaultsLoaded] = useState(false);
+  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual'); // Fixed type definition
   
-  // Mock gift boxes as fallback if cart is empty
-  const mockBoxes = [
-    {
-      id: '1',
-      name: 'Premium Coffee Collection',
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
-      theme: 'Appreciation',
-      basePrice: 49.99
-    },
-    {
-      id: '2',
-      name: 'Wellness Package',
-      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
-      theme: 'Wellness',
-      basePrice: 79.99
-    }
-  ];
-
-  // Use cart boxes or fallback to mock boxes
-  const boxesToUse = selectedBoxes.length > 0 ? selectedBoxes : mockBoxes;
-
-  // Load defaults from localStorage on component mount
-  useEffect(() => {
-    const savedDefaults = localStorage.getItem('customizationDefaults');
-    if (savedDefaults) {
-      try {
-        const defaults = JSON.parse(savedDefaults);
-        setCustomizationLevel(defaults.customizationLevel || 'individual');
-        setOrderLevelCustomization(defaults.orderLevelCustomization || orderLevelCustomization);
-        setIndividualCustomizations(defaults.individualCustomizations || individualCustomizations);
-        setDefaultsLoaded(true);
-        toast.success('Loaded your customization defaults');
-      } catch (error) {
-        console.error('Error loading customization defaults:', error);
-      }
-    }
-  }, []);
-
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -80,7 +41,7 @@ const CustomizationPage = () => {
 
   const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>(() => {
     const initial: {[key: string]: any} = {};
-    boxesToUse.forEach(box => {
+    selectedBoxes.forEach(box => {
       initial[box.id] = {
         brandedNotecard: {
           enabled: false,
@@ -107,8 +68,8 @@ const CustomizationPage = () => {
   const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>(() => {
     // Expand first box by default for individual customization
     const initial: {[key: string]: boolean} = {};
-    if (boxesToUse.length > 0) {
-      initial[boxesToUse[0].id] = true;
+    if (selectedBoxes.length > 0) {
+      initial[selectedBoxes[0].id] = true;
     }
     return initial;
   });
@@ -199,7 +160,7 @@ const CustomizationPage = () => {
       if (orderLevelCustomization.giftTags.enabled) cost += 2.00;
       if (orderLevelCustomization.messageCard.enabled) cost += 3.00;
     } else {
-      boxesToUse.forEach(box => {
+      selectedBoxes.forEach(box => {
         const customization = individualCustomizations[box.id];
         if (customization?.brandedNotecard.enabled) cost += 5.00;
         if (customization?.giftTags.enabled) cost += 2.00;
@@ -221,7 +182,7 @@ const CustomizationPage = () => {
       return orderLevelCustomization;
     } else {
       // Find the first expanded box or first box
-      const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || boxesToUse[0]?.id;
+      const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || selectedBoxes[0]?.id;
       return expandedBoxId ? individualCustomizations[expandedBoxId] : {};
     }
   };
@@ -229,7 +190,7 @@ const CustomizationPage = () => {
   const getCurrentBoxName = () => {
     if (customizationLevel === 'order') return undefined;
     const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]);
-    return expandedBoxId ? boxesToUse.find(box => box.id === expandedBoxId)?.name : boxesToUse[0]?.name;
+    return expandedBoxId ? selectedBoxes.find(box => box.id === expandedBoxId)?.name : selectedBoxes[0]?.name;
   };
 
   const renderCustomizationForm = (boxId?: string) => {
@@ -421,39 +382,26 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => navigate('/box-listing')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back To Gift Boxes
+        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Boxes</h1>
-          <p className="text-gray-600">Add personalized touches to make your gifts special</p>
+          <p className="text-gray-600">Add personal touches and branding to make your gifts special</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-linden-blue">
-            ${calculateCustomizationCost().toFixed(2)} total
+            ${calculateCustomizationCost().toFixed(2)} customization cost
           </Badge>
           <Button 
-            onClick={() => console.log('Continue to next step')}
+            onClick={handleContinue}
             className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Continue
+            Continue to Recipients
           </Button>
         </div>
       </div>
-
-      {/* Defaults Loaded Notification */}
-      {defaultsLoaded && (
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-green-800 text-sm">
-                  <strong>Defaults loaded:</strong> Your saved customization preferences have been applied. 
-                  You can edit any of these settings below.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -464,12 +412,12 @@ const CustomizationPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5" />
-                Selected Gift Boxes ({boxesToUse.length})
+                Selected Gift Boxes ({selectedBoxes.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {boxesToUse.map((box) => (
+                {selectedBoxes.map((box) => (
                   <div key={box.id} className="border rounded-lg p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -552,7 +500,7 @@ const CustomizationPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {boxesToUse.map((box) => (
+                  {selectedBoxes.map((box) => (
                     <Collapsible 
                       key={box.id} 
                       open={expandedBoxes[box.id]} 
@@ -640,7 +588,7 @@ const CustomizationPage = () => {
                   </>
                 ) : (
                   <>
-                    {boxesToUse.map(box => {
+                    {selectedBoxes.map(box => {
                       const customization = individualCustomizations[box.id];
                       return (
                         <div key={box.id} className="border-l-2 border-gray-200 pl-2 space-y-1">

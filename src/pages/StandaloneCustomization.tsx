@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,14 +21,14 @@ const StandaloneCustomization = () => {
     {
       id: '1',
       name: 'Premium Coffee Collection',
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
+      image: '/placeholder.svg',
       theme: 'Appreciation',
       basePrice: 49.99
     },
     {
       id: '2',
       name: 'Wellness Package',
-      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
+      image: '/placeholder.svg',
       theme: 'Wellness',
       basePrice: 79.99
     }
@@ -452,7 +453,7 @@ const StandaloneCustomization = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
-                          src={box.image} 
+                          src={box.image || '/placeholder.svg'} 
                           alt={box.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
