@@ -9,17 +9,11 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users, X } from 'lucide-react';
+import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import BulkUploadModal from '@/components/BulkUploadModal';
 import AddRecipientModal from '@/components/AddRecipientModal';
-
-interface GiftBox {
-  id: string;
-  name: string;
-  theme: string;
-}
 
 interface Recipient {
   id: number;
@@ -32,7 +26,6 @@ interface Recipient {
   shippingMode: string;
   cost: string;
   source: 'manual' | 'bulk' | 'auto';
-  assignedGiftBoxes?: string[];
 }
 
 const ShippingFulfillment = () => {
@@ -44,15 +37,8 @@ const ShippingFulfillment = () => {
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
-
-  // Mock available gift boxes (from Gift Theme Selection step)
-  const availableGiftBoxes: GiftBox[] = [
-    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation' },
-    { id: '2', name: 'Wellness Package', theme: 'Wellness' },
-    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional' }
-  ];
   
-  // Sample recipient addresses with gift box assignments
+  // Sample recipient addresses with mixed sources
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -64,8 +50,7 @@ const ShippingFulfillment = () => {
       status: 'confirmed',
       shippingMode: 'FedEx Express',
       cost: '$12.50',
-      source: 'auto',
-      assignedGiftBoxes: ['1', '2']
+      source: 'auto'
     },
     {
       id: 2,
@@ -77,8 +62,7 @@ const ShippingFulfillment = () => {
       status: 'confirmed',
       shippingMode: 'UPS Ground',
       cost: '$11.75',
-      source: 'bulk',
-      assignedGiftBoxes: ['3']
+      source: 'bulk'
     },
     {
       id: 3,
@@ -86,12 +70,11 @@ const ShippingFulfillment = () => {
       email: 'emily.rodriguez@company.com',
       phone: '+1 (555) 345-6789',
       department: 'Sales',
-      address: '',
-      status: 'pending',
-      shippingMode: '',
-      cost: '',
-      source: 'manual',
-      assignedGiftBoxes: []
+      address: '789 Pine St, Chicago, IL 60601',
+      status: 'confirmed',
+      shippingMode: 'FedEx Standard',
+      cost: '$10.99',
+      source: 'manual'
     }
   ]);
 
@@ -140,13 +123,14 @@ const ShippingFulfillment = () => {
   };
 
   const downloadTemplate = () => {
+    // Mock template download
     toast.success('CSV template downloaded');
   };
 
   const handleContinue = () => {
     const pendingAddresses = recipients.filter(r => r.status === 'pending');
     if (pendingAddresses.length > 0) {
-      toast.error(`Please confirm addresses and gift assignments for ${pendingAddresses.length} recipients`);
+      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
       return;
     }
     
@@ -155,6 +139,7 @@ const ShippingFulfillment = () => {
   };
 
   const handlePayLater = () => {
+    // Generate invoice and send email
     toast.success('Invoice link sent to your email. You can complete the payment later.');
     console.log('Generating invoice for order and sending to client email');
   };
@@ -204,11 +189,10 @@ const ShippingFulfillment = () => {
       phone: r.phone || '',
       department: r.department || '',
       address: r.address || '',
-      status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
+      status: r.address ? 'confirmed' : 'pending',
       shippingMode: r.address ? 'FedEx Standard' : '',
       cost: r.address ? '$12.50' : '',
-      source: 'bulk',
-      assignedGiftBoxes: r.assignedGiftBoxes || []
+      source: 'bulk'
     }));
     
     setRecipients(prev => [...prev, ...formattedRecipients]);
@@ -231,23 +215,6 @@ const ShippingFulfillment = () => {
     }
   };
 
-  const handleGiftBoxAssignment = (recipientId: number, giftBoxIds: string[]) => {
-    setRecipients(prev => prev.map(r => {
-      if (r.id === recipientId) {
-        const hasAddress = r.address.trim() !== '';
-        const hasGiftBoxes = giftBoxIds.length > 0;
-        const newStatus = hasAddress && hasGiftBoxes ? 'confirmed' : 'pending';
-        
-        return {
-          ...r,
-          assignedGiftBoxes: giftBoxIds,
-          status: newStatus
-        };
-      }
-      return r;
-    }));
-  };
-
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case 'manual': return 'bg-blue-100 text-blue-800';
@@ -255,11 +222,6 @@ const ShippingFulfillment = () => {
       case 'auto': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getGiftBoxDisplayName = (giftBoxId: string) => {
-    const giftBox = availableGiftBoxes.find(box => box.id === giftBoxId);
-    return giftBox ? `${giftBox.name} (${giftBox.theme})` : 'Unknown Gift Box';
   };
 
   return (
@@ -422,7 +384,7 @@ const ShippingFulfillment = () => {
             </CardContent>
           </Card>
 
-          {/* 4. Recipient Address Management - Enhanced with Gift Box Assignment */}
+          {/* 4. Recipient Address Management - Keep as-is below Bulk Upload */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -442,8 +404,7 @@ const ShippingFulfillment = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Manage all recipients including manually added, bulk uploaded, and auto-filled entries. 
-                  Each recipient must have an address and at least one gift box assigned to be confirmed.
+                  Manage all recipients including manually added, bulk uploaded, and auto-filled entries.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -458,7 +419,6 @@ const ShippingFulfillment = () => {
                         </TableHead>
                         <TableHead>Recipient</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Gift Box Assignment</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Shipping</TableHead>
                         <TableHead>Cost</TableHead>
@@ -486,51 +446,6 @@ const ShippingFulfillment = () => {
                           </TableCell>
                           <TableCell className="max-w-48">
                             <p className="text-sm truncate">{recipient.address || 'Not provided'}</p>
-                          </TableCell>
-                          <TableCell className="max-w-64">
-                            <div className="space-y-1">
-                              <Select
-                                onValueChange={(value) => {
-                                  const currentBoxes = recipient.assignedGiftBoxes || [];
-                                  if (!currentBoxes.includes(value)) {
-                                    handleGiftBoxAssignment(recipient.id, [...currentBoxes, value]);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue placeholder="Assign gift box" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableGiftBoxes
-                                    .filter(box => !recipient.assignedGiftBoxes?.includes(box.id))
-                                    .map((giftBox) => (
-                                      <SelectItem key={giftBox.id} value={giftBox.id} className="text-xs">
-                                        {getGiftBoxDisplayName(giftBox.id)}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                              
-                              {/* Display assigned gift boxes */}
-                              {recipient.assignedGiftBoxes && recipient.assignedGiftBoxes.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {recipient.assignedGiftBoxes.map((giftBoxId) => (
-                                    <Badge key={giftBoxId} variant="secondary" className="text-xs flex items-center gap-1">
-                                      {availableGiftBoxes.find(box => box.id === giftBoxId)?.name || 'Unknown'}
-                                      <button
-                                        onClick={() => {
-                                          const updatedBoxes = recipient.assignedGiftBoxes?.filter(id => id !== giftBoxId) || [];
-                                          handleGiftBoxAssignment(recipient.id, updatedBoxes);
-                                        }}
-                                        className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
-                                      >
-                                        <X className="h-2 w-2" />
-                                      </button>
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
                           </TableCell>
                           <TableCell>
                             {recipient.status === 'confirmed' ? (
@@ -670,7 +585,7 @@ const ShippingFulfillment = () => {
                 
                 {recipients.filter(r => r.status === 'pending').length > 0 && (
                   <p className="text-xs text-gray-500 mt-2 text-center">
-                    Complete all addresses and gift assignments to continue
+                    Complete all addresses to continue
                   </p>
                 )}
               </div>
@@ -705,7 +620,6 @@ const ShippingFulfillment = () => {
         }}
         onAddRecipient={handleAddRecipient}
         editingRecipient={editingRecipient}
-        availableGiftBoxes={availableGiftBoxes}
       />
     </div>
   );

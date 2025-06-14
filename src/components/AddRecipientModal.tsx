@@ -1,240 +1,192 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
-
-interface GiftBox {
-  id: string;
-  name: string;
-  theme: string;
-}
+import { toast } from 'sonner';
 
 interface Recipient {
+  id: number;
   name: string;
   email: string;
   phone: string;
   department: string;
   address: string;
-  status: 'pending' | 'confirmed';
   shippingMode: string;
-  source: 'manual' | 'bulk' | 'auto';
-  assignedGiftBoxes?: string[];
+  status: 'pending' | 'confirmed';
 }
 
 interface AddRecipientModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddRecipient: (recipient: Recipient) => void;
-  editingRecipient?: Recipient & { id: number } | null;
-  availableGiftBoxes?: GiftBox[];
+  onAddRecipient: (recipient: Omit<Recipient, 'id'>) => void;
+  editingRecipient?: Recipient | null;
 }
 
-const AddRecipientModal = ({ 
-  open, 
-  onOpenChange, 
-  onAddRecipient, 
-  editingRecipient,
-  availableGiftBoxes = []
-}: AddRecipientModalProps) => {
-  const [formData, setFormData] = useState<Recipient>({
-    name: '',
-    email: '',
-    phone: '',
-    department: '',
-    address: '',
-    status: 'pending',
-    shippingMode: '',
-    source: 'manual',
-    assignedGiftBoxes: []
+const AddRecipientModal = ({ open, onOpenChange, onAddRecipient, editingRecipient }: AddRecipientModalProps) => {
+  const [formData, setFormData] = useState({
+    name: editingRecipient?.name || '',
+    email: editingRecipient?.email || '',
+    phone: editingRecipient?.phone || '',
+    department: editingRecipient?.department || '',
+    address: editingRecipient?.address || '',
+    shippingMode: editingRecipient?.shippingMode || ''
   });
 
-  const [selectedGiftBoxes, setSelectedGiftBoxes] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  useEffect(() => {
-    if (editingRecipient) {
-      setFormData({
-        name: editingRecipient.name,
-        email: editingRecipient.email,
-        phone: editingRecipient.phone,
-        department: editingRecipient.department,
-        address: editingRecipient.address,
-        status: editingRecipient.status,
-        shippingMode: editingRecipient.shippingMode,
-        source: editingRecipient.source,
-        assignedGiftBoxes: editingRecipient.assignedGiftBoxes || []
-      });
-      setSelectedGiftBoxes(editingRecipient.assignedGiftBoxes || []);
-    } else {
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        department: '',
-        address: '',
-        status: 'pending',
-        shippingMode: '',
-        source: 'manual',
-        assignedGiftBoxes: []
-      });
-      setSelectedGiftBoxes([]);
-    }
-  }, [editingRecipient, open]);
+  const shippingModes = [
+    'FedEx Standard',
+    'FedEx Express',
+    'UPS Ground',
+    'UPS Express',
+    'DHL Express',
+    'USPS Priority'
+  ];
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.email) {
-      return;
-    }
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
 
-    // Determine status based on address and gift box assignment
-    const hasAddress = formData.address.trim() !== '';
-    const hasGiftBoxes = selectedGiftBoxes.length > 0;
-    const status = hasAddress && hasGiftBoxes ? 'confirmed' : 'pending';
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
+    if (!formData.address.trim()) newErrors.address = 'Address is required';
+    if (!formData.shippingMode) newErrors.shippingMode = 'Shipping mode is required';
 
-    const recipientData: Recipient = {
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validateForm()) return;
+
+    const recipient = {
       ...formData,
-      assignedGiftBoxes: selectedGiftBoxes,
-      status
+      status: 'confirmed' as const
     };
 
-    onAddRecipient(recipientData);
+    onAddRecipient(recipient);
+    toast.success(editingRecipient ? 'Recipient updated successfully' : 'Recipient added successfully');
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      department: '',
+      address: '',
+      shippingMode: ''
+    });
+    setErrors({});
     onOpenChange(false);
   };
 
-  const handleGiftBoxSelect = (giftBoxId: string) => {
-    if (!selectedGiftBoxes.includes(giftBoxId)) {
-      setSelectedGiftBoxes(prev => [...prev, giftBoxId]);
+  const updateField = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
-  };
-
-  const handleGiftBoxRemove = (giftBoxId: string) => {
-    setSelectedGiftBoxes(prev => prev.filter(id => id !== giftBoxId));
-  };
-
-  const getGiftBoxDisplayName = (giftBox: GiftBox) => {
-    return `${giftBox.name} (${giftBox.theme})`;
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
             {editingRecipient ? 'Edit Recipient' : 'Add New Recipient'}
           </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Input
-                id="department"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              />
-            </div>
-            
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Complete delivery address"
-              />
-            </div>
 
-            {/* Gift Box Assignment */}
-            {availableGiftBoxes.length > 0 && (
-              <div className="col-span-2 space-y-2">
-                <Label>Gift Box Assignment</Label>
-                <Select onValueChange={handleGiftBoxSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gift boxes to assign" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableGiftBoxes
-                      .filter(box => !selectedGiftBoxes.includes(box.id))
-                      .map((giftBox) => (
-                        <SelectItem key={giftBox.id} value={giftBox.id}>
-                          {getGiftBoxDisplayName(giftBox)}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Selected Gift Boxes */}
-                {selectedGiftBoxes.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedGiftBoxes.map((giftBoxId) => {
-                      const giftBox = availableGiftBoxes.find(box => box.id === giftBoxId);
-                      if (!giftBox) return null;
-                      
-                      return (
-                        <Badge key={giftBoxId} variant="secondary" className="flex items-center gap-1">
-                          {getGiftBoxDisplayName(giftBox)}
-                          <button
-                            type="button"
-                            onClick={() => handleGiftBoxRemove(giftBoxId)}
-                            className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="name">Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => updateField('name', e.target.value)}
+              placeholder="Enter recipient name"
+              className={errors.name ? 'border-red-500' : ''}
+            />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
-        </form>
-        
+
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => updateField('email', e.target.value)}
+              placeholder="Enter email address"
+              className={errors.email ? 'border-red-500' : ''}
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => updateField('phone', e.target.value)}
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="department">Department</Label>
+            <Input
+              id="department"
+              value={formData.department}
+              onChange={(e) => updateField('department', e.target.value)}
+              placeholder="Enter department"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="address">Address *</Label>
+            <Textarea
+              id="address"
+              value={formData.address}
+              onChange={(e) => updateField('address', e.target.value)}
+              placeholder="Enter full shipping address"
+              rows={3}
+              className={errors.address ? 'border-red-500' : ''}
+            />
+            {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="shippingMode">Shipping Mode *</Label>
+            <Select
+              value={formData.shippingMode}
+              onValueChange={(value) => updateField('shippingMode', value)}
+            >
+              <SelectTrigger className={errors.shippingMode ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select shipping method" />
+              </SelectTrigger>
+              <SelectContent>
+                {shippingModes.map((mode) => (
+                  <SelectItem key={mode} value={mode}>
+                    {mode}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.shippingMode && <p className="text-red-500 text-xs mt-1">{errors.shippingMode}</p>}
+          </div>
+        </div>
+
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} className="bg-linden-blue hover:bg-linden-blue/90">
             {editingRecipient ? 'Update Recipient' : 'Add Recipient'}
           </Button>
         </DialogFooter>
