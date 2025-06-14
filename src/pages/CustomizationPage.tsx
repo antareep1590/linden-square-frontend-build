@@ -39,23 +39,6 @@ const CustomizationPage = () => {
     }
   ];
 
-  // Load defaults from localStorage on component mount
-  useEffect(() => {
-    const savedDefaults = localStorage.getItem('customizationDefaults');
-    if (savedDefaults) {
-      try {
-        const defaults = JSON.parse(savedDefaults);
-        setCustomizationLevel(defaults.customizationLevel || 'individual');
-        setOrderLevelCustomization(defaults.orderLevelCustomization || orderLevelCustomization);
-        setIndividualCustomizations(defaults.individualCustomizations || individualCustomizations);
-        setDefaultsLoaded(true);
-        toast.success('Loaded your customization defaults');
-      } catch (error) {
-        console.error('Error loading customization defaults:', error);
-      }
-    }
-  }, []);
-
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -76,7 +59,77 @@ const CustomizationPage = () => {
     }
   });
 
-  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>(() => {
+  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>({});
+
+  const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>({});
+
+  // Load defaults from localStorage on component mount
+  useEffect(() => {
+    const savedDefaults = localStorage.getItem('customizationDefaults');
+    if (savedDefaults) {
+      try {
+        const defaults = JSON.parse(savedDefaults);
+        
+        // Set the customization level from defaults
+        if (defaults.customizationLevel) {
+          setCustomizationLevel(defaults.customizationLevel);
+        }
+        
+        // Load order-level customization defaults
+        if (defaults.orderLevelCustomization) {
+          setOrderLevelCustomization(defaults.orderLevelCustomization);
+        }
+        
+        // Load individual customizations and initialize for current boxes
+        const loadedIndividualCustomizations: {[key: string]: any} = {};
+        boxesToUse.forEach(box => {
+          if (defaults.individualCustomizations && defaults.individualCustomizations[box.id]) {
+            // Use saved customization for this box
+            loadedIndividualCustomizations[box.id] = defaults.individualCustomizations[box.id];
+          } else {
+            // Initialize with default structure
+            loadedIndividualCustomizations[box.id] = {
+              brandedNotecard: {
+                enabled: false,
+                template: '',
+                message: '',
+                logo: null as File | null
+              },
+              giftTags: {
+                enabled: false,
+                type: 'preset',
+                presetMessage: '',
+                customMessage: ''
+              },
+              messageCard: {
+                enabled: false,
+                message: '',
+                senderName: ''
+              }
+            };
+          }
+        });
+        setIndividualCustomizations(loadedIndividualCustomizations);
+        
+        // Expand first box by default for individual customization
+        if (boxesToUse.length > 0 && defaults.customizationLevel === 'individual') {
+          setExpandedBoxes({ [boxesToUse[0].id]: true });
+        }
+        
+        setDefaultsLoaded(true);
+        toast.success('Loaded your customization defaults');
+      } catch (error) {
+        console.error('Error loading customization defaults:', error);
+        // Initialize with default structure if loading fails
+        initializeDefaultCustomizations();
+      }
+    } else {
+      // Initialize with default structure if no saved defaults
+      initializeDefaultCustomizations();
+    }
+  }, []);
+
+  const initializeDefaultCustomizations = () => {
     const initial: {[key: string]: any} = {};
     boxesToUse.forEach(box => {
       initial[box.id] = {
@@ -99,19 +152,15 @@ const CustomizationPage = () => {
         }
       };
     });
-    return initial;
-  });
-
-  const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>(() => {
+    setIndividualCustomizations(initial);
+    
     // Expand first box by default for individual customization
-    const initial: {[key: string]: boolean} = {};
     if (boxesToUse.length > 0) {
-      initial[boxesToUse[0].id] = true;
+      setExpandedBoxes({ [boxesToUse[0].id]: true });
     }
-    return initial;
-  });
+  };
 
-  // Mock templates
+  // Mock templates (exactly like in StandaloneCustomization)
   const notecardTemplates = [
     { id: 'template1', name: 'Professional Thank You', preview: '/placeholder.svg' },
     { id: 'template2', name: 'Holiday Greeting', preview: '/placeholder.svg' },
@@ -185,7 +234,11 @@ const CustomizationPage = () => {
   };
 
   const handleContinue = () => {
-    console.log('Saving customization data:', { orderLevelCustomization, individualCustomizations });
+    console.log('Saving customization data:', { 
+      customizationLevel,
+      orderLevelCustomization, 
+      individualCustomizations 
+    });
     toast.success('Customizations saved successfully');
     navigate('/recipient-selection');
   };
@@ -230,6 +283,7 @@ const CustomizationPage = () => {
     return expandedBoxId ? boxesToUse.find(box => box.id === expandedBoxId)?.name : boxesToUse[0]?.name;
   };
 
+  // Render customization form exactly like in StandaloneCustomization
   const renderCustomizationForm = (boxId?: string) => {
     const customization = boxId ? individualCustomizations[boxId] : orderLevelCustomization;
     
@@ -253,25 +307,6 @@ const CustomizationPage = () => {
 
           {customization?.brandedNotecard.enabled && (
             <div className="space-y-4">
-              <div>
-                <Label>Choose Template</Label>
-                <Select
-                  value={customization.brandedNotecard.template}
-                  onValueChange={(value) => updateCustomization('brandedNotecard', 'template', value, boxId)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {notecardTemplates.map(template => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div>
                 <Label>Upload Your Logo</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
