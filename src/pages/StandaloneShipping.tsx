@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,7 @@ interface Recipient {
 
 const StandaloneShipping = () => {
   const [autoAssignCarriers, setAutoAssignCarriers] = useState(false);
+  const [selectedCarrier, setSelectedCarrier] = useState('');
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
@@ -59,10 +59,43 @@ const StandaloneShipping = () => {
     }
   ]);
 
+  // Mock shipping carriers data
+  const carriers = [
+    {
+      id: 'fedex',
+      name: 'FedEx',
+      services: ['Standard', 'Express', 'Overnight'],
+      estimatedCost: '$12.50',
+      estimatedDays: '2-3 business days'
+    },
+    {
+      id: 'ups',
+      name: 'UPS',
+      services: ['Ground', 'Express', 'Next Day'],
+      estimatedCost: '$11.75',
+      estimatedDays: '3-5 business days'
+    },
+    {
+      id: 'dhl',
+      name: 'DHL',
+      services: ['Standard', 'Express', 'Priority'],
+      estimatedCost: '$15.20',
+      estimatedDays: '2-4 business days'
+    },
+    {
+      id: 'usps',
+      name: 'USPS',
+      services: ['Priority', 'Express', 'Ground'],
+      estimatedCost: '$9.99',
+      estimatedDays: '3-5 business days'
+    }
+  ];
+
   const handleSaveDefaults = () => {
     // Save shipping defaults to local storage or backend
     const shippingDefaults = {
       autoAssignCarriers,
+      selectedCarrier,
       recipients: recipients.filter(r => r.status === 'confirmed')
     };
     localStorage.setItem('shippingDefaults', JSON.stringify(shippingDefaults));
@@ -76,6 +109,7 @@ const StandaloneShipping = () => {
     if (saved) {
       const defaults = JSON.parse(saved);
       setAutoAssignCarriers(defaults.autoAssignCarriers || false);
+      setSelectedCarrier(defaults.selectedCarrier || '');
       if (defaults.recipients) {
         setRecipients(defaults.recipients);
       }
@@ -239,6 +273,53 @@ const StandaloneShipping = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Choose Shipping Carrier */}
+          {!autoAssignCarriers && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Choose Default Shipping Carrier
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {carriers.map((carrier) => (
+                    <div
+                      key={carrier.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                        selectedCarrier === carrier.id
+                          ? 'border-linden-blue bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setSelectedCarrier(carrier.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Truck className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{carrier.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {carrier.services.join(', ')}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="flex items-center gap-1">
+                              <span>{carrier.estimatedCost}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span>{carrier.estimatedDays}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* CSV Upload Section */}
           <Card>
@@ -418,6 +499,15 @@ const StandaloneShipping = () => {
                     {autoAssignCarriers ? 'Enabled' : 'Disabled'}
                   </span>
                 </div>
+                
+                {!autoAssignCarriers && selectedCarrier && (
+                  <div className="flex justify-between text-sm">
+                    <span>Default Carrier:</span>
+                    <span className="font-medium">
+                      {carriers.find(c => c.id === selectedCarrier)?.name}
+                    </span>
+                  </div>
+                )}
                 
                 <div className="flex justify-between text-sm">
                   <span>Total Recipients:</span>

@@ -6,19 +6,29 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Package, Truck, MapPin, Eye, Calendar, Clock } from 'lucide-react';
+import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface SubOrder {
+  recipientName: string;
+  recipientEmail: string;
+  address: string;
+  carrier: string;
+  status: 'placed' | 'fulfilled' | 'shipped' | 'delivered';
+  trackingNumber?: string;
+  estimatedDelivery: string;
+}
 
 interface Order {
   id: string;
   orderNumber: string;
-  recipientName: string;
   items: string;
   orderDate: string;
   status: 'placed' | 'fulfilled' | 'shipped' | 'delivered';
   trackingNumber?: string;
   estimatedDelivery?: string;
   shippingCarrier?: string;
+  subOrders: SubOrder[];
 }
 
 const TrackOrders = () => {
@@ -26,52 +36,78 @@ const TrackOrders = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
-  // Mock orders data
+  // Mock orders data with sub-orders
   const orders: Order[] = [
     {
       id: '1',
       orderNumber: 'ORD-2024-001',
-      recipientName: 'Sarah Johnson',
       items: 'Premium Coffee Set',
       orderDate: '2024-01-15',
       status: 'delivered',
       trackingNumber: 'FX123456789',
       estimatedDelivery: '2024-01-18',
-      shippingCarrier: 'FedEx'
+      shippingCarrier: 'FedEx',
+      subOrders: [
+        {
+          recipientName: 'Sarah Johnson',
+          recipientEmail: 'sarah@company.com',
+          address: '123 Main St, New York, NY 10001',
+          carrier: 'FedEx',
+          status: 'delivered',
+          trackingNumber: 'FX123456789',
+          estimatedDelivery: '2024-01-18'
+        },
+        {
+          recipientName: 'Mike Davis',
+          recipientEmail: 'mike@company.com',
+          address: '456 Oak Ave, New York, NY 10002',
+          carrier: 'FedEx',
+          status: 'delivered',
+          trackingNumber: 'FX123456790',
+          estimatedDelivery: '2024-01-18'
+        }
+      ]
     },
     {
       id: '2',
       orderNumber: 'ORD-2024-002',
-      recipientName: 'Michael Chen',
       items: 'Wellness Package',
       orderDate: '2024-01-16',
-      status: 'shipped',
+      status: 'fulfilled',
       trackingNumber: 'UP987654321',
       estimatedDelivery: '2024-01-20',
-      shippingCarrier: 'UPS'
-    },
-    {
-      id: '3',
-      orderNumber: 'ORD-2024-003',
-      recipientName: 'Emily Rodriguez',
-      items: 'Tech Starter Kit',
-      orderDate: '2024-01-17',
-      status: 'fulfilled',
-      trackingNumber: 'DH456789123',
-      estimatedDelivery: '2024-01-21',
-      shippingCarrier: 'DHL'
-    },
-    {
-      id: '4',
-      orderNumber: 'ORD-2024-004',
-      recipientName: 'David Wilson',
-      items: 'Gourmet Treats',
-      orderDate: '2024-01-18',
-      status: 'placed',
-      estimatedDelivery: '2024-01-23'
+      shippingCarrier: 'UPS',
+      subOrders: [
+        {
+          recipientName: 'Michael Chen',
+          recipientEmail: 'michael@company.com',
+          address: '789 Pine St, San Francisco, CA 94102',
+          carrier: 'UPS',
+          status: 'shipped',
+          trackingNumber: 'UP987654321',
+          estimatedDelivery: '2024-01-20'
+        },
+        {
+          recipientName: 'Lisa Wong',
+          recipientEmail: 'lisa@company.com',
+          address: '321 Elm St, San Francisco, CA 94103',
+          carrier: 'UPS',
+          status: 'fulfilled',
+          trackingNumber: 'UP987654322',
+          estimatedDelivery: '2024-01-21'
+        }
+      ]
     }
   ];
+
+  // Calculate overall status based on most delayed sub-order
+  const getOverallStatus = (subOrders: SubOrder[]) => {
+    const statusPriority = { 'placed': 0, 'fulfilled': 1, 'shipped': 2, 'delivered': 3 };
+    const minStatus = Math.min(...subOrders.map(sub => statusPriority[sub.status]));
+    return Object.keys(statusPriority).find(key => statusPriority[key as keyof typeof statusPriority] === minStatus) as Order['status'];
+  };
 
   const getStatusBadge = (status: string) => {
     const configs = {
@@ -100,9 +136,10 @@ const TrackOrders = () => {
   };
 
   const filteredOrders = orders.filter(order => {
+    const overallStatus = getOverallStatus(order.subOrders);
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.recipientName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+                         order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -111,35 +148,55 @@ const TrackOrders = () => {
     setShowTimeline(true);
   };
 
-  const renderTimeline = (order: Order) => {
-    const timelineSteps = [
-      { status: 'placed', label: 'Order Placed', date: order.orderDate, completed: true },
-      { status: 'fulfilled', label: 'Order Fulfilled', date: '2024-01-17', completed: ['fulfilled', 'shipped', 'delivered'].includes(order.status) },
-      { status: 'shipped', label: 'Shipped', date: '2024-01-18', completed: ['shipped', 'delivered'].includes(order.status) },
-      { status: 'delivered', label: 'Delivered', date: order.estimatedDelivery, completed: order.status === 'delivered' }
-    ];
+  const toggleOrderExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
+  };
 
+  const renderTimeline = (order: Order) => {
     return (
-      <div className="space-y-4">
-        {timelineSteps.map((step, index) => (
-          <div key={step.status} className="flex items-center gap-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-            }`}>
-              {getStatusIcon(step.status)}
+      <div className="space-y-6">
+        {order.subOrders.map((subOrder, index) => (
+          <div key={index} className="border rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <User className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">{subOrder.recipientName}</span>
+              <span className="text-sm text-gray-500">({subOrder.recipientEmail})</span>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className={`font-medium ${step.completed ? 'text-gray-900' : 'text-gray-500'}`}>
-                  {step.label}
-                </span>
-                <span className="text-sm text-gray-500">{step.date}</span>
-              </div>
-              {step.status === 'shipped' && order.trackingNumber && (
-                <div className="text-sm text-gray-600 mt-1">
-                  Tracking: {order.trackingNumber} ({order.shippingCarrier})
+            
+            <div className="space-y-3 ml-6">
+              {[
+                { status: 'placed', label: 'Order Placed', date: order.orderDate, completed: true },
+                { status: 'fulfilled', label: 'Order Fulfilled', date: '2024-01-17', completed: ['fulfilled', 'shipped', 'delivered'].includes(subOrder.status) },
+                { status: 'shipped', label: 'Shipped', date: '2024-01-18', completed: ['shipped', 'delivered'].includes(subOrder.status) },
+                { status: 'delivered', label: 'Delivered', date: subOrder.estimatedDelivery, completed: subOrder.status === 'delivered' }
+              ].map((step, stepIndex) => (
+                <div key={stepIndex} className="flex items-center gap-4">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {getStatusIcon(step.status)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm font-medium ${step.completed ? 'text-gray-900' : 'text-gray-500'}`}>
+                        {step.label}
+                      </span>
+                      <span className="text-xs text-gray-500">{step.date}</span>
+                    </div>
+                    {step.status === 'shipped' && subOrder.trackingNumber && (
+                      <div className="text-xs text-gray-600 mt-1">
+                        Tracking: {subOrder.trackingNumber} ({subOrder.carrier})
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         ))}
@@ -196,45 +253,87 @@ const TrackOrders = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"></TableHead>
                 <TableHead>Order Number</TableHead>
-                <TableHead>Recipient</TableHead>
                 <TableHead>Items</TableHead>
+                <TableHead>Recipients</TableHead>
                 <TableHead>Order Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tracking</TableHead>
+                <TableHead>Overall Status</TableHead>
                 <TableHead>Est. Delivery</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                  <TableCell>{order.recipientName}</TableCell>
-                  <TableCell>{order.items}</TableCell>
-                  <TableCell>{order.orderDate}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell>
-                    {order.trackingNumber ? (
-                      <div>
-                        <div className="text-sm font-medium">{order.trackingNumber}</div>
-                        <div className="text-xs text-gray-500">{order.shippingCarrier}</div>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>{order.estimatedDelivery}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewTimeline(order)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                <React.Fragment key={order.id}>
+                  {/* Main Order Row */}
+                  <TableRow>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleOrderExpansion(order.id)}
+                        className="p-0 h-6 w-6"
+                      >
+                        {expandedOrders.has(order.id) ? 
+                          <ChevronDown className="h-4 w-4" /> : 
+                          <ChevronRight className="h-4 w-4" />
+                        }
+                      </Button>
+                    </TableCell>
+                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                    <TableCell>{order.items}</TableCell>
+                    <TableCell>{order.subOrders.length} recipients</TableCell>
+                    <TableCell>{order.orderDate}</TableCell>
+                    <TableCell>{getStatusBadge(getOverallStatus(order.subOrders))}</TableCell>
+                    <TableCell>{order.estimatedDelivery}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewTimeline(order)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  
+                  {/* Sub-Order Details Rows */}
+                  {expandedOrders.has(order.id) && order.subOrders.map((subOrder, index) => (
+                    <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
+                      <TableCell></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 pl-4">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium">{subOrder.recipientName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600 max-w-xs truncate">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          {subOrder.address}
+                        </div>
+                      </TableCell>
+                      <TableCell></TableCell>
+                      <TableCell>{getStatusBadge(subOrder.status)}</TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {subOrder.estimatedDelivery}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {subOrder.trackingNumber && (
+                          <div className="text-xs text-gray-500">
+                            {subOrder.trackingNumber}
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>
@@ -243,17 +342,17 @@ const TrackOrders = () => {
 
       {/* Order Timeline Modal */}
       <Dialog open={showTimeline} onOpenChange={setShowTimeline}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Timeline</DialogTitle>
+            <DialogTitle>Order Timeline - {selectedOrder?.orderNumber}</DialogTitle>
           </DialogHeader>
           
           {selectedOrder && (
             <div className="space-y-4">
               <div className="border-b pb-4">
                 <div className="font-medium">{selectedOrder.orderNumber}</div>
-                <div className="text-sm text-gray-600">Recipient: {selectedOrder.recipientName}</div>
                 <div className="text-sm text-gray-600">Items: {selectedOrder.items}</div>
+                <div className="text-sm text-gray-600">{selectedOrder.subOrders.length} recipients</div>
               </div>
               
               {renderTimeline(selectedOrder)}

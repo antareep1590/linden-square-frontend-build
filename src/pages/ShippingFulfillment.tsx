@@ -258,7 +258,80 @@ const ShippingFulfillment = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* CSV Upload Section */}
+          {/* 1. Shipping Mode - Moved to top */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Shipping Mode
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">Auto-assign carriers for this order</h4>
+                  <p className="text-sm text-gray-600">
+                    Automatically select the best carrier for each recipient based on location and preferences
+                  </p>
+                </div>
+                <Switch
+                  checked={bulkShippingMode}
+                  onCheckedChange={setBulkShippingMode}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 2. Choose Shipping Carrier - Right below Shipping Mode */}
+          {!bulkShippingMode && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Choose Shipping Carrier
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {carriers.map((carrier) => (
+                    <div
+                      key={carrier.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                        selectedCarrier === carrier.id
+                          ? 'border-linden-blue bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setSelectedCarrier(carrier.id)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Truck className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{carrier.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {carrier.services.join(', ')}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs">
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              <span>{carrier.estimatedCost}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{carrier.estimatedDays}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* 3. Bulk Upload - Below carrier selection */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -311,7 +384,7 @@ const ShippingFulfillment = () => {
             </CardContent>
           </Card>
 
-          {/* Recipient Address Management */}
+          {/* 4. Recipient Address Management - Keep as-is below Bulk Upload */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -438,79 +511,6 @@ const ShippingFulfillment = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Bulk Shipping Toggle */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Shipping Mode
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">Auto-assign carriers for this order</h4>
-                  <p className="text-sm text-gray-600">
-                    Automatically select the best carrier for each recipient based on location and preferences
-                  </p>
-                </div>
-                <Switch
-                  checked={bulkShippingMode}
-                  onCheckedChange={setBulkShippingMode}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipping Carrier Selection */}
-          {!bulkShippingMode && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Choose Shipping Carrier
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {carriers.map((carrier) => (
-                    <div
-                      key={carrier.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedCarrier === carrier.id
-                          ? 'border-linden-blue bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedCarrier(carrier.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Truck className="h-6 w-6 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium">{carrier.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {carrier.services.join(', ')}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs">
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              <span>{carrier.estimatedCost}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{carrier.estimatedDays}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Sidebar - Summary */}

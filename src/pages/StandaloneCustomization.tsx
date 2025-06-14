@@ -3,100 +3,88 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Upload, Save, Sparkles, FileText, Tag, Image, RefreshCw } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Upload, Save, Palette, Package, Truck, Gift, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 const StandaloneCustomization = () => {
-  const [customizationDefaults, setCustomizationDefaults] = useState({
-    brandedNotecard: {
-      enabled: false,
-      template: '',
-      message: '',
-      logo: null as File | null
-    },
-    giftTags: {
-      enabled: false,
-      type: 'preset',
-      presetMessage: '',
-      customMessage: ''
-    },
-    messageCard: {
-      enabled: false,
-      message: '',
-      senderName: ''
-    }
-  });
+  const [orderLevelCustomization, setOrderLevelCustomization] = useState(true);
+  const [customMessage, setCustomMessage] = useState('');
+  const [selectedCarrier, setSelectedCarrier] = useState('');
+  const [logoUploaded, setLogoUploaded] = useState(false);
 
-  // Mock templates
-  const notecardTemplates = [
-    { id: 'template1', name: 'Professional Thank You', preview: '/placeholder.svg' },
-    { id: 'template2', name: 'Holiday Greeting', preview: '/placeholder.svg' },
-    { id: 'template3', name: 'Welcome Message', preview: '/placeholder.svg' }
+  // Mock gift boxes
+  const giftBoxes = [
+    {
+      id: '1',
+      name: 'Premium Coffee Collection',
+      image: '/placeholder.svg',
+      items: ['Colombian Coffee', 'French Roast', 'Organic Blend'],
+      selected: true
+    },
+    {
+      id: '2',
+      name: 'Wellness Package',
+      image: '/placeholder.svg',
+      items: ['Essential Oils', 'Herbal Tea', 'Aromatherapy Candle'],
+      selected: true
+    }
   ];
 
-  const presetGiftTags = [
-    'Thank You!',
-    'Congratulations!',
-    'Welcome to the Team!',
-    'Happy Holidays!',
-    'Great Job!',
-    'Appreciation'
-  ];
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setCustomizationDefaults(prev => ({
-        ...prev,
-        brandedNotecard: { ...prev.brandedNotecard, logo: file }
-      }));
-      toast.success('Logo uploaded successfully');
+  // Mock shipping carriers data
+  const carriers = [
+    {
+      id: 'fedex',
+      name: 'FedEx',
+      services: ['Standard', 'Express', 'Overnight'],
+      estimatedCost: '$12.50',
+      estimatedDays: '2-3 business days'
+    },
+    {
+      id: 'ups',
+      name: 'UPS',
+      services: ['Ground', 'Express', 'Next Day'],
+      estimatedCost: '$11.75',
+      estimatedDays: '3-5 business days'
+    },
+    {
+      id: 'dhl',
+      name: 'DHL',
+      services: ['Standard', 'Express', 'Priority'],
+      estimatedCost: '$15.20',
+      estimatedDays: '2-4 business days'
+    },
+    {
+      id: 'usps',
+      name: 'USPS',
+      services: ['Priority', 'Express', 'Ground'],
+      estimatedCost: '$9.99',
+      estimatedDays: '3-5 business days'
     }
-  };
-
-  const toggleCustomization = (type: string, enabled: boolean) => {
-    setCustomizationDefaults(prev => ({
-      ...prev,
-      [type]: { ...prev[type as keyof typeof prev], enabled }
-    }));
-  };
-
-  const updateCustomization = (type: string, field: string, value: any) => {
-    setCustomizationDefaults(prev => ({
-      ...prev,
-      [type]: { ...prev[type as keyof typeof prev], [field]: value }
-    }));
-  };
+  ];
 
   const handleSaveDefaults = () => {
-    // Save customization defaults to local storage or backend
+    const customizationDefaults = {
+      orderLevelCustomization,
+      customMessage,
+      selectedCarrier,
+      logoUploaded,
+      giftBoxes: giftBoxes.filter(box => box.selected)
+    };
     localStorage.setItem('customizationDefaults', JSON.stringify(customizationDefaults));
     toast.success('Customization defaults saved successfully');
     console.log('Saved customization defaults:', customizationDefaults);
   };
 
-  const handleLoadDefaults = () => {
-    // Load customization defaults from local storage or backend
-    const saved = localStorage.getItem('customizationDefaults');
-    if (saved) {
-      setCustomizationDefaults(JSON.parse(saved));
-      toast.success('Customization defaults loaded');
-    } else {
-      toast.info('No saved defaults found');
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLogoUploaded(true);
+      toast.success('Logo uploaded successfully');
     }
-  };
-
-  const calculateCustomizationCost = () => {
-    let cost = 0;
-    if (customizationDefaults.brandedNotecard.enabled) cost += 5.00;
-    if (customizationDefaults.giftTags.enabled) cost += 2.00;
-    if (customizationDefaults.messageCard.enabled) cost += 3.00;
-    return cost;
   };
 
   return (
@@ -104,16 +92,9 @@ const StandaloneCustomization = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Customization Defaults</h1>
-          <p className="text-gray-600">Set up default customization options for future gift orders</p>
+          <p className="text-gray-600">Set up default personalization preferences for your gift boxes</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleLoadDefaults}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Load Saved
-          </Button>
-          <Badge variant="outline" className="text-linden-blue">
-            ${calculateCustomizationCost().toFixed(2)} per order
-          </Badge>
           <Button 
             onClick={handleSaveDefaults}
             className="bg-linden-blue hover:bg-linden-blue/90"
@@ -132,209 +113,182 @@ const StandaloneCustomization = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
+                <Palette className="h-5 w-5" />
                 About Customization Defaults
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm text-gray-600">
                 <p>
-                  Set up your preferred customization options here to streamline future gift orders. 
-                  These defaults will automatically populate when you create new orders.
+                  Configure your default customization preferences here. These settings will 
+                  automatically populate when you create new gift orders.
                 </p>
                 <p>
-                  You can always modify or override these settings during the actual order process 
-                  if you need different customizations for specific gifts.
+                  Set up default messages, branding, and personalization options to streamline 
+                  your order creation process.
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-blue-800 text-sm">
-                    <strong>Tip:</strong> These settings will be applied to all gift boxes in future orders 
-                    unless you choose individual customization during the order flow.
+                    <strong>Tip:</strong> These defaults can always be modified during the order 
+                    creation process, giving you flexibility while saving time.
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Branded Notecards */}
+          {/* Selected Gift Boxes */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Branded Notecards
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">+$5.00</Badge>
-                  <Switch
-                    checked={customizationDefaults.brandedNotecard.enabled}
-                    onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked)}
-                  />
-                </div>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5" />
+                Your Selected Gift Boxes
+              </CardTitle>
             </CardHeader>
-            {customizationDefaults.brandedNotecard.enabled && (
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Default Template</Label>
-                  <Select
-                    value={customizationDefaults.brandedNotecard.template}
-                    onValueChange={(value) => updateCustomization('brandedNotecard', 'template', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {notecardTemplates.map(template => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.name}
-                        </SelectItem>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {giftBoxes.filter(box => box.selected).map((box) => (
+                  <div key={box.id} className="border rounded-lg p-4">
+                    <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                      <Package className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <h4 className="font-medium mb-2">{box.name}</h4>
+                    <div className="space-y-1">
+                      {box.items.map((item, index) => (
+                        <Badge key={index} variant="secondary" className="mr-1 mb-1">
+                          {item}
+                        </Badge>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Company Logo</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {customizationDefaults.brandedNotecard.logo 
-                          ? customizationDefaults.brandedNotecard.logo.name 
-                          : 'Click to upload company logo (PNG, JPG, max 5MB)'
-                        }
-                      </p>
-                    </label>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <Label>Default Message</Label>
-                  <Textarea
-                    placeholder="Enter your default message for notecards..."
-                    value={customizationDefaults.brandedNotecard.message}
-                    onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            )}
+                ))}
+              </div>
+            </CardContent>
           </Card>
 
-          {/* Gift Tags */}
+          {/* Customization Level */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
-                  Gift Tags
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">+$2.00</Badge>
-                  <Switch
-                    checked={customizationDefaults.giftTags.enabled}
-                    onCheckedChange={(checked) => toggleCustomization('giftTags', checked)}
-                  />
-                </div>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Default Customization Level
+              </CardTitle>
             </CardHeader>
-            {customizationDefaults.giftTags.enabled && (
-              <CardContent className="space-y-4">
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div>
-                  <Label>Tag Type</Label>
-                  <Select
-                    value={customizationDefaults.giftTags.type}
-                    onValueChange={(value) => updateCustomization('giftTags', 'type', value)}
+                  <h4 className="font-medium">Order-Level Customization</h4>
+                  <p className="text-sm text-gray-600">
+                    Apply the same customization to all recipients in an order
+                  </p>
+                </div>
+                <Switch
+                  checked={orderLevelCustomization}
+                  onCheckedChange={setOrderLevelCustomization}
+                />
+              </div>
+              
+              {!orderLevelCustomization && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    When disabled, you'll be able to customize each recipient individually during order creation.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Default Message */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Default Custom Message</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="customMessage">Message Template</Label>
+                <Textarea
+                  id="customMessage"
+                  placeholder="Enter your default message template..."
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <p className="text-sm text-gray-600 mt-2">
+                  This message will be pre-filled in new orders and can be customized per order.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Logo Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Default Branding</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <label htmlFor="logo-upload" className="cursor-pointer">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-lg font-medium text-gray-900 mb-2">
+                    {logoUploaded ? 'Logo Uploaded' : 'Upload Company Logo'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {logoUploaded 
+                      ? 'Click to change your default logo'
+                      : 'Upload your logo to include in gift boxes by default'
+                    }
+                  </p>
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Choose Default Shipping Carrier */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Choose Default Shipping Carrier
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {carriers.map((carrier) => (
+                  <div
+                    key={carrier.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      selectedCarrier === carrier.id
+                        ? 'border-linden-blue bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedCarrier(carrier.id)}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="preset">Preset Messages</SelectItem>
-                      <SelectItem value="custom">Custom Message</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {customizationDefaults.giftTags.type === 'preset' && (
-                  <div>
-                    <Label>Default Preset Message</Label>
-                    <Select
-                      value={customizationDefaults.giftTags.presetMessage}
-                      onValueChange={(value) => updateCustomization('giftTags', 'presetMessage', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a message" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {presetGiftTags.map(tag => (
-                          <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Truck className="h-6 w-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{carrier.name}</h4>
+                        <p className="text-sm text-gray-600 mb-2">
+                          {carrier.services.join(', ')}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span>{carrier.estimatedCost}</span>
+                          <span>{carrier.estimatedDays}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-
-                {customizationDefaults.giftTags.type === 'custom' && (
-                  <div>
-                    <Label>Default Custom Message</Label>
-                    <Input
-                      placeholder="Enter your default tag message"
-                      value={customizationDefaults.giftTags.customMessage}
-                      onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Message Cards */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Image className="h-5 w-5" />
-                  Message Cards
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">+$3.00</Badge>
-                  <Switch
-                    checked={customizationDefaults.messageCard.enabled}
-                    onCheckedChange={(checked) => toggleCustomization('messageCard', checked)}
-                  />
-                </div>
+                ))}
               </div>
-            </CardHeader>
-            {customizationDefaults.messageCard.enabled && (
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Default Message</Label>
-                  <Textarea
-                    placeholder="Enter your default personal message..."
-                    value={customizationDefaults.messageCard.message}
-                    onChange={(e) => updateCustomization('messageCard', 'message', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label>Default Sender Name</Label>
-                  <Input
-                    placeholder="Your name or company name"
-                    value={customizationDefaults.messageCard.senderName}
-                    onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            )}
+            </CardContent>
           </Card>
         </div>
 
@@ -347,31 +301,38 @@ const StandaloneCustomization = () => {
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span>Branded Notecards:</span>
-                  <span className={customizationDefaults.brandedNotecard.enabled ? 'text-green-600' : 'text-gray-400'}>
-                    {customizationDefaults.brandedNotecard.enabled ? 'Enabled' : 'Disabled'}
+                  <span>Customization Level:</span>
+                  <span className="font-medium">
+                    {orderLevelCustomization ? 'Order-Level' : 'Individual'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span>Gift Tags:</span>
-                  <span className={customizationDefaults.giftTags.enabled ? 'text-green-600' : 'text-gray-400'}>
-                    {customizationDefaults.giftTags.enabled ? 'Enabled' : 'Disabled'}
+                  <span>Default Message:</span>
+                  <span className={customMessage ? 'text-green-600' : 'text-gray-400'}>
+                    {customMessage ? 'Set' : 'Not Set'}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-sm">
-                  <span>Message Cards:</span>
-                  <span className={customizationDefaults.messageCard.enabled ? 'text-green-600' : 'text-gray-400'}>
-                    {customizationDefaults.messageCard.enabled ? 'Enabled' : 'Disabled'}
+                  <span>Company Logo:</span>
+                  <span className={logoUploaded ? 'text-green-600' : 'text-gray-400'}>
+                    {logoUploaded ? 'Uploaded' : 'Not Uploaded'}
                   </span>
                 </div>
                 
-                <div className="border-t pt-3">
-                  <div className="flex justify-between font-semibold">
-                    <span>Cost per Order:</span>
-                    <span>${calculateCustomizationCost().toFixed(2)}</span>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span>Default Carrier:</span>
+                  <span className={selectedCarrier ? 'text-green-600' : 'text-gray-400'}>
+                    {selectedCarrier ? carriers.find(c => c.id === selectedCarrier)?.name : 'Not Selected'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span>Gift Boxes:</span>
+                  <span className="font-medium text-green-600">
+                    {giftBoxes.filter(box => box.selected).length} Selected
+                  </span>
                 </div>
               </div>
 
@@ -384,7 +345,7 @@ const StandaloneCustomization = () => {
               </Button>
 
               <div className="text-xs text-gray-500 text-center">
-                These settings will be applied to future orders automatically
+                These settings will be used as defaults in future orders
               </div>
             </CardContent>
           </Card>
