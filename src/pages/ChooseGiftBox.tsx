@@ -100,21 +100,8 @@ const ChooseGiftBox = () => {
     );
   };
 
-  const handleCustomizeSelected = () => {
-    if (selectedBoxIds.length > 0) {
-      navigate('/customize-gift-box');
-    }
-  };
-
   const handleBackToHome = () => {
     navigate('/');
-  };
-
-  const calculateTotalPrice = () => {
-    return selectedBoxIds.reduce((total, boxId) => {
-      const box = giftBoxes.find(b => b.id === boxId);
-      return total + (box?.price || 0);
-    }, 0);
   };
 
   return (
@@ -144,7 +131,7 @@ const ChooseGiftBox = () => {
             Choose Your Perfect Gift Box
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Select from our professionally curated collection. Each box is designed for specific occasions and can be personalized to match your message.
+            Explore our professionally curated collection. Each box is designed for specific occasions and themes.
           </p>
         </div>
 
@@ -153,10 +140,7 @@ const ChooseGiftBox = () => {
           {giftBoxes.map((box) => (
             <Card 
               key={box.id} 
-              className={`group cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl ${
-                selectedBoxIds.includes(box.id) ? 'ring-2 ring-linden-blue shadow-xl' : ''
-              }`}
-              onClick={() => handleSelectBox(box.id)}
+              className="group cursor-pointer transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl"
             >
               <div className="relative">
                 {/* Image */}
@@ -182,15 +166,6 @@ const ChooseGiftBox = () => {
                     </Badge>
                   )}
                 </div>
-
-                {/* Selection Indicator */}
-                {selectedBoxIds.includes(box.id) && (
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-linden-blue rounded-full p-2">
-                      <CheckCircle className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                )}
               </div>
 
               <CardContent className="p-6">
@@ -237,55 +212,34 @@ const ChooseGiftBox = () => {
                   </ul>
                 </div>
 
+                {/* View Details Button */}
                 <Button 
-                  className={`w-full transition-colors ${
-                    selectedBoxIds.includes(box.id) 
-                      ? 'bg-linden-blue hover:bg-linden-blue/90' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  onClick={() => handleSelectBox(box.id)}
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90 transition-colors"
                 >
-                  {selectedBoxIds.includes(box.id) ? 'Selected' : 'Select This Box'}
+                  View Details
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Fixed Bottom Action Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {selectedBoxIds.length > 0 && (
-                <>
-                  <Package className="h-5 w-5 text-linden-blue" />
-                  <span className="font-medium text-gray-900">
-                    {selectedBoxIds.length} box{selectedBoxIds.length > 1 ? 'es' : ''} selected
-                  </span>
-                  <span className="text-linden-blue font-semibold">
-                    ${calculateTotalPrice().toFixed(2)}
-                  </span>
-                </>
-              )}
-            </div>
-            <Button 
-              size="lg"
-              onClick={handleCustomizeSelected}
-              disabled={selectedBoxIds.length === 0}
-              className={`px-8 py-3 ${
-                selectedBoxIds.length > 0 
-                  ? 'bg-linden-blue hover:bg-linden-blue/90' 
-                  : 'bg-gray-300 cursor-not-allowed'
-              }`}
-            >
-              Customize Selected
-              <ArrowLeft className="h-5 w-5 ml-2 rotate-180" />
+        {/* Call to Action Section */}
+        <div className="text-center bg-white rounded-lg p-8 shadow-sm">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Ready to Get Started?
+          </h2>
+          <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+            Contact us to discuss your corporate gifting needs and create the perfect experience for your recipients.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-linden-blue hover:bg-linden-blue/90">
+              Contact Sales
+            </Button>
+            <Button size="lg" variant="outline">
+              Learn More
             </Button>
           </div>
         </div>
-
-        {/* Bottom Spacing for Fixed Bar */}
-        <div className="h-20"></div>
       </div>
     </div>
   );
