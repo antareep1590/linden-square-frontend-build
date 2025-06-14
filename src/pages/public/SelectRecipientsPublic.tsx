@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,8 @@ interface Recipient {
   address: string;
   status: 'pending' | 'confirmed';
   assignedGiftBoxes?: string[];
-  shippingMode?: string;
-  source?: string;
+  shippingMode: string;
+  source: 'manual' | 'bulk' | 'auto';
 }
 
 const SelectRecipientsPublic = () => {
