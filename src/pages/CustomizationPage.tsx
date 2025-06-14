@@ -19,48 +19,36 @@ const CustomizationPage = () => {
   const { selectedBoxes } = useCart();
   const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual'); // Fixed type definition
   
-  const [orderLevelCustomization, setOrderLevelCustomization] = useState({
-    brandedNotecard: {
-      enabled: false,
-      template: '',
-      message: '',
-      logo: null as File | null
-    },
-    giftTags: {
-      enabled: false,
-      type: 'preset',
-      presetMessage: '',
-      customMessage: ''
-    },
-    messageCard: {
-      enabled: false,
-      message: '',
-      senderName: ''
-    }
-  });
+  // Load defaults from Customization Defaults page (simulated)
+  const loadDefaults = () => {
+    // In a real app, this would come from a context or API
+    return {
+      brandedNotecard: {
+        enabled: false, // Set to true if defaults exist
+        template: '', // Load from defaults
+        message: '', // Load from defaults
+        logo: null as File | null
+      },
+      giftTags: {
+        enabled: false, // Set to true if defaults exist
+        type: 'preset',
+        presetMessage: '', // Load from defaults
+        customMessage: '' // Load from defaults
+      },
+      messageCard: {
+        enabled: false, // Set to true if defaults exist
+        message: '', // Load from defaults
+        senderName: '' // Load from defaults
+      }
+    };
+  };
+
+  const [orderLevelCustomization, setOrderLevelCustomization] = useState(loadDefaults());
 
   const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>(() => {
     const initial: {[key: string]: any} = {};
     selectedBoxes.forEach(box => {
-      initial[box.id] = {
-        brandedNotecard: {
-          enabled: false,
-          template: '',
-          message: '',
-          logo: null as File | null
-        },
-        giftTags: {
-          enabled: false,
-          type: 'preset',
-          presetMessage: '',
-          customMessage: ''
-        },
-        messageCard: {
-          enabled: false,
-          message: '',
-          senderName: ''
-        }
-      };
+      initial[box.id] = loadDefaults(); // Load defaults for each box
     });
     return initial;
   });
@@ -402,6 +390,23 @@ const CustomizationPage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Add note about defaults being loaded */}
+      {(orderLevelCustomization.brandedNotecard.enabled || orderLevelCustomization.giftTags.enabled || orderLevelCustomization.messageCard.enabled) && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-blue-900 mb-1">Defaults Loaded</h3>
+                <p className="text-sm text-blue-800">
+                  Your saved customization preferences have been pre-filled. You can modify them below or continue with these settings.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}

@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DatePickerWithRange } from '@/components/ui/date-picker';
 import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DateRange } from 'react-day-picker';
 
 interface SubOrder {
   recipientName: string;
@@ -34,6 +36,8 @@ interface Order {
 const TrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
+  const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -135,12 +139,30 @@ const TrackOrders = () => {
     }
   };
 
+  // Calculate summary statistics based on filtered orders
+  const getSummaryStats = () => {
+    const totalOrders = filteredOrders.length;
+    const placedOrders = filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'placed').length;
+    const fulfilledOrders = filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'fulfilled').length;
+    const shippedOrders = filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'shipped').length;
+    const deliveredOrders = filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'delivered').length;
+    
+    return { totalOrders, placedOrders, fulfilledOrders, shippedOrders, deliveredOrders };
+  };
+
+  const stats = getSummaryStats();
+
   const filteredOrders = orders.filter(order => {
     const overallStatus = getOverallStatus(order.subOrders);
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.subOrders.some(sub => sub.recipientName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || overallStatus === statusFilter;
-    return matchesSearch && matchesStatus;
+    
+    // Date filtering logic would go here
+    let matchesOrderDate = true;
+    let matchesDeliveryDate = true;
+    
+    return matchesSearch && matchesStatus && matchesOrderDate && matchesDeliveryDate;
   });
 
   const handleViewTimeline = (order: Order) => {
@@ -213,14 +235,75 @@ const TrackOrders = () => {
         </div>
       </div>
 
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Orders Placed</p>
+                <p className="text-2xl font-bold">{stats.placedOrders}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Clock className="h-5 w-5 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Orders Fulfilled</p>
+                <p className="text-2xl font-bold">{stats.fulfilledOrders}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Truck className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Orders Shipped</p>
+                <p className="text-2xl font-bold">{stats.shippedOrders}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <MapPin className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Orders Delivered</p>
+                <p className="text-2xl font-bold">{stats.deliveredOrders}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label htmlFor="search" className="text-sm font-medium mb-2 block">Search Orders</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
+                  id="search"
                   placeholder="Search by order number or recipient name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -228,18 +311,40 @@ const TrackOrders = () => {
                 />
               </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="placed">Placed</SelectItem>
-                <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div>
+              <Label htmlFor="status" className="text-sm font-medium mb-2 block">Order Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="placed">Placed</SelectItem>
+                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="orderDate" className="text-sm font-medium mb-2 block">Order Date</Label>
+              <DatePickerWithRange
+                date={orderDateRange}
+                onDateChange={setOrderDateRange}
+                placeholder="Select order date range"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="deliveryDate" className="text-sm font-medium mb-2 block">Estimated Delivery Date</Label>
+              <DatePickerWithRange
+                date={deliveryDateRange}
+                onDateChange={setDeliveryDateRange}
+                placeholder="Select delivery date range"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
