@@ -2,133 +2,111 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Gift, Ribbon, MessageSquare, Tag, ShoppingCart, Package } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Plus, Minus, Package, Gift, Trash2, ShoppingCart, Settings, Eye, Upload, FileText, Tag, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import LindenSquareLogo from '@/components/LindenSquareLogo';
 import { toast } from 'sonner';
+import CustomizationPreview from '@/components/CustomizationPreview';
 
 const CustomizeGiftBoxPublic = () => {
   const navigate = useNavigate();
   
-  // Sample selected box data (would come from previous selection)
-  const selectedBox = {
-    id: 1,
-    name: "Executive Appreciation",
-    theme: "Professional",
-    basePrice: 89.99,
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-    contents: ["Premium leather notebook", "Artisan coffee selection", "Elegant pen set", "Gourmet chocolates"]
-  };
-
-  const [personalization, setPersonalization] = useState({
-    ribbonColor: 'blue',
-    ribbonStyle: 'classic',
-    giftMessage: '',
-    senderName: '',
-    tagStyle: 'elegant',
-    packagingType: 'premium',
-    deliveryInstructions: ''
-  });
-
-  const [personalizationCosts, setPersonalizationCosts] = useState({
-    ribbonUpgrade: 0,
-    premiumPackaging: 15.00,
-    customTag: 5.00,
-    expressDelivery: 0
-  });
-
-  const ribbonOptions = [
-    { id: 'blue', name: 'Classic Blue', color: 'bg-blue-600', price: 0 },
-    { id: 'gold', name: 'Elegant Gold', color: 'bg-yellow-500', price: 3.00 },
-    { id: 'silver', name: 'Silver', color: 'bg-gray-400', price: 3.00 },
-    { id: 'red', name: 'Festive Red', color: 'bg-red-600', price: 0 },
-    { id: 'green', name: 'Forest Green', color: 'bg-green-600', price: 0 }
-  ];
-
-  const ribbonStyles = [
-    { id: 'classic', name: 'Classic Bow', price: 0 },
-    { id: 'modern', name: 'Modern Wrap', price: 2.00 },
-    { id: 'elegant', name: 'Elegant Twist', price: 4.00 }
-  ];
-
-  const tagStyles = [
-    { id: 'simple', name: 'Simple Card', price: 0 },
-    { id: 'elegant', name: 'Elegant Card', price: 5.00 },
-    { id: 'premium', name: 'Premium Foil Card', price: 8.00 }
-  ];
-
-  const packagingTypes = [
-    { id: 'standard', name: 'Standard Box', price: 0 },
-    { id: 'premium', name: 'Premium Box', price: 15.00 },
-    { id: 'luxury', name: 'Luxury Presentation Box', price: 25.00 }
-  ];
-
-  const handlePersonalizationChange = (field: string, value: string) => {
-    setPersonalization(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Update costs based on selection
-    updatePersonalizationCosts(field, value);
-  };
-
-  const updatePersonalizationCosts = (field: string, value: string) => {
-    let newCosts = { ...personalizationCosts };
-
-    switch (field) {
-      case 'ribbonColor':
-        const ribbon = ribbonOptions.find(r => r.id === value);
-        newCosts.ribbonUpgrade = ribbon?.price || 0;
-        break;
-      case 'ribbonStyle':
-        const style = ribbonStyles.find(s => s.id === value);
-        newCosts.ribbonUpgrade += style?.price || 0;
-        break;
-      case 'tagStyle':
-        const tag = tagStyles.find(t => t.id === value);
-        newCosts.customTag = tag?.price || 0;
-        break;
-      case 'packagingType':
-        const packaging = packagingTypes.find(p => p.id === value);
-        newCosts.premiumPackaging = packaging?.price || 0;
-        break;
+  // Sample selected boxes (would come from previous selection in real app)
+  const [selectedBoxes] = useState([
+    {
+      id: '1',
+      name: 'Executive Appreciation Box',
+      theme: 'Professional',
+      type: 'curated',
+      size: 'Large',
+      basePrice: 89.99,
+      gifts: [
+        { id: '1', name: 'Premium Leather Notebook', price: 25.00, quantity: 1 },
+        { id: '2', name: 'Artisan Coffee Selection', price: 18.00, quantity: 1 },
+        { id: '3', name: 'Elegant Pen Set', price: 35.00, quantity: 1 }
+      ]
     }
+  ]);
 
-    setPersonalizationCosts(newCosts);
+  const [selectedBoxIndex, setSelectedBoxIndex] = useState(0);
+  const [orderLevelCustomization, setOrderLevelCustomization] = useState(false);
+  const [orderLevelSettings, setOrderLevelSettings] = useState({
+    brandedNotecard: { enabled: false, template: '', message: '', logo: null as File | null },
+    giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
+    messageCard: { enabled: false, message: '', senderName: '' }
+  });
+  const [individualSettings, setIndividualSettings] = useState<{[key: string]: any}>({});
+
+  const currentBox = selectedBoxes[selectedBoxIndex];
+
+  const updateGiftQuantity = (giftId: string, newQuantity: number) => {
+    if (newQuantity < 0) return;
+    // Gift quantity update logic would go here
+    toast.success('Gift quantity updated');
   };
 
-  const calculateSubtotal = () => {
-    return selectedBox.basePrice + Object.values(personalizationCosts).reduce((sum, cost) => sum + cost, 0);
+  const removeGift = (giftId: string) => {
+    // Remove gift logic would go here
+    toast.success('Gift removed from box');
   };
 
-  const calculateTotal = () => {
-    const subtotal = calculateSubtotal();
-    const tax = subtotal * 0.08; // 8% tax
-    return subtotal + tax;
+  const calculateBoxTotal = () => {
+    return currentBox.gifts.reduce((total, gift) => 
+      total + (gift.price * gift.quantity), 0
+    );
+  };
+
+  const getCurrentPreviewData = () => {
+    if (orderLevelCustomization) {
+      return orderLevelSettings;
+    } else {
+      return individualSettings[currentBox.id] || {};
+    }
+  };
+
+  const handleOrderLevelToggle = (enabled: boolean) => {
+    setOrderLevelCustomization(enabled);
+    if (enabled) {
+      // Load saved order-level defaults from localStorage
+      const savedDefaults = localStorage.getItem('customizationDefaults');
+      if (savedDefaults) {
+        const defaults = JSON.parse(savedDefaults);
+        setOrderLevelSettings(defaults);
+      }
+    }
+  };
+
+  const updateOrderLevelSetting = (category: string, field: string, value: any) => {
+    setOrderLevelSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: value
+      }
+    }));
+  };
+
+  const updateIndividualSetting = (category: string, field: string, value: any) => {
+    setIndividualSettings(prev => ({
+      ...prev,
+      [currentBox.id]: {
+        ...prev[currentBox.id],
+        [category]: {
+          ...prev[currentBox.id]?.[category],
+          [field]: value
+        }
+      }
+    }));
   };
 
   const handleContinueToRecipients = () => {
-    if (!personalization.giftMessage.trim()) {
-      toast.error('Please add a gift message before continuing');
-      return;
-    }
-    
-    if (!personalization.senderName.trim()) {
-      toast.error('Please enter the sender name');
-      return;
-    }
-
-    navigate('/public/recipients');
-  };
-
-  const handleBackToBoxSelection = () => {
-    navigate('/choose-gift-box');
+    navigate('/public/select-recipients');
   };
 
   return (
@@ -137,14 +115,15 @@ const CustomizeGiftBoxPublic = () => {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <LindenSquareLogo size="medium" />
-              <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-              <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Customize Your Gift Box</h1>
+            <div>
+              <h1 className="text-2xl font-bold">Customize Your Gift Box</h1>
+              <p className="text-gray-600">Personalize your selection and add custom touches</p>
             </div>
-            <Button variant="outline" onClick={handleBackToBoxSelection}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Selection
+            <Button 
+              onClick={handleContinueToRecipients}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Continue to Recipients
             </Button>
           </div>
         </div>
@@ -153,172 +132,347 @@ const CustomizeGiftBoxPublic = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Main Customization Panel */}
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Selected Box Preview */}
+            {/* Customization Level Toggle */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Selected Gift Box
+                  <Settings className="h-5 w-5" />
+                  Customization Level
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src={selectedBox.image} 
-                    alt={selectedBox.name}
-                    className="w-20 h-20 object-cover rounded-lg"
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">Apply customization to all gift boxes</h4>
+                    <p className="text-sm text-gray-600">
+                      When enabled, these customizations will apply to all gift boxes in your order
+                    </p>
+                  </div>
+                  <Switch
+                    checked={orderLevelCustomization}
+                    onCheckedChange={handleOrderLevelToggle}
                   />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{selectedBox.name}</h3>
-                    <p className="text-gray-600">{selectedBox.theme}</p>
-                    <p className="text-linden-blue font-semibold">${selectedBox.basePrice}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Box Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>{currentBox.name}</span>
+                  <Badge variant="outline">{currentBox.size}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Theme:</span>
+                    <span className="ml-2 font-medium">{currentBox.theme}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Type:</span>
+                    <span className="ml-2 font-medium capitalize">{currentBox.type}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Ribbon Customization */}
+            {/* Gift Items */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Ribbon className="h-5 w-5" />
-                  Ribbon & Wrapping
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <Label>Ribbon Color</Label>
-                  <RadioGroup 
-                    value={personalization.ribbonColor} 
-                    onValueChange={(value) => handlePersonalizationChange('ribbonColor', value)}
-                    className="flex flex-wrap gap-4"
-                  >
-                    {ribbonOptions.map((ribbon) => (
-                      <div key={ribbon.id} className="flex items-center space-x-2">
-                        <RadioGroupItem value={ribbon.id} id={ribbon.id} />
-                        <Label htmlFor={ribbon.id} className="flex items-center space-x-2 cursor-pointer">
-                          <div className={`w-4 h-4 rounded-full ${ribbon.color}`}></div>
-                          <span>{ribbon.name}</span>
-                          {ribbon.price > 0 && <span className="text-sm text-gray-500">+${ribbon.price}</span>}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="ribbonStyle">Ribbon Style</Label>
-                  <Select value={personalization.ribbonStyle} onValueChange={(value) => handlePersonalizationChange('ribbonStyle', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ribbonStyles.map((style) => (
-                        <SelectItem key={style.id} value={style.id}>
-                          {style.name} {style.price > 0 && `(+$${style.price})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Gift Message */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Gift Message
+                  <Gift className="h-5 w-5" />
+                  Gift Items ({currentBox.gifts.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="giftMessage">Personal Message *</Label>
-                  <Textarea
-                    id="giftMessage"
-                    placeholder="Write your personal message here..."
-                    value={personalization.giftMessage}
-                    onChange={(e) => handlePersonalizationChange('giftMessage', e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                  <p className="text-sm text-gray-500">
-                    {personalization.giftMessage.length}/200 characters
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="senderName">From (Sender Name) *</Label>
-                  <Input
-                    id="senderName"
-                    placeholder="Your name or company name"
-                    value={personalization.senderName}
-                    onChange={(e) => handlePersonalizationChange('senderName', e.target.value)}
-                  />
-                </div>
+                {currentBox.gifts.map((gift) => (
+                  <div key={gift.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{gift.name}</h4>
+                      <p className="text-sm text-gray-600">${gift.price.toFixed(2)} each</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateGiftQuantity(gift.id, gift.quantity - 1)}
+                        disabled={gift.quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{gift.quantity}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateGiftQuantity(gift.id, gift.quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="font-medium">${(gift.price * gift.quantity).toFixed(2)}</p>
+                    </div>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeGift(gift.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
               </CardContent>
             </Card>
 
-            {/* Card & Packaging */}
+            {/* Branded Notecard */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Branded Notecard
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Include branded notecard</span>
+                  <Switch
+                    checked={getCurrentPreviewData().brandedNotecard?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      if (orderLevelCustomization) {
+                        updateOrderLevelSetting('brandedNotecard', 'enabled', checked);
+                      } else {
+                        updateIndividualSetting('brandedNotecard', 'enabled', checked);
+                      }
+                    }}
+                  />
+                </div>
+                
+                {getCurrentPreviewData().brandedNotecard?.enabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="template">Template</Label>
+                      <Select
+                        value={getCurrentPreviewData().brandedNotecard?.template || ''}
+                        onValueChange={(value) => {
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('brandedNotecard', 'template', value);
+                          } else {
+                            updateIndividualSetting('brandedNotecard', 'template', value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose template" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="warm">Warm & Personal</SelectItem>
+                          <SelectItem value="festive">Festive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="message">Custom Message</Label>
+                      <Textarea
+                        id="message"
+                        placeholder="Enter your custom message..."
+                        value={getCurrentPreviewData().brandedNotecard?.message || ''}
+                        onChange={(e) => {
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('brandedNotecard', 'message', e.target.value);
+                          } else {
+                            updateIndividualSetting('brandedNotecard', 'message', e.target.value);
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="logo">Upload Logo</Label>
+                      <Input
+                        id="logo"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('brandedNotecard', 'logo', file);
+                          } else {
+                            updateIndividualSetting('brandedNotecard', 'logo', file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Gift Tags */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Tag className="h-5 w-5" />
-                  Card & Packaging
+                  Gift Tags
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <Label htmlFor="tagStyle">Gift Card Style</Label>
-                  <Select value={personalization.tagStyle} onValueChange={(value) => handlePersonalizationChange('tagStyle', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tagStyles.map((tag) => (
-                        <SelectItem key={tag.id} value={tag.id}>
-                          {tag.name} {tag.price > 0 && `(+$${tag.price})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="packagingType">Packaging Type</Label>
-                  <Select value={personalization.packagingType} onValueChange={(value) => handlePersonalizationChange('packagingType', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {packagingTypes.map((packaging) => (
-                        <SelectItem key={packaging.id} value={packaging.id}>
-                          {packaging.name} {packaging.price > 0 && `(+$${packaging.price})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="deliveryInstructions">Special Delivery Instructions</Label>
-                  <Textarea
-                    id="deliveryInstructions"
-                    placeholder="Any special instructions for delivery..."
-                    value={personalization.deliveryInstructions}
-                    onChange={(e) => handlePersonalizationChange('deliveryInstructions', e.target.value)}
-                    rows={2}
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Include gift tags</span>
+                  <Switch
+                    checked={getCurrentPreviewData().giftTags?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      if (orderLevelCustomization) {
+                        updateOrderLevelSetting('giftTags', 'enabled', checked);
+                      } else {
+                        updateIndividualSetting('giftTags', 'enabled', checked);
+                      }
+                    }}
                   />
                 </div>
+                
+                {getCurrentPreviewData().giftTags?.enabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Tag Type</Label>
+                      <Select
+                        value={getCurrentPreviewData().giftTags?.type || 'preset'}
+                        onValueChange={(value) => {
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('giftTags', 'type', value);
+                          } else {
+                            updateIndividualSetting('giftTags', 'type', value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="preset">Preset Message</SelectItem>
+                          <SelectItem value="custom">Custom Message</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {getCurrentPreviewData().giftTags?.type === 'preset' ? (
+                      <div>
+                        <Label>Preset Message</Label>
+                        <Select
+                          value={getCurrentPreviewData().giftTags?.presetMessage || ''}
+                          onValueChange={(value) => {
+                            if (orderLevelCustomization) {
+                              updateOrderLevelSetting('giftTags', 'presetMessage', value);
+                            } else {
+                              updateIndividualSetting('giftTags', 'presetMessage', value);
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose preset message" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="thank-you">Thank You</SelectItem>
+                            <SelectItem value="appreciation">With Appreciation</SelectItem>
+                            <SelectItem value="congratulations">Congratulations</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div>
+                        <Label htmlFor="customTag">Custom Message</Label>
+                        <Input
+                          id="customTag"
+                          placeholder="Enter custom tag message"
+                          value={getCurrentPreviewData().giftTags?.customMessage || ''}
+                          onChange={(e) => {
+                            if (orderLevelCustomization) {
+                              updateOrderLevelSetting('giftTags', 'customMessage', e.target.value);
+                            } else {
+                              updateIndividualSetting('giftTags', 'customMessage', e.target.value);
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Message Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Message Card
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Include message card</span>
+                  <Switch
+                    checked={getCurrentPreviewData().messageCard?.enabled || false}
+                    onCheckedChange={(checked) => {
+                      if (orderLevelCustomization) {
+                        updateOrderLevelSetting('messageCard', 'enabled', checked);
+                      } else {
+                        updateIndividualSetting('messageCard', 'enabled', checked);
+                      }
+                    }}
+                  />
+                </div>
+                
+                {getCurrentPreviewData().messageCard?.enabled && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="messageContent">Message</Label>
+                      <Textarea
+                        id="messageContent"
+                        placeholder="Enter your personal message..."
+                        value={getCurrentPreviewData().messageCard?.message || ''}
+                        onChange={(e) => {
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('messageCard', 'message', e.target.value);
+                          } else {
+                            updateIndividualSetting('messageCard', 'message', e.target.value);
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="senderName">Sender Name</Label>
+                      <Input
+                        id="senderName"
+                        placeholder="Your name"
+                        value={getCurrentPreviewData().messageCard?.senderName || ''}
+                        onChange={(e) => {
+                          if (orderLevelCustomization) {
+                            updateOrderLevelSetting('messageCard', 'senderName', e.target.value);
+                          } else {
+                            updateIndividualSetting('messageCard', 'senderName', e.target.value);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Order Summary Sidebar */}
+          {/* Sidebar - Summary & Preview */}
           <div className="space-y-6">
             <Card className="sticky top-4">
               <CardHeader>
@@ -328,92 +482,49 @@ const CustomizeGiftBoxPublic = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                
-                {/* Base Box */}
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="font-medium">{selectedBox.name}</span>
-                    <span>${selectedBox.basePrice.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Personalization Costs */}
-                {Object.entries(personalizationCosts).map(([key, cost]) => {
-                  if (cost > 0) {
-                    const labels = {
-                      ribbonUpgrade: 'Ribbon Upgrade',
-                      premiumPackaging: 'Premium Packaging',
-                      customTag: 'Custom Card',
-                      expressDelivery: 'Express Delivery'
-                    };
-                    
-                    return (
-                      <div key={key} className="flex justify-between text-sm text-gray-600">
-                        <span>{labels[key as keyof typeof labels]}</span>
-                        <span>+${cost.toFixed(2)}</span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${calculateSubtotal().toFixed(2)}</span>
+                    <span>${calculateBoxTotal().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>Tax (8%):</span>
-                    <span>${(calculateSubtotal() * 0.08).toFixed(2)}</span>
+                    <span>Customization:</span>
+                    <span>$0.00</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Shipping:</span>
-                    <span>Calculated at checkout</span>
+                    <span>Calculated later</span>
                   </div>
                   <div className="border-t pt-2">
-                    <div className="flex justify-between font-semibold text-lg">
+                    <div className="flex justify-between font-semibold">
                       <span>Total:</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                      <span>${calculateBoxTotal().toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Continue Button */}
-                <div className="pt-4">
-                  <Button 
-                    className="w-full bg-linden-blue hover:bg-linden-blue/90"
-                    onClick={handleContinueToRecipients}
-                  >
-                    Continue to Recipients
-                    <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
-                  </Button>
-                </div>
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  onClick={handleContinueToRecipients}
+                >
+                  Continue to Recipients
+                </Button>
+              </CardContent>
+            </Card>
 
-                {/* Gift Preview */}
-                <div className="pt-4 border-t">
-                  <h4 className="font-medium mb-3">Your Personalized Gift</h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Ribbon:</span>
-                      <span className="capitalize">{personalization.ribbonColor} {personalization.ribbonStyle}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Card:</span>
-                      <span className="capitalize">{personalization.tagStyle}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Packaging:</span>
-                      <span className="capitalize">{personalization.packagingType}</span>
-                    </div>
-                    {personalization.giftMessage && (
-                      <div className="text-sm">
-                        <span className="font-medium">Message:</span>
-                        <p className="italic text-gray-600 mt-1">"{personalization.giftMessage}"</p>
-                        <p className="text-right text-xs text-gray-500 mt-1">- {personalization.senderName}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+            {/* Customization Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Customization Preview
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CustomizationPreview 
+                  customization={getCurrentPreviewData()}
+                  boxName={currentBox.name}
+                />
               </CardContent>
             </Card>
           </div>

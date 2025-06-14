@@ -5,221 +5,143 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Upload } from 'lucide-react';
+import { Upload, Download, Users, CheckCircle, AlertCircle, Plus, Edit, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import LindenSquareLogo from '@/components/LindenSquareLogo';
 import BulkUploadModal from '@/components/BulkUploadModal';
+import AddRecipientModal from '@/components/AddRecipientModal';
 
 interface Recipient {
   id: number;
   name: string;
   email: string;
-  phone?: string;
-  department?: string;
+  phone: string;
+  department: string;
+  address: string;
+  status: 'pending' | 'confirmed';
+  assignedGiftBoxes?: string[];
   shippingMode: string;
-  source: string;
-}
-
-interface GiftBoxAssignment {
-  [boxId: string]: string[];
+  source: 'manual' | 'bulk' | 'auto';
 }
 
 const SelectRecipientsPublic = () => {
   const navigate = useNavigate();
-  
-  // Sample selected boxes (would come from previous step)
-  const selectedBoxes = [
-    {
-      id: '1',
-      name: 'Executive Appreciation',
-      theme: 'Professional',
-      image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-    }
-  ];
-  
-  // Initialize with sample recipients
-  const [recipients, setRecipients] = useState<Recipient[]>([
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@company.com',
-      phone: '555-0123',
-      department: 'Marketing',
-      shippingMode: 'FedEx Standard',
-      source: 'manual'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      email: 'michael.chen@company.com',
-      phone: '555-0124',
-      department: 'Engineering',
-      shippingMode: 'UPS Ground',
-      source: 'manual'
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      email: 'emily.rodriguez@company.com',
-      phone: '555-0125',
-      department: 'Sales',
-      shippingMode: 'FedEx Standard',
-      source: 'manual'
-    }
-  ]);
-  
-  const [giftBoxAssignments, setGiftBoxAssignments] = useState<GiftBoxAssignment>({});
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    department: ''
-  });
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      department: ''
-    });
-  };
+  // Sample gift boxes for assignment
+  const availableGiftBoxes = [
+    { id: '1', name: 'Executive Appreciation Box', theme: 'Professional' },
+    { id: '2', name: 'Wellness Package', theme: 'Wellness' },
+    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional' }
+  ];
 
-  const handleAddRecipient = () => {
-    if (!formData.name || !formData.email) {
-      toast.error('Please enter recipient name and email');
-      return;
+  const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
+    if (editingRecipient) {
+      setRecipients(prev => prev.map(r => 
+        r.id === editingRecipient.id 
+          ? { ...recipientData, id: editingRecipient.id }
+          : r
+      ));
+      setEditingRecipient(null);
+    } else {
+      const newRecipient: Recipient = {
+        ...recipientData,
+        id: Math.max(...recipients.map(r => r.id), 0) + 1,
+        shippingMode: '',
+        source: 'manual'
+      };
+      setRecipients(prev => [...prev, newRecipient]);
     }
-
-    const newRecipient: Recipient = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      department: formData.department,
-      shippingMode: 'FedEx Standard',
-      source: 'manual'
-    };
-
-    setRecipients([...recipients, newRecipient]);
-    resetForm();
-    setIsAddModalOpen(false);
-    toast.success('Recipient added successfully');
+    toast.success(editingRecipient ? 'Recipient updated' : 'Recipient added');
   };
 
   const handleEditRecipient = (recipient: Recipient) => {
     setEditingRecipient(recipient);
-    setFormData({
-      name: recipient.name,
-      email: recipient.email,
-      phone: recipient.phone || '',
-      department: recipient.department || ''
-    });
-    setIsAddModalOpen(true);
-  };
-
-  const handleUpdateRecipient = () => {
-    if (!formData.name || !formData.email || !editingRecipient) {
-      toast.error('Please enter recipient name and email');
-      return;
-    }
-
-    const updatedRecipients = recipients.map(r => 
-      r.id === editingRecipient.id 
-        ? { ...r, ...formData }
-        : r
-    );
-
-    setRecipients(updatedRecipients);
-    resetForm();
-    setEditingRecipient(null);
-    setIsAddModalOpen(false);
-    toast.success('Recipient updated successfully');
+    setShowAddRecipient(true);
   };
 
   const handleDeleteRecipient = (id: number) => {
-    setRecipients(recipients.filter(r => r.id !== id));
-    
-    // Remove from all gift box assignments
-    const updatedAssignments = { ...giftBoxAssignments };
-    Object.keys(updatedAssignments).forEach(boxId => {
-      updatedAssignments[boxId] = updatedAssignments[boxId].filter(recipientId => recipientId !== id.toString());
-    });
-    setGiftBoxAssignments(updatedAssignments);
-    
+    setRecipients(prev => prev.filter(r => r.id !== id));
+    setSelectedRecipients(prev => prev.filter(selectedId => selectedId !== id));
     toast.success('Recipient removed');
   };
 
-  const handleBulkUpload = (uploadedRecipients: any[]) => {
-    const newRecipients = uploadedRecipients.map(r => ({
-      id: r.id,
+  const handleSelectRecipient = (id: number) => {
+    setSelectedRecipients(prev => 
+      prev.includes(id) 
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRecipients.length === recipients.length) {
+      setSelectedRecipients([]);
+    } else {
+      setSelectedRecipients(recipients.map(r => r.id));
+    }
+  };
+
+  const handleGiftBoxAssignment = (recipientId: number, giftBoxIds: string[]) => {
+    setRecipients(prev => prev.map(r => {
+      if (r.id === recipientId) {
+        const hasAddress = r.address.trim() !== '';
+        const hasGiftBoxes = giftBoxIds.length > 0;
+        const newStatus = hasAddress && hasGiftBoxes ? 'confirmed' : 'pending';
+        
+        return {
+          ...r,
+          assignedGiftBoxes: giftBoxIds,
+          status: newStatus
+        };
+      }
+      return r;
+    }));
+  };
+
+  const handleBulkUploadSuccess = (newRecipients: any[]) => {
+    const formattedRecipients: Recipient[] = newRecipients.map((r, index) => ({
+      id: Math.max(...recipients.map(r => r.id), 0) + index + 1,
       name: r.name,
       email: r.email,
-      phone: r.phone,
-      department: r.department,
-      shippingMode: 'FedEx Standard',
+      phone: r.phone || '',
+      department: r.department || '',
+      address: r.address || '',
+      status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
+      assignedGiftBoxes: r.assignedGiftBoxes || [],
+      shippingMode: '',
       source: 'bulk'
     }));
     
-    setRecipients(prev => [...prev, ...newRecipients]);
-    setIsBulkUploadOpen(false);
+    setRecipients(prev => [...prev, ...formattedRecipients]);
+    setShowBulkUpload(false);
+    toast.success(`${newRecipients.length} recipients added`);
   };
 
-  const handleRecipientAssignment = (boxId: string, recipientId: string, assigned: boolean) => {
-    setGiftBoxAssignments(prev => {
-      const currentAssignments = prev[boxId] || [];
-      
-      if (assigned) {
-        return {
-          ...prev,
-          [boxId]: [...currentAssignments, recipientId]
-        };
-      } else {
-        return {
-          ...prev,
-          [boxId]: currentAssignments.filter(id => id !== recipientId)
-        };
-      }
-    });
-  };
-
-  const handleAssignAllToBox = (boxId: string) => {
-    setGiftBoxAssignments(prev => ({
-      ...prev,
-      [boxId]: recipients.map(r => r.id.toString())
-    }));
-    toast.success('All recipients assigned to this gift box');
-  };
-
-  const handleContinue = () => {
+  const handleContinueToShipping = () => {
     if (recipients.length === 0) {
       toast.error('Please add at least one recipient');
       return;
     }
-
-    const hasAssignments = Object.values(giftBoxAssignments).some(assignments => assignments.length > 0);
-    if (!hasAssignments) {
-      toast.error('Please assign recipients to at least one gift box');
+    
+    const confirmedRecipients = recipients.filter(r => r.status === 'confirmed');
+    if (confirmedRecipients.length === 0) {
+      toast.error('Please ensure at least one recipient has both an address and gift box assigned');
       return;
     }
-
-    navigate('/public/shipping');
+    
+    navigate('/public/shipping-fulfillment');
   };
 
-  const getAssignedRecipientCount = (boxId: string) => {
-    return giftBoxAssignments[boxId]?.length || 0;
-  };
-
-  const isRecipientAssigned = (boxId: string, recipientId: string) => {
-    return giftBoxAssignments[boxId]?.includes(recipientId) || false;
+  const downloadTemplate = () => {
+    toast.success('CSV template downloaded');
   };
 
   return (
@@ -228,259 +150,225 @@ const SelectRecipientsPublic = () => {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <LindenSquareLogo size="medium" />
-              <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-              <h1 className="hidden sm:block text-xl font-semibold text-gray-900">Select Recipients</h1>
+            <div>
+              <h1 className="text-2xl font-bold">Select Recipients</h1>
+              <p className="text-gray-600">Add recipients and assign gift boxes to complete your order</p>
             </div>
-            <Button variant="outline" onClick={() => navigate('/public/customize')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Customization
+            <Button 
+              onClick={handleContinueToShipping}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={recipients.filter(r => r.status === 'confirmed').length === 0}
+            >
+              Continue to Shipping
             </Button>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1">
-            <p className="text-gray-600">Manage recipients and assign them to gift boxes</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button 
-              onClick={() => setIsBulkUploadOpen(true)}
-              variant="outline"
-              className="border-linden-blue text-linden-blue hover:bg-linden-blue hover:text-white"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
-            </Button>
-            
-            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  onClick={() => {
-                    resetForm();
-                    setEditingRecipient(null);
-                  }}
-                  className="bg-linden-blue hover:bg-linden-blue/90"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Recipient
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingRecipient ? 'Edit Recipient' : 'Add New Recipient'}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      placeholder="Enter recipient name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="Enter recipient email"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      placeholder="Enter recipient phone"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="department">Department</Label>
-                    <Input
-                      id="department"
-                      value={formData.department}
-                      onChange={(e) => setFormData({...formData, department: e.target.value})}
-                      placeholder="Enter recipient department"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={editingRecipient ? handleUpdateRecipient : handleAddRecipient}
-                      className="flex-1 bg-linden-blue hover:bg-linden-blue/90"
-                    >
-                      {editingRecipient ? 'Update Recipient' : 'Add Recipient'}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setIsAddModalOpen(false);
-                        resetForm();
-                        setEditingRecipient(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Button 
-              onClick={handleContinue}
-              disabled={recipients.length === 0}
-              className="bg-linden-blue hover:bg-linden-blue/90"
-            >
-              Continue to Shipping
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Recipients Table */}
+            {/* Bulk Upload Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Recipients ({recipients.length})
+                  <Upload className="h-5 w-5" />
+                  Bulk Upload Recipients
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {recipients.length > 0 ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-12 gap-4 p-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
-                      <div className="col-span-3">Name</div>
-                      <div className="col-span-3">Email</div>
-                      <div className="col-span-2">Phone</div>
-                      <div className="col-span-2">Department</div>
-                      <div className="col-span-2">Actions</div>
-                    </div>
-                    {recipients.map((recipient) => (
-                      <div key={recipient.id} className="grid grid-cols-12 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="col-span-3 font-medium">{recipient.name}</div>
-                        <div className="col-span-3 text-gray-600">{recipient.email}</div>
-                        <div className="col-span-2 text-gray-600">{recipient.phone || '-'}</div>
-                        <div className="col-span-2 text-gray-600">{recipient.department || '-'}</div>
-                        <div className="col-span-2 flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditRecipient(recipient)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteRecipient(recipient.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4 mb-4">
+                  <Button variant="outline" onClick={downloadTemplate}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download CSV Template
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    Use our template to ensure proper formatting
+                  </span>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-lg font-medium text-gray-900 mb-2">
+                      Upload CSV File
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Click to upload or drag and drop your CSV file here
+                    </p>
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-                    <p>No recipients added yet</p>
-                    <p className="text-sm">Click "Add New Recipient" to get started</p>
-                  </div>
-                )}
+                  
+                  <Button
+                    onClick={() => setShowBulkUpload(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Bulk Upload
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Gift Box Assignments */}
+            {/* Recipients Table */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5" />
-                  Assign Recipients to Gift Boxes
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Recipients ({recipients.length})
+                  </CardTitle>
+                  <Button
+                    onClick={() => setShowAddRecipient(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Recipient
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {selectedBoxes.length > 0 ? (
-                  <div className="space-y-6">
-                    {selectedBoxes.map((box) => (
-                      <div key={box.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                              <img 
-                                src={box.image || '/placeholder.svg'} 
-                                alt={box.name}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = '/placeholder.svg';
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <h3 className="font-medium">{box.name}</h3>
-                              <p className="text-sm text-gray-600">{box.theme}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">
-                              {getAssignedRecipientCount(box.id)} of {recipients.length} assigned
-                            </Badge>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleAssignAllToBox(box.id)}
-                              disabled={recipients.length === 0}
-                            >
-                              Assign All
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {recipients.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {recipients.map((recipient) => (
-                              <div key={recipient.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                                <Checkbox
-                                  id={`${box.id}-${recipient.id}`}
-                                  checked={isRecipientAssigned(box.id, recipient.id.toString())}
-                                  onCheckedChange={(checked) => 
-                                    handleRecipientAssignment(box.id, recipient.id.toString(), checked as boolean)
-                                  }
-                                />
-                                <label 
-                                  htmlFor={`${box.id}-${recipient.id}`} 
-                                  className="text-sm cursor-pointer flex-1"
-                                >
-                                  {recipient.name}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500 text-center py-4">
-                            Add recipients to assign them to this gift box
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                {recipients.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="mx-auto h-12 w-12 mb-4" />
+                    <p>No recipients added yet. Add recipients to get started!</p>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">
-                    No gift boxes selected
-                  </p>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={selectedRecipients.length === recipients.length && recipients.length > 0}
+                              onCheckedChange={handleSelectAll}
+                            />
+                          </TableHead>
+                          <TableHead>Recipient</TableHead>
+                          <TableHead>Address</TableHead>
+                          <TableHead>Gift Box Assignment</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recipients.map((recipient) => (
+                          <TableRow key={recipient.id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedRecipients.includes(recipient.id)}
+                                onCheckedChange={() => handleSelectRecipient(recipient.id)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{recipient.name}</p>
+                                <p className="text-sm text-gray-600">{recipient.email}</p>
+                                {recipient.department && (
+                                  <p className="text-xs text-gray-500">{recipient.department}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-48">
+                              <p className="text-sm truncate">{recipient.address || 'Not provided'}</p>
+                            </TableCell>
+                            <TableCell className="max-w-64">
+                              <div className="space-y-1">
+                                <Select
+                                  onValueChange={(value) => {
+                                    const currentBoxes = recipient.assignedGiftBoxes || [];
+                                    if (!currentBoxes.includes(value)) {
+                                      handleGiftBoxAssignment(recipient.id, [...currentBoxes, value]);
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Assign gift box" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableGiftBoxes
+                                      .filter(box => !recipient.assignedGiftBoxes?.includes(box.id))
+                                      .map((giftBox) => (
+                                        <SelectItem key={giftBox.id} value={giftBox.id} className="text-xs">
+                                          {giftBox.name} ({giftBox.theme})
+                                        </SelectItem>
+                                      ))}
+                                  </SelectContent>
+                                </Select>
+                                
+                                {/* Display assigned gift boxes */}
+                                {recipient.assignedGiftBoxes && recipient.assignedGiftBoxes.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {recipient.assignedGiftBoxes.map((giftBoxId) => (
+                                      <Badge key={giftBoxId} variant="secondary" className="text-xs flex items-center gap-1">
+                                        {availableGiftBoxes.find(box => box.id === giftBoxId)?.name || 'Unknown'}
+                                        <button
+                                          onClick={() => {
+                                            const updatedBoxes = recipient.assignedGiftBoxes?.filter(id => id !== giftBoxId) || [];
+                                            handleGiftBoxAssignment(recipient.id, updatedBoxes);
+                                          }}
+                                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                                        >
+                                          <X className="h-2 w-2" />
+                                        </button>
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {recipient.status === 'confirmed' ? (
+                                <Badge variant="outline" className="text-green-600 border-green-600">
+                                  <CheckCircle className="mr-1 h-3 w-3" />
+                                  Confirmed
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                  <AlertCircle className="mr-1 h-3 w-3" />
+                                  Pending
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleEditRecipient(recipient)}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteRecipient(recipient.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                {selectedRecipients.length > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg mt-4">
+                    <span className="text-sm font-medium">
+                      {selectedRecipients.length} recipient(s) selected
+                    </span>
+                    <Button variant="outline" size="sm">
+                      Assign Gift Box
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Export Selected
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -490,62 +378,67 @@ const SelectRecipientsPublic = () => {
           <div className="space-y-6">
             <Card className="sticky top-4">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Assignment Summary
-                </CardTitle>
+                <CardTitle>Recipients Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
                     <span>Total Recipients:</span>
                     <span className="font-medium">{recipients.length}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Gift Boxes:</span>
-                    <span className="font-medium">{selectedBoxes.length}</span>
+                  <div className="flex justify-between text-sm">
+                    <span>Confirmed:</span>
+                    <span className="font-medium text-green-600">
+                      {recipients.filter(r => r.status === 'confirmed').length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Pending:</span>
+                    <span className="font-medium text-orange-600">
+                      {recipients.filter(r => r.status === 'pending').length}
+                    </span>
                   </div>
                 </div>
-                
-                <div className="border-t pt-4">
-                  <h4 className="font-medium mb-2">Gift Box Assignments:</h4>
-                  <div className="space-y-2">
-                    {selectedBoxes.map(box => (
-                      <div key={box.id} className="flex justify-between text-sm">
-                        <span className="truncate">{box.name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {getAssignedRecipientCount(box.id)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <Button 
-                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
-                  onClick={handleContinue}
-                  disabled={recipients.length === 0}
-                >
-                  Continue to Shipping
-                </Button>
-                
-                {recipients.length === 0 && (
+
+                <div className="pt-4 border-t">
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={handleContinueToShipping}
+                    disabled={recipients.filter(r => r.status === 'confirmed').length === 0}
+                  >
+                    Continue to Shipping
+                  </Button>
+                  
                   <p className="text-xs text-gray-500 mt-2 text-center">
-                    Add recipients to continue
+                    {recipients.filter(r => r.status === 'confirmed').length === 0 
+                      ? 'Add recipients with addresses and gift boxes to continue'
+                      : `${recipients.filter(r => r.status === 'confirmed').length} recipient(s) ready for shipping`
+                    }
                   </p>
-                )}
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Bulk Upload Modal */}
-        <BulkUploadModal
-          isOpen={isBulkUploadOpen}
-          onClose={() => setIsBulkUploadOpen(false)}
-          onUploadSuccess={handleBulkUpload}
-        />
       </div>
+
+      {/* Modals */}
+      <BulkUploadModal
+        isOpen={showBulkUpload}
+        onClose={() => setShowBulkUpload(false)}
+        onUploadSuccess={handleBulkUploadSuccess}
+      />
+
+      <AddRecipientModal
+        open={showAddRecipient}
+        onOpenChange={(open) => {
+          setShowAddRecipient(open);
+          if (!open) setEditingRecipient(null);
+        }}
+        onAddRecipient={handleAddRecipient}
+        editingRecipient={editingRecipient}
+        availableGiftBoxes={availableGiftBoxes}
+      />
     </div>
   );
 };
