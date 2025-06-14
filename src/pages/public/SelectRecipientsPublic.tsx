@@ -23,8 +23,6 @@ interface Recipient {
   address: string;
   status: 'pending' | 'confirmed';
   assignedGiftBoxes?: string[];
-  shippingMode: string;
-  source: 'manual' | 'bulk' | 'auto';
 }
 
 const SelectRecipientsPublic = () => {
@@ -53,9 +51,7 @@ const SelectRecipientsPublic = () => {
     } else {
       const newRecipient: Recipient = {
         ...recipientData,
-        id: Math.max(...recipients.map(r => r.id), 0) + 1,
-        shippingMode: '',
-        source: 'manual'
+        id: Math.max(...recipients.map(r => r.id), 0) + 1
       };
       setRecipients(prev => [...prev, newRecipient]);
     }
@@ -115,9 +111,7 @@ const SelectRecipientsPublic = () => {
       department: r.department || '',
       address: r.address || '',
       status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
-      assignedGiftBoxes: r.assignedGiftBoxes || [],
-      shippingMode: '',
-      source: 'bulk'
+      assignedGiftBoxes: r.assignedGiftBoxes || []
     }));
     
     setRecipients(prev => [...prev, ...formattedRecipients]);

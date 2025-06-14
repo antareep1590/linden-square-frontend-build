@@ -4,12 +4,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from './contexts/CartContext';
+import Index from "./pages/Index";
+import OrderManagement from "./pages/OrderManagement";
+import PackagingCenter from "./pages/PackagingCenter";
+import TrackingCenter from "./pages/TrackingCenter";
+import Invoices from "./pages/Invoices";
 import Dashboard from "./pages/Dashboard";
 import StandaloneShipping from "./pages/StandaloneShipping";
-import Invoices from "./pages/Invoices";
-import PlaceholderPage from "./pages/PlaceholderPage";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
+import PaymentMethod from "./pages/PaymentMethod";
+import BoxListing from "./pages/BoxListing";
+import CustomizeBox from "./pages/CustomizeBox";
+import CustomizeGiftBox from "./pages/CustomizeGiftBox";
+import Personalization from "./pages/Personalization";
+import Recipients from "./pages/Recipients";
+import ShippingFulfillment from "./pages/ShippingFulfillment";
+import ChooseGiftBox from "./pages/ChooseGiftBox";
+import CustomizationPage from "./pages/CustomizationPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminClients from "./pages/AdminClients";
+import AdminGiftBoxes from "./pages/AdminGiftBoxes";
+import AdminInventory from "./pages/AdminInventory";
 
 // Public pages for new users
 import CustomizeGiftBoxPublic from "./pages/public/CustomizeGiftBoxPublic";
@@ -27,42 +41,36 @@ function App() {
           <Toaster />
           <BrowserRouter>
             <Routes>
-              {/* Landing & Authentication */}
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Index />} />
               
               {/* Logged-in app routes */}
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/order-management" element={<OrderManagement />} />
+              <Route path="/packaging-center" element={<PackagingCenter />} />
+              <Route path="/tracking-center" element={<TrackingCenter />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/shipping-defaults" element={<StandaloneShipping />} />
-              
-              {/* Placeholder routes for not-yet-implemented pages */}
-              <Route path="/order-management" element={<PlaceholderPage title="Order Management" />} />
-              <Route path="/packaging-center" element={<PlaceholderPage title="Packaging Center" />} />
-              <Route path="/tracking-center" element={<PlaceholderPage title="Tracking Center" />} />
-              <Route path="/payment-method" element={<PlaceholderPage title="Payment Method" />} />
-              <Route path="/box-listing" element={<PlaceholderPage title="Box Listing" />} />
-              <Route path="/customize-box" element={<PlaceholderPage title="Customize Box" />} />
-              <Route path="/customize-gift-box" element={<PlaceholderPage title="Customize Gift Box" />} />
-              <Route path="/personalization" element={<PlaceholderPage title="Personalization" />} />
-              <Route path="/recipients" element={<PlaceholderPage title="Recipients" />} />
-              <Route path="/shipping-fulfillment" element={<PlaceholderPage title="Shipping Fulfillment" />} />
-              <Route path="/choose-gift-box" element={<PlaceholderPage title="Choose Gift Box" />} />
-              <Route path="/customization" element={<PlaceholderPage title="Customization Page" />} />
+              <Route path="/payment-method" element={<PaymentMethod />} />
+              <Route path="/box-listing" element={<BoxListing />} />
+              <Route path="/customize-box" element={<CustomizeBox />} />
+              <Route path="/customize-gift-box" element={<CustomizeGiftBox />} />
+              <Route path="/personalization" element={<Personalization />} />
+              <Route path="/recipients" element={<Recipients />} />
+              <Route path="/shipping-fulfillment" element={<ShippingFulfillment />} />
+              <Route path="/choose-gift-box" element={<ChooseGiftBox />} />
+              <Route path="/customization" element={<CustomizationPage />} />
               
               {/* Admin routes */}
-              <Route path="/admin" element={<PlaceholderPage title="Admin Dashboard" />} />
-              <Route path="/admin/clients" element={<PlaceholderPage title="Admin Clients" />} />
-              <Route path="/admin/gift-boxes" element={<PlaceholderPage title="Admin Gift Boxes" />} />
-              <Route path="/admin/inventory" element={<PlaceholderPage title="Admin Inventory" />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/clients" element={<AdminClients />} />
+              <Route path="/admin/gift-boxes" element={<AdminGiftBoxes />} />
+              <Route path="/admin/inventory" element={<AdminInventory />} />
               
               {/* Public routes for new users */}
               <Route path="/public/customize-gift-box" element={<CustomizeGiftBoxPublic />} />
               <Route path="/public/select-recipients" element={<SelectRecipientsPublic />} />
               <Route path="/public/shipping-fulfillment" element={<ShippingFulfillmentPublic />} />
               <Route path="/public/payment-method" element={<PaymentMethodPublic />} />
-              
-              {/* Fallback for non-existent routes */}
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
