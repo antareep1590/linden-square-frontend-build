@@ -461,6 +461,10 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Gift Theme Selection
+        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Boxes</h1>
           <p className="text-gray-600">Add personalized touches to make your gifts special</p>

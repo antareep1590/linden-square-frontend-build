@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +72,10 @@ const PaymentMethod = () => {
     // Mock payment processing
     toast.success('Payment processed successfully!');
     navigate('/dashboard');
+  };
+
+  const handlePayLater = () => {
+    toast.success('The invoice will be mailed to you.');
   };
 
   return (
@@ -378,12 +381,22 @@ const PaymentMethod = () => {
                 </p>
               </div>
 
-              <Button 
-                onClick={handlePayment}
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
-              >
-                Confirm & Pay ${finalTotal.toFixed(2)}
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={handlePayment}
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                >
+                  Confirm & Pay ${finalTotal.toFixed(2)}
+                </Button>
+                
+                <Button 
+                  onClick={handlePayLater}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Pay Later
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
