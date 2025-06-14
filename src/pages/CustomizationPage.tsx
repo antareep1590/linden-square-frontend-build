@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle } from 'lucide-react';
+import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -461,6 +462,10 @@ const CustomizationPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
+        <Button variant="outline" size="sm" onClick={() => navigate('/gift-box-flow')}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Gift Theme Selection
+        </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Gift Boxes</h1>
           <p className="text-gray-600">Add personalized touches to make your gifts special</p>
