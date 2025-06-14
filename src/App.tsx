@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -50,6 +49,12 @@ import MyProfile from '@/pages/admin/MyProfile';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import AdminDashboardLayout from '@/layouts/AdminDashboardLayout';
 
+// Add these imports for the new public pages
+import CustomizeGiftBoxPublic from '@/pages/public/CustomizeGiftBoxPublic';
+import SelectRecipientsPublic from '@/pages/public/SelectRecipientsPublic';
+import ShippingFulfillmentPublic from '@/pages/public/ShippingFulfillmentPublic';
+import PaymentMethodPublic from '@/pages/public/PaymentMethodPublic';
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -70,6 +75,12 @@ function App() {
               <Route path="/recipients" element={<RecipientSelection />} />
               <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
+              
+              {/* New public flow for anonymous users */}
+              <Route path="/public/customize" element={<CustomizeGiftBoxPublic />} />
+              <Route path="/public/recipients" element={<SelectRecipientsPublic />} />
+              <Route path="/public/shipping" element={<ShippingFulfillmentPublic />} />
+              <Route path="/public/payment" element={<PaymentMethodPublic />} />
               
               {/* Client routes */}
               <Route element={<DashboardLayout />}>
