@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Upload, Image, FileText, Tag, Sparkles, Eye, Save, Gift, ChevronDown, ChevronUp, RefreshCw, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
