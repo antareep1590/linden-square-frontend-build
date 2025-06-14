@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle } from 'lucide-react';
+import { Upload, Image, Gift, ChevronDown, ChevronUp, Save, Info, AlertCircle, Sparkles, Eye, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -20,8 +20,8 @@ const CustomizationPage = () => {
   const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual');
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
   
-  // Mock gift boxes for order flow
-  const selectedBoxes = [
+  // Mock gift boxes as fallback if cart is empty
+  const mockBoxes = [
     {
       id: '1',
       name: 'Premium Coffee Collection',
@@ -37,6 +37,9 @@ const CustomizationPage = () => {
       basePrice: 79.99
     }
   ];
+
+  // Use cart boxes or fallback to mock boxes
+  const boxesToUse = selectedBoxes.length > 0 ? selectedBoxes : mockBoxes;
 
   // Load defaults from localStorage on component mount
   useEffect(() => {
@@ -77,7 +80,7 @@ const CustomizationPage = () => {
 
   const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>(() => {
     const initial: {[key: string]: any} = {};
-    selectedBoxes.forEach(box => {
+    boxesToUse.forEach(box => {
       initial[box.id] = {
         brandedNotecard: {
           enabled: false,
@@ -104,8 +107,8 @@ const CustomizationPage = () => {
   const [expandedBoxes, setExpandedBoxes] = useState<{[key: string]: boolean}>(() => {
     // Expand first box by default for individual customization
     const initial: {[key: string]: boolean} = {};
-    if (selectedBoxes.length > 0) {
-      initial[selectedBoxes[0].id] = true;
+    if (boxesToUse.length > 0) {
+      initial[boxesToUse[0].id] = true;
     }
     return initial;
   });
@@ -196,7 +199,7 @@ const CustomizationPage = () => {
       if (orderLevelCustomization.giftTags.enabled) cost += 2.00;
       if (orderLevelCustomization.messageCard.enabled) cost += 3.00;
     } else {
-      selectedBoxes.forEach(box => {
+      boxesToUse.forEach(box => {
         const customization = individualCustomizations[box.id];
         if (customization?.brandedNotecard.enabled) cost += 5.00;
         if (customization?.giftTags.enabled) cost += 2.00;
@@ -218,7 +221,7 @@ const CustomizationPage = () => {
       return orderLevelCustomization;
     } else {
       // Find the first expanded box or first box
-      const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || selectedBoxes[0]?.id;
+      const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]) || boxesToUse[0]?.id;
       return expandedBoxId ? individualCustomizations[expandedBoxId] : {};
     }
   };
@@ -226,7 +229,7 @@ const CustomizationPage = () => {
   const getCurrentBoxName = () => {
     if (customizationLevel === 'order') return undefined;
     const expandedBoxId = Object.keys(expandedBoxes).find(id => expandedBoxes[id]);
-    return expandedBoxId ? selectedBoxes.find(box => box.id === expandedBoxId)?.name : selectedBoxes[0]?.name;
+    return expandedBoxId ? boxesToUse.find(box => box.id === expandedBoxId)?.name : boxesToUse[0]?.name;
   };
 
   const renderCustomizationForm = (boxId?: string) => {
@@ -461,12 +464,12 @@ const CustomizationPage = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5" />
-                Selected Gift Boxes ({selectedBoxes.length})
+                Selected Gift Boxes ({boxesToUse.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedBoxes.map((box) => (
+                {boxesToUse.map((box) => (
                   <div key={box.id} className="border rounded-lg p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -549,7 +552,7 @@ const CustomizationPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {selectedBoxes.map((box) => (
+                  {boxesToUse.map((box) => (
                     <Collapsible 
                       key={box.id} 
                       open={expandedBoxes[box.id]} 
@@ -637,7 +640,7 @@ const CustomizationPage = () => {
                   </>
                 ) : (
                   <>
-                    {selectedBoxes.map(box => {
+                    {boxesToUse.map(box => {
                       const customization = individualCustomizations[box.id];
                       return (
                         <div key={box.id} className="border-l-2 border-gray-200 pl-2 space-y-1">
