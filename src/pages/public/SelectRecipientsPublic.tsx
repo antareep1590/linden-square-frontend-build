@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,8 @@ interface Recipient {
   address: string;
   status: 'pending' | 'confirmed';
   assignedGiftBoxes?: string[];
+  shippingMode?: string;
+  source?: string;
 }
 
 const SelectRecipientsPublic = () => {
@@ -51,7 +52,9 @@ const SelectRecipientsPublic = () => {
     } else {
       const newRecipient: Recipient = {
         ...recipientData,
-        id: Math.max(...recipients.map(r => r.id), 0) + 1
+        id: Math.max(...recipients.map(r => r.id), 0) + 1,
+        shippingMode: '',
+        source: 'manual'
       };
       setRecipients(prev => [...prev, newRecipient]);
     }
@@ -111,7 +114,9 @@ const SelectRecipientsPublic = () => {
       department: r.department || '',
       address: r.address || '',
       status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
-      assignedGiftBoxes: r.assignedGiftBoxes || []
+      assignedGiftBoxes: r.assignedGiftBoxes || [],
+      shippingMode: '',
+      source: 'bulk'
     }));
     
     setRecipients(prev => [...prev, ...formattedRecipients]);
