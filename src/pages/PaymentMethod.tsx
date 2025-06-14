@@ -7,13 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, CreditCard, Building2, Shield } from 'lucide-react';
+import { ArrowLeft, CreditCard, Building2, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCart } from '@/contexts/CartContext';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 const PaymentMethod = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { selectedBoxes, getTotalCost } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'ach'>('card');
+  const [expandedSection, setExpandedSection] = useState<string | null>('boxes');
   const [cardDetails, setCardDetails] = useState({
     nameOnCard: '',
     cardNumber: '',
@@ -28,13 +33,29 @@ const PaymentMethod = () => {
     accountType: ''
   });
 
-  const orderTotal = location.state?.total || 150.00;
-  const cardProcessingFee = orderTotal * 0.05; // 5% for card
+  // Calculate order totals
+  const subtotal = getTotalCost();
+  const shippingCost = location.state?.shippingCost || 25.00; // Default or from location state
+  const customizationCosts = selectedBoxes.reduce((total, box) => {
+    return total + (box.personalization?.addOnsCost || 0);
+  }, 0);
+  
+  // Order totals
+  const baseOrderTotal = subtotal + shippingCost + customizationCosts;
+  const cardProcessingFee = baseOrderTotal * 0.05; // 5% for card
   const achProcessingFee = 5.00; // $5 flat for ACH
   
   const finalTotal = paymentMethod === 'card' 
-    ? orderTotal + cardProcessingFee 
-    : orderTotal + achProcessingFee;
+    ? baseOrderTotal + cardProcessingFee 
+    : baseOrderTotal + achProcessingFee;
+
+  const toggleSection = (section: string) => {
+    if (expandedSection === section) {
+      setExpandedSection(null);
+    } else {
+      setExpandedSection(section);
+    }
+  };
 
   const handlePayment = () => {
     if (paymentMethod === 'card') {
@@ -197,23 +218,151 @@ const PaymentMethod = () => {
           </Card>
         </div>
 
-        {/* Payment Summary */}
+        {/* Enhanced Payment Summary */}
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle>Payment Summary</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl">Payment Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span>Order Total</span>
-                  <span>${orderTotal.toFixed(2)}</span>
+              {/* Gift Boxes Section */}
+              <div className="border-b pb-2">
+                <Button 
+                  variant="ghost" 
+                  className="flex justify-between items-center w-full p-2 text-left font-medium"
+                  onClick={() => toggleSection('boxes')}
+                >
+                  <span>Gift Boxes ({selectedBoxes.length})</span>
+                  {expandedSection === 'boxes' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+                
+                {expandedSection === 'boxes' && (
+                  <div className="mt-2 text-sm">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-full">Box</TableHead>
+                          <TableHead className="text-right">Cost</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedBoxes.map((box, index) => {
+                          // Calculate box cost (base price + gifts)
+                          const giftsCost = box.gifts.reduce((total, gift) => 
+                            total + (gift.price * gift.quantity), 0
+                          );
+                          const boxTotal = box.basePrice + giftsCost;
+                          
+                          return (
+                            <TableRow key={index}>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{box.name}</div>
+                                  <div className="text-xs text-muted-foreground">{box.size} - {box.theme}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">${boxTotal.toFixed(2)}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                    <div className="flex justify-between mt-2 font-medium">
+                      <span>Subtotal</span>
+                      <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Customizations Section */}
+              <div className="border-b pb-2">
+                <Button 
+                  variant="ghost" 
+                  className="flex justify-between items-center w-full p-2 text-left font-medium"
+                  onClick={() => toggleSection('customizations')}
+                >
+                  <span>Customizations</span>
+                  {expandedSection === 'customizations' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+                
+                {expandedSection === 'customizations' && (
+                  <div className="mt-2 text-sm">
+                    {customizationCosts > 0 ? (
+                      <div className="space-y-2">
+                        {selectedBoxes.map((box, index) => {
+                          if (!box.personalization || box.personalization.addOnsCost === 0) return null;
+                          
+                          return (
+                            <div key={index} className="flex justify-between items-start">
+                              <div>
+                                <span className="block">{box.name}</span>
+                                {box.personalization?.selectedAddOns?.map((addon, idx) => (
+                                  <span key={idx} className="block text-xs text-muted-foreground">
+                                    - {addon.name}: ${addon.price.toFixed(2)}
+                                  </span>
+                                ))}
+                              </div>
+                              <span>${box.personalization.addOnsCost.toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
+                        <div className="flex justify-between pt-2 font-medium">
+                          <span>Total Customizations</span>
+                          <span>${customizationCosts.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-muted-foreground italic">No customization costs</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Shipping Charges Section */}
+              <div className="border-b pb-2">
+                <Button 
+                  variant="ghost" 
+                  className="flex justify-between items-center w-full p-2 text-left font-medium"
+                  onClick={() => toggleSection('shipping')}
+                >
+                  <span>Shipping Charges</span>
+                  {expandedSection === 'shipping' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </Button>
+                
+                {expandedSection === 'shipping' && (
+                  <div className="mt-2 text-sm">
+                    <div className="flex justify-between">
+                      <div>
+                        <span className="block">Shipping Fee</span>
+                        <span className="text-xs text-muted-foreground">
+                          {selectedBoxes.length} {selectedBoxes.length === 1 ? 'box' : 'boxes'}
+                        </span>
+                      </div>
+                      <span>${shippingCost.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Processing Fee Section */}
+              <div className="border-b pb-2">
+                <div className="flex justify-between items-center p-2">
+                  <div>
+                    <span className="font-medium">Processing Fee</span>
+                    <Badge variant="outline" className="ml-2">
+                      {paymentMethod === 'card' ? '5%' : 'Flat $5'}
+                    </Badge>
+                  </div>
+                  <span className="font-medium">
+                    ${(paymentMethod === 'card' ? cardProcessingFee : achProcessingFee).toFixed(2)}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Processing Fee ({paymentMethod === 'card' ? '5%' : '$5.00'})</span>
-                  <span>${(paymentMethod === 'card' ? cardProcessingFee : achProcessingFee).toFixed(2)}</span>
-                </div>
-                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+              </div>
+              
+              {/* Final Total */}
+              <div className="pt-2">
+                <div className="flex justify-between font-bold text-lg">
                   <span>Final Total</span>
                   <span className="text-linden-blue">${finalTotal.toFixed(2)}</span>
                 </div>
