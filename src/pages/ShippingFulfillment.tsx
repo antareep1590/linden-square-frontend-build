@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -527,7 +526,7 @@ const ShippingFulfillment = () => {
         {/* Sidebar - Summary */}
         <div className="space-y-6">
           {/* Shipping Summary */}
-          <Card className="sticky top-4">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
