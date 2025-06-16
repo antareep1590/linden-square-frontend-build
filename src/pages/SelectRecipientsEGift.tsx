@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Upload, Trash2, Users, Package } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import EGiftRecipientModal from '@/components/EGiftRecipientModal';
 
@@ -72,20 +70,6 @@ const SelectRecipientsEGift = () => {
   const removeRecipient = (id: string) => {
     setRecipients(recipients.filter(r => r.id !== id));
     toast.success('Recipient removed');
-  };
-
-  const updateRecipientBoxes = (recipientId: string, boxIds: string[]) => {
-    setRecipients(recipients.map(r => 
-      r.id === recipientId ? { ...r, assignedBoxes: boxIds } : r
-    ));
-  };
-
-  const assignAllToBox = (boxId: string) => {
-    setRecipients(recipients.map(r => ({
-      ...r,
-      assignedBoxes: [...new Set([...r.assignedBoxes, boxId])]
-    })));
-    toast.success(`All recipients assigned to ${availableBoxes.find(b => b.id === boxId)?.name}`);
   };
 
   const handleContinue = () => {
@@ -162,7 +146,7 @@ const SelectRecipientsEGift = () => {
                     className="bg-linden-blue hover:bg-linden-blue/90"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add New
+                    Manual Entry
                   </Button>
                   <div className="relative">
                     <input
@@ -189,6 +173,7 @@ const SelectRecipientsEGift = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Address</TableHead>
+                        <TableHead>Gift Boxes</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -207,6 +192,15 @@ const SelectRecipientsEGift = () => {
                                 : formatAddress(recipient)
                               }
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {getAssignedBoxNames(recipient.assignedBoxes).map((boxName, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {boxName}
+                                </Badge>
+                              ))}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Button
@@ -241,64 +235,6 @@ const SelectRecipientsEGift = () => {
               )}
             </CardContent>
           </Card>
-
-          {/* Assign Recipients to Gift Boxes Section */}
-          {recipients.length > 0 && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Assign Recipients to Gift Boxes
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Quick assign all buttons */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {availableBoxes.map((box) => (
-                    <Button
-                      key={box.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => assignAllToBox(box.id)}
-                    >
-                      Assign All to {box.name}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Individual assignments */}
-                <div className="space-y-3">
-                  {recipients.map((recipient) => (
-                    <div key={recipient.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">{recipient.firstName} {recipient.lastName}</div>
-                        <div className="text-sm text-gray-600">{recipient.email}</div>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {availableBoxes.map((box) => (
-                          <div key={box.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`${recipient.id}-${box.id}`}
-                              checked={recipient.assignedBoxes.includes(box.id)}
-                              onCheckedChange={(checked) => {
-                                const newBoxes = checked
-                                  ? [...recipient.assignedBoxes, box.id]
-                                  : recipient.assignedBoxes.filter(id => id !== box.id);
-                                updateRecipientBoxes(recipient.id, newBoxes);
-                              }}
-                            />
-                            <label htmlFor={`${recipient.id}-${box.id}`} className="text-sm">
-                              {box.name}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Sidebar */}
@@ -332,7 +268,7 @@ const SelectRecipientsEGift = () => {
                 className="w-full bg-linden-blue hover:bg-linden-blue/90"
                 disabled={recipients.length === 0}
               >
-                Continue
+                Continue to Send Options
               </Button>
             </CardContent>
           </Card>
