@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 interface EGiftRecipient {
@@ -60,11 +59,6 @@ const EGiftRecipientModal: React.FC<EGiftRecipientModalProps> = ({
       return;
     }
 
-    if (formData.assignedBoxes.length === 0) {
-      toast.error('Please assign at least one gift box');
-      return;
-    }
-
     onAdd(formData);
     
     // Reset form
@@ -84,15 +78,6 @@ const EGiftRecipientModal: React.FC<EGiftRecipientModalProps> = ({
     });
     
     onClose();
-  };
-
-  const handleBoxAssignment = (boxId: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      assignedBoxes: checked 
-        ? [...prev.assignedBoxes, boxId]
-        : prev.assignedBoxes.filter(id => id !== boxId)
-    }));
   };
 
   return (
@@ -142,22 +127,6 @@ const EGiftRecipientModal: React.FC<EGiftRecipientModalProps> = ({
               value={formData.company}
               onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
             />
-          </div>
-
-          <div className="space-y-4">
-            <h4 className="font-medium">Gift Box Assignment *</h4>
-            <div className="space-y-2">
-              {availableBoxes.map((box) => (
-                <div key={box.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`box-${box.id}`}
-                    checked={formData.assignedBoxes.includes(box.id)}
-                    onCheckedChange={(checked) => handleBoxAssignment(box.id, checked as boolean)}
-                  />
-                  <Label htmlFor={`box-${box.id}`}>{box.name}</Label>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-4">

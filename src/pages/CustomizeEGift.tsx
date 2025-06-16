@@ -24,14 +24,14 @@ const CustomizeEGift = () => {
       id: '1',
       name: 'Wellness Collection',
       theme: 'Health & Wellness',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=300&fit=crop',
       description: 'A curated collection of wellness products'
     },
     {
       id: '2',
       name: 'Gourmet Treats',
       theme: 'Food & Beverages',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
       description: 'Premium snacks and gourmet delights'
     }
   ];
@@ -66,6 +66,10 @@ const CustomizeEGift = () => {
     event.target.value = '';
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = '/placeholder.svg';
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -94,8 +98,13 @@ const CustomizeEGift = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {selectedGiftBoxes.map((box) => (
                   <div key={box.id} className="border rounded-lg p-4">
-                    <div className="aspect-video bg-gray-100 rounded-md mb-3 flex items-center justify-center">
-                      <Package className="h-8 w-8 text-gray-400" />
+                    <div className="aspect-video bg-gray-100 rounded-md mb-3 overflow-hidden">
+                      <img 
+                        src={box.image} 
+                        alt={box.name}
+                        onError={handleImageError}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <h3 className="font-medium">{box.name}</h3>
                     <Badge variant="outline" className="mt-1">{box.theme}</Badge>

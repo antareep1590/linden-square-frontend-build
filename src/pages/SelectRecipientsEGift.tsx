@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Upload, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, Users, CheckSquare, Square } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 import EGiftRecipientModal from '@/components/EGiftRecipientModal';
 
 interface EGiftRecipient {
@@ -120,6 +121,28 @@ const SelectRecipientsEGift = () => {
     return boxIds.map(id => availableBoxes.find(box => box.id === id)?.name).filter(Boolean);
   };
 
+  const updateRecipientBoxAssignment = (recipientId: string, boxId: string, assigned: boolean) => {
+    setRecipients(recipients.map(recipient => {
+      if (recipient.id === recipientId) {
+        const updatedBoxes = assigned
+          ? [...recipient.assignedBoxes, boxId]
+          : recipient.assignedBoxes.filter(id => id !== boxId);
+        return { ...recipient, assignedBoxes: updatedBoxes };
+      }
+      return recipient;
+    }));
+  };
+
+  const assignAllToBox = (boxId: string) => {
+    setRecipients(recipients.map(recipient => ({
+      ...recipient,
+      assignedBoxes: recipient.assignedBoxes.includes(boxId) 
+        ? recipient.assignedBoxes 
+        : [...recipient.assignedBoxes, boxId]
+    })));
+    toast.success(`All recipients assigned to ${availableBoxes.find(box => box.id === boxId)?.name}`);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -135,7 +158,7 @@ const SelectRecipientsEGift = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 space-y-6">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -146,7 +169,7 @@ const SelectRecipientsEGift = () => {
                     className="bg-linden-blue hover:bg-linden-blue/90"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Manual Entry
+                    Add New
                   </Button>
                   <div className="relative">
                     <input
@@ -173,7 +196,6 @@ const SelectRecipientsEGift = () => {
                         <TableHead>Email</TableHead>
                         <TableHead>Company</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Gift Boxes</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -192,15 +214,6 @@ const SelectRecipientsEGift = () => {
                                 : formatAddress(recipient)
                               }
                             </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {getAssignedBoxNames(recipient.assignedBoxes).map((boxName, index) => (
-                                <Badge key={index} variant="outline" className="text-xs">
-                                  {boxName}
-                                </Badge>
-                              ))}
-                            </div>
                           </TableCell>
                           <TableCell>
                             <Button
@@ -235,6 +248,74 @@ const SelectRecipientsEGift = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Assignment Section */}
+          {recipients.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Assign Recipients to Gift Boxes</CardTitle>
+                <p className="text-gray-600 text-sm">
+                  Select which gift boxes each recipient should receive
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Bulk Assignment Options */}
+                <div className="space-y-3">
+                  <h4 className="font-medium">Bulk Assignment</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {availableBoxes.map((box) => (
+                      <Button
+                        key={box.id}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => assignAllToBox(box.id)}
+                        className="text-xs"
+                      >
+                        <CheckSquare className="h-3 w-3 mr-1" />
+                        Assign All to {box.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Individual Assignment Table */}
+                <div className="space-y-3">
+                  <h4 className="font-medium">Individual Assignment</h4>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Recipient</TableHead>
+                          {availableBoxes.map((box) => (
+                            <TableHead key={box.id} className="text-center">{box.name}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recipients.map((recipient) => (
+                          <TableRow key={recipient.id}>
+                            <TableCell className="font-medium">
+                              {recipient.firstName} {recipient.lastName}
+                            </TableCell>
+                            {availableBoxes.map((box) => (
+                              <TableCell key={box.id} className="text-center">
+                                <Checkbox
+                                  checked={recipient.assignedBoxes.includes(box.id)}
+                                  onCheckedChange={(checked) => 
+                                    updateRecipientBoxAssignment(recipient.id, box.id, checked as boolean)
+                                  }
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -268,7 +349,7 @@ const SelectRecipientsEGift = () => {
                 className="w-full bg-linden-blue hover:bg-linden-blue/90"
                 disabled={recipients.length === 0}
               >
-                Continue to Send Options
+                Continue
               </Button>
             </CardContent>
           </Card>
