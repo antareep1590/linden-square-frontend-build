@@ -54,6 +54,11 @@ const PaymentMethod = () => {
     navigate('/dashboard');
   };
 
+  const handlePayLater = () => {
+    toast.success('We have sent the invoice to your registered email.');
+    console.log('Generating invoice for order and sending to client email');
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -229,12 +234,22 @@ const PaymentMethod = () => {
                 </p>
               </div>
 
-              <Button 
-                onClick={handlePayment}
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
-              >
-                Confirm & Pay ${finalTotal.toFixed(2)}
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  onClick={handlePayment}
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                >
+                  Confirm & Buy ${finalTotal.toFixed(2)}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={handlePayLater}
+                  className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
+                >
+                  Pay Later
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

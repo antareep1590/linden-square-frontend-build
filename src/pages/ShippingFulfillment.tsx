@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users, X } from 'lucide-react';
+import { ArrowLeft, Truck, Upload, Download, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users, X, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import BulkUploadModal from '@/components/BulkUploadModal';
@@ -19,6 +19,8 @@ interface GiftBox {
   id: string;
   name: string;
   theme: string;
+  price: number;
+  quantity: number;
 }
 
 interface Recipient {
@@ -45,11 +47,18 @@ const ShippingFulfillment = () => {
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
 
+  // Mock order data - would come from context/state in real app
+  const orderGiftBoxes: GiftBox[] = [
+    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 3 },
+    { id: '2', name: 'Wellness Package', theme: 'Wellness', price: 35.00, quantity: 2 },
+    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional', price: 55.00, quantity: 1 }
+  ];
+
   // Mock available gift boxes (from Gift Theme Selection step)
   const availableGiftBoxes: GiftBox[] = [
-    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation' },
-    { id: '2', name: 'Wellness Package', theme: 'Wellness' },
-    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional' }
+    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 1 },
+    { id: '2', name: 'Wellness Package', theme: 'Wellness', price: 35.00, quantity: 1 },
+    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional', price: 55.00, quantity: 1 }
   ];
   
   // Sample recipient addresses with gift box assignments
@@ -151,12 +160,7 @@ const ShippingFulfillment = () => {
     }
     
     toast.success('Shipping configuration saved');
-    navigate('/payment-method');
-  };
-
-  const handlePayLater = () => {
-    toast.success('Invoice link sent to your email. You can complete the payment later.');
-    console.log('Generating invoice for order and sending to client email');
+    navigate('/payment-method', { state: { total: calculateGrandTotal() } });
   };
 
   const getTotalShippingCost = () => {
@@ -164,6 +168,22 @@ const ShippingFulfillment = () => {
       const cost = parseFloat(recipient.cost?.replace('$', '') || '0');
       return total + cost;
     }, 0);
+  };
+
+  const calculateGiftBoxesSubtotal = () => {
+    return orderGiftBoxes.reduce((total, box) => total + (box.price * box.quantity), 0);
+  };
+
+  const calculateCustomizationsTotal = () => {
+    return 0; // For now, customizations are free
+  };
+
+  const calculateProcessingFee = () => {
+    return calculateGiftBoxesSubtotal() * 0.03; // 3% processing fee
+  };
+
+  const calculateGrandTotal = () => {
+    return calculateGiftBoxesSubtotal() + calculateCustomizationsTotal() + getTotalShippingCost() + calculateProcessingFee();
   };
 
   const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
@@ -279,15 +299,7 @@ const ShippingFulfillment = () => {
             className="bg-linden-blue hover:bg-linden-blue/90"
             disabled={recipients.filter(r => r.status === 'pending').length > 0}
           >
-            Continue to Pay
-          </Button>
-          
-          <Button 
-            variant="outline"
-            className="border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
-            onClick={handlePayLater}
-          >
-            Pay Later
+            Buy
           </Button>
         </div>
       </div>
@@ -600,6 +612,7 @@ const ShippingFulfillment = () => {
 
         {/* Sidebar - Summary */}
         <div className="space-y-6">
+          {/* Shipping Summary */}
           <Card className="sticky top-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -651,30 +664,6 @@ const ShippingFulfillment = () => {
                 </div>
               </div>
 
-              <div className="pt-4">
-                <Button 
-                  className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
-                  onClick={handleContinue}
-                  disabled={recipients.filter(r => r.status === 'pending').length > 0}
-                >
-                  Continue to Pay
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  className="w-full border-linden-gold text-linden-gold hover:bg-linden-gold hover:text-white"
-                  onClick={handlePayLater}
-                >
-                  Pay Later
-                </Button>
-                
-                {recipients.filter(r => r.status === 'pending').length > 0 && (
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Complete all addresses and gift assignments to continue
-                  </p>
-                )}
-              </div>
-
               {/* Tracking Information */}
               <div className="pt-4 border-t">
                 <h4 className="font-medium mb-3">After Shipment</h4>
@@ -684,6 +673,75 @@ const ShippingFulfillment = () => {
                   <p>✓ Real-time tracking available in dashboard</p>
                   <p>✓ Delivery confirmations sent to you</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Order Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              
+              {/* Gift Boxes */}
+              <div className="space-y-3">
+                <h4 className="font-medium">Gift Boxes</h4>
+                {orderGiftBoxes.map((box) => (
+                  <div key={box.id} className="flex justify-between text-sm">
+                    <div>
+                      <p className="font-medium">{box.name}</p>
+                      <p className="text-gray-600">{box.quantity} × ${box.price.toFixed(2)}</p>
+                    </div>
+                    <span>${(box.price * box.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm font-medium pt-2 border-t">
+                  <span>Gift Boxes Subtotal:</span>
+                  <span>${calculateGiftBoxesSubtotal().toFixed(2)}</span>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Cost Breakdown */}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Customizations:</span>
+                  <span>${calculateCustomizationsTotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping Cost:</span>
+                  <span>${getTotalShippingCost().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Processing Fee (3%):</span>
+                  <span>${calculateProcessingFee().toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total Cost:</span>
+                  <span className="text-linden-blue">${calculateGrandTotal().toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
+                  onClick={handleContinue}
+                  disabled={recipients.filter(r => r.status === 'pending').length > 0}
+                >
+                  Buy
+                </Button>
+                
+                {recipients.filter(r => r.status === 'pending').length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Complete all addresses and gift assignments to continue
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
