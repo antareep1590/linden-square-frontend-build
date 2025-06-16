@@ -138,6 +138,17 @@ const BoxListing = () => {
     navigate('/customization');
   };
 
+  const handleContinue = () => {
+    if (selectedBoxes.length === 0) {
+      toast.error('Please select at least one gift box to continue');
+      return;
+    }
+    
+    toast.success(`Selected ${selectedBoxes.length} gift box${selectedBoxes.length === 1 ? '' : 'es'}`);
+    // Route to Choose Delivery Method instead of skipping it
+    navigate('/choose-delivery-method');
+  };
+
   const clearFilter = (filterType: string) => {
     setFilters(prev => ({ ...prev, [filterType]: '' }));
   };

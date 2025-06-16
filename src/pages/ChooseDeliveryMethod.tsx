@@ -150,7 +150,8 @@ const ChooseDeliveryMethod = () => {
           className="bg-linden-blue hover:bg-linden-blue/90 px-8"
           disabled={!deliveryMethod}
         >
-          Continue to {deliveryMethod === 'email' ? 'E-Gift Setup' : 'Customization'}
+          {deliveryMethod === 'email' ? 'Continue to E-Gift Setup' : 
+           deliveryMethod === 'shipping' ? 'Continue to Customization' : 'Continue'}
         </Button>
       </div>
     </div>

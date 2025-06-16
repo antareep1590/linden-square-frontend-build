@@ -19,8 +19,7 @@ import CustomizeGiftBox from '@/pages/CustomizeGiftBox';
 import StandaloneCustomization from '@/pages/StandaloneCustomization';
 import StandaloneShipping from '@/pages/StandaloneShipping';
 
-// New delivery method and e-gift pages
-import ChooseDeliveryMethod from '@/pages/ChooseDeliveryMethod';
+// E-gift pages
 import EGiftSendOptions from '@/pages/EGiftSendOptions';
 
 // Client pages
@@ -37,7 +36,8 @@ import PaymentMethod from '@/pages/PaymentMethod';
 import Profile from '@/pages/Profile';
 import ShippingFulfillment from '@/pages/ShippingFulfillment';
 
-// E-gift pages now moved to dashboard layout
+// Delivery method and e-gift pages now moved to dashboard layout
+import ChooseDeliveryMethod from '@/pages/ChooseDeliveryMethod';
 import CustomizeEGift from '@/pages/CustomizeEGift';
 import SelectRecipientsEGift from '@/pages/SelectRecipientsEGift';
 
@@ -79,15 +79,13 @@ function App() {
               <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
-              {/* Delivery method selection (still standalone) */}
-              <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
-              
-              {/* Client routes */}
+              {/* Client routes - all delivery method and order management routes now in dashboard */}
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/gift-box-flow" element={<BoxListing />} />
                 <Route path="/box-listing" element={<BoxListing />} />
+                <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
                 <Route path="/personalization" element={<PersonalizationStep />} />
                 <Route path="/customization" element={<CustomizationPage />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
@@ -100,7 +98,7 @@ function App() {
                 <Route path="/customization-defaults" element={<StandaloneCustomization />} />
                 <Route path="/shipping-defaults" element={<StandaloneShipping />} />
                 
-                {/* E-gift flow now within dashboard layout */}
+                {/* E-gift flow within dashboard layout */}
                 <Route path="/customize-egift" element={<CustomizeEGift />} />
                 <Route path="/select-recipients-egift" element={<SelectRecipientsEGift />} />
                 <Route path="/egift-send-options" element={<EGiftSendOptions />} />
