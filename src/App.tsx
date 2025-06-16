@@ -19,6 +19,12 @@ import CustomizeGiftBox from '@/pages/CustomizeGiftBox';
 import StandaloneCustomization from '@/pages/StandaloneCustomization';
 import StandaloneShipping from '@/pages/StandaloneShipping';
 
+// New delivery method and e-gift pages
+import ChooseDeliveryMethod from '@/pages/ChooseDeliveryMethod';
+import CustomizeEGift from '@/pages/CustomizeEGift';
+import SelectRecipientsEGift from '@/pages/SelectRecipientsEGift';
+import EGiftSendOptions from '@/pages/EGiftSendOptions';
+
 // Client pages
 import Dashboard from '@/pages/Dashboard';
 import Customers from '@/pages/Customers';
@@ -70,6 +76,12 @@ function App() {
               <Route path="/recipients" element={<RecipientSelection />} />
               <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
+              
+              {/* New delivery method selection and e-gift flow */}
+              <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
+              <Route path="/customize-egift" element={<CustomizeEGift />} />
+              <Route path="/select-recipients-egift" element={<SelectRecipientsEGift />} />
+              <Route path="/egift-send-options" element={<EGiftSendOptions />} />
               
               {/* Client routes */}
               <Route element={<DashboardLayout />}>
