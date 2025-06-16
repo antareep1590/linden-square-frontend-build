@@ -135,16 +135,6 @@ const BoxListing = () => {
     });
 
     toast.success(`${selectedBoxes.length} gift box(es) added to cart`);
-    navigate('/customization');
-  };
-
-  const handleContinue = () => {
-    if (selectedBoxes.length === 0) {
-      toast.error('Please select at least one gift box to continue');
-      return;
-    }
-    
-    toast.success(`Selected ${selectedBoxes.length} gift box${selectedBoxes.length === 1 ? '' : 'es'}`);
     // Route to Choose Delivery Method instead of skipping it
     navigate('/choose-delivery-method');
   };
@@ -168,7 +158,7 @@ const BoxListing = () => {
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Add Selected ({selectedBoxes.length})
+          Continue ({selectedBoxes.length})
         </Button>
       </div>
 
