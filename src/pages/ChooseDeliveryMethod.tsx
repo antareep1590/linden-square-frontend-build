@@ -31,15 +31,6 @@ const ChooseDeliveryMethod = () => {
     }
   };
 
-  const getButtonText = () => {
-    if (deliveryMethod === 'email') {
-      return 'Continue to E-Gift Setup';
-    } else if (deliveryMethod === 'shipping') {
-      return 'Continue to Customization';
-    }
-    return 'Continue';
-  };
-
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
@@ -159,7 +150,7 @@ const ChooseDeliveryMethod = () => {
           className="bg-linden-blue hover:bg-linden-blue/90 px-8"
           disabled={!deliveryMethod}
         >
-          {getButtonText()}
+          Continue to {deliveryMethod === 'email' ? 'E-Gift Setup' : 'Customization'}
         </Button>
       </div>
     </div>

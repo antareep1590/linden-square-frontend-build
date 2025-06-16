@@ -79,6 +79,9 @@ function App() {
               <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
+              {/* Delivery method selection (still standalone) */}
+              <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
+              
               {/* Client routes */}
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -86,10 +89,6 @@ function App() {
                 <Route path="/gift-box-flow" element={<BoxListing />} />
                 <Route path="/box-listing" element={<BoxListing />} />
                 <Route path="/personalization" element={<PersonalizationStep />} />
-                
-                {/* Delivery method selection now within dashboard layout */}
-                <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
-                
                 <Route path="/customization" element={<CustomizationPage />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/shipping-fulfillment" element={<ShippingFulfillment />} />
