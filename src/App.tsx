@@ -21,8 +21,6 @@ import StandaloneShipping from '@/pages/StandaloneShipping';
 
 // New delivery method and e-gift pages
 import ChooseDeliveryMethod from '@/pages/ChooseDeliveryMethod';
-import CustomizeEGift from '@/pages/CustomizeEGift';
-import SelectRecipientsEGift from '@/pages/SelectRecipientsEGift';
 import EGiftSendOptions from '@/pages/EGiftSendOptions';
 
 // Client pages
@@ -38,6 +36,10 @@ import FinalSummary from '@/pages/FinalSummary';
 import PaymentMethod from '@/pages/PaymentMethod';
 import Profile from '@/pages/Profile';
 import ShippingFulfillment from '@/pages/ShippingFulfillment';
+
+// E-gift pages now moved to dashboard layout
+import CustomizeEGift from '@/pages/CustomizeEGift';
+import SelectRecipientsEGift from '@/pages/SelectRecipientsEGift';
 
 // Admin pages  
 import AdminDashboard from '@/pages/admin/Dashboard';
@@ -77,11 +79,8 @@ function App() {
               <Route path="/summary" element={<FinalSummary />} />
               <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
-              {/* New delivery method selection and e-gift flow */}
+              {/* Delivery method selection (still standalone) */}
               <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
-              <Route path="/customize-egift" element={<CustomizeEGift />} />
-              <Route path="/select-recipients-egift" element={<SelectRecipientsEGift />} />
-              <Route path="/egift-send-options" element={<EGiftSendOptions />} />
               
               {/* Client routes */}
               <Route element={<DashboardLayout />}>
@@ -100,6 +99,11 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/customization-defaults" element={<StandaloneCustomization />} />
                 <Route path="/shipping-defaults" element={<StandaloneShipping />} />
+                
+                {/* E-gift flow now within dashboard layout */}
+                <Route path="/customize-egift" element={<CustomizeEGift />} />
+                <Route path="/select-recipients-egift" element={<SelectRecipientsEGift />} />
+                <Route path="/egift-send-options" element={<EGiftSendOptions />} />
               </Route>
 
               {/* Admin routes */}

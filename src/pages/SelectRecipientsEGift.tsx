@@ -3,13 +3,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Upload, Trash2, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import EGiftRecipientModal from '@/components/EGiftRecipientModal';
 
 interface EGiftRecipient {
   id: string;
@@ -24,53 +22,48 @@ interface EGiftRecipient {
   countryCode?: string;
   company?: string;
   giftMessage?: string;
+  assignedBoxes: string[];
 }
 
 const SelectRecipientsEGift = () => {
   const navigate = useNavigate();
-  const [recipients, setRecipients] = useState<EGiftRecipient[]>([]);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    countryCode: 'US',
-    company: '',
-    giftMessage: ''
-  });
-
-  const handleAddRecipient = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      toast.error('First name, last name, and email are required');
-      return;
+  const [recipients, setRecipients] = useState<EGiftRecipient[]>([
+    // Sample recipients to show table structure
+    {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      company: 'Acme Corp',
+      assignedBoxes: ['1', '2']
+    },
+    {
+      id: '2',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane@example.com',
+      company: 'Tech Solutions',
+      city: 'San Francisco',
+      state: 'CA',
+      assignedBoxes: ['1']
     }
+  ]);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const newRecipient: EGiftRecipient = {
+  // Mock gift boxes - in real app this would come from previous selection
+  const availableBoxes = [
+    { id: '1', name: 'Wellness Collection' },
+    { id: '2', name: 'Gourmet Treats' }
+  ];
+
+  const handleAddRecipient = (newRecipient: Omit<EGiftRecipient, 'id'>) => {
+    const recipient: EGiftRecipient = {
       id: Date.now().toString(),
-      ...formData
+      ...newRecipient
     };
-
-    setRecipients([...recipients, newRecipient]);
     
-    // Reset form
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      addressLine1: '',
-      addressLine2: '',
-      city: '',
-      state: '',
-      postalCode: '',
-      countryCode: 'US',
-      company: '',
-      giftMessage: ''
-    });
-
+    setRecipients([...recipients, recipient]);
     toast.success('Recipient added successfully');
   };
 
@@ -95,18 +88,12 @@ const SelectRecipientsEGift = () => {
     setTimeout(() => {
       const mockRecipients: EGiftRecipient[] = [
         {
-          id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@example.com',
-          company: 'Acme Corp'
-        },
-        {
-          id: '2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          email: 'jane@example.com',
-          company: 'Tech Solutions'
+          id: '3',
+          firstName: 'Mike',
+          lastName: 'Johnson',
+          email: 'mike@example.com',
+          company: 'Design Studio',
+          assignedBoxes: ['1', '2']
         }
       ];
       
@@ -114,6 +101,23 @@ const SelectRecipientsEGift = () => {
       toast.success(`${mockRecipients.length} recipients imported from CSV`);
       event.target.value = '';
     }, 500);
+  };
+
+  const formatAddress = (recipient: EGiftRecipient) => {
+    const parts = [
+      recipient.addressLine1,
+      recipient.addressLine2,
+      recipient.city,
+      recipient.state,
+      recipient.postalCode,
+      recipient.countryCode
+    ].filter(Boolean);
+    
+    return parts.length > 0 ? parts.join(', ') : 'Not provided';
+  };
+
+  const getAssignedBoxNames = (boxIds: string[]) => {
+    return boxIds.map(id => availableBoxes.find(box => box.id === id)?.name).filter(Boolean);
   };
 
   return (
@@ -134,163 +138,33 @@ const SelectRecipientsEGift = () => {
         <div className="lg:col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle>Add Recipients</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Recipients ({recipients.length})</CardTitle>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-linden-blue hover:bg-linden-blue/90"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Manual Entry
+                  </Button>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <Button variant="outline">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload CSV
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="manual">
-                <TabsList>
-                  <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                  <TabsTrigger value="upload">Upload CSV</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="manual" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name *</Label>
-                      <Input
-                        id="firstName"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                        placeholder="John"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name *</Label>
-                      <Input
-                        id="lastName"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                        placeholder="Doe"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="john@example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="company">Company</Label>
-                      <Input
-                        id="company"
-                        value={formData.company}
-                        onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                        placeholder="Acme Corp"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-gray-900">Optional Address Information</h4>
-                    <p className="text-sm text-gray-600">
-                      Recipients can provide their address during redemption, but you can pre-fill it here if available.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="addressLine1">Address Line 1</Label>
-                        <Input
-                          id="addressLine1"
-                          value={formData.addressLine1}
-                          onChange={(e) => setFormData(prev => ({ ...prev, addressLine1: e.target.value }))}
-                          placeholder="123 Main St"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="addressLine2">Address Line 2</Label>
-                        <Input
-                          id="addressLine2"
-                          value={formData.addressLine2}
-                          onChange={(e) => setFormData(prev => ({ ...prev, addressLine2: e.target.value }))}
-                          placeholder="Apt 4B"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="San Francisco"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="state">State</Label>
-                        <Input
-                          id="state"
-                          value={formData.state}
-                          onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
-                          placeholder="CA"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="postalCode">Postal Code</Label>
-                        <Input
-                          id="postalCode"
-                          value={formData.postalCode}
-                          onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-                          placeholder="94102"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="countryCode">Country</Label>
-                        <Input
-                          id="countryCode"
-                          value={formData.countryCode}
-                          onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value }))}
-                          placeholder="US"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="giftMessage">Personal Gift Message</Label>
-                      <Textarea
-                        id="giftMessage"
-                        value={formData.giftMessage}
-                        onChange={(e) => setFormData(prev => ({ ...prev, giftMessage: e.target.value }))}
-                        placeholder="Optional personal message for this recipient..."
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-
-                  <Button onClick={handleAddRecipient} className="bg-linden-blue hover:bg-linden-blue/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Recipient
-                  </Button>
-                </TabsContent>
-                
-                <TabsContent value="upload" className="space-y-4">
-                  <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8">
-                    <Upload className="h-10 w-10 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600 mb-4">Upload CSV with recipient information</p>
-                    <Label htmlFor="csv-upload" className="cursor-pointer">
-                      <div className="bg-linden-blue text-white py-2 px-4 rounded-md hover:bg-linden-blue/90">
-                        Choose File
-                      </div>
-                      <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileUpload} className="sr-only" />
-                    </Label>
-                    <p className="mt-2 text-xs text-gray-500">
-                      Required columns: firstName, lastName, email
-                    </p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-
-          {/* Recipients Table */}
-          {recipients.length > 0 && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Recipients ({recipients.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
+              {recipients.length > 0 ? (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -298,15 +172,36 @@ const SelectRecipientsEGift = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Company</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Gift Boxes</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {recipients.map((recipient) => (
                         <TableRow key={recipient.id}>
-                          <TableCell>{recipient.firstName} {recipient.lastName}</TableCell>
+                          <TableCell className="font-medium">
+                            {recipient.firstName} {recipient.lastName}
+                          </TableCell>
                           <TableCell>{recipient.email}</TableCell>
                           <TableCell>{recipient.company || '-'}</TableCell>
+                          <TableCell className="max-w-xs">
+                            <span className="text-xs" title={formatAddress(recipient)}>
+                              {formatAddress(recipient).length > 30 
+                                ? `${formatAddress(recipient).substring(0, 30)}...`
+                                : formatAddress(recipient)
+                              }
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {getAssignedBoxNames(recipient.assignedBoxes).map((boxName, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {boxName}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -322,9 +217,24 @@ const SelectRecipientsEGift = () => {
                     </TableBody>
                   </Table>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No recipients added yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Start by adding recipients manually or uploading a CSV file.
+                  </p>
+                  <Button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-linden-blue hover:bg-linden-blue/90"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Recipient
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -342,6 +252,17 @@ const SelectRecipientsEGift = () => {
                 <div className="text-sm text-gray-600">Recipients Added</div>
               </div>
 
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Available Gift Boxes:</span>
+                  <ul className="text-gray-600 mt-1">
+                    {availableBoxes.map((box) => (
+                      <li key={box.id} className="text-xs">• {box.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
               <Button 
                 onClick={handleContinue}
                 className="w-full bg-linden-blue hover:bg-linden-blue/90"
@@ -353,6 +274,13 @@ const SelectRecipientsEGift = () => {
           </Card>
         </div>
       </div>
+
+      <EGiftRecipientModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddRecipient}
+        availableBoxes={availableBoxes}
+      />
     </div>
   );
 };
