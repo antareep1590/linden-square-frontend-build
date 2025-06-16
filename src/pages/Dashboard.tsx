@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -12,10 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { DateRange } from "react-day-picker";
+import OrderDetailsModal from "@/components/OrderDetailsModal";
 
 const Dashboard: React.FC = () => {
   const [spendFilter, setSpendFilter] = useState('YTD');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   // Mock data for recent orders (3 orders instead of 1)
   const recentOrders = [
@@ -46,8 +48,9 @@ const Dashboard: React.FC = () => {
   ];
 
   const handleOrderClick = (orderId: string) => {
-    // This would open a modal or navigate to order details
     console.log('Opening order details for:', orderId);
+    setSelectedOrderId(orderId);
+    setIsOrderModalOpen(true);
   };
 
   const getTotalSpendByFilter = () => {
@@ -293,6 +296,18 @@ const Dashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Order Details Modal */}
+      {selectedOrderId && (
+        <OrderDetailsModal
+          isOpen={isOrderModalOpen}
+          onClose={() => {
+            setIsOrderModalOpen(false);
+            setSelectedOrderId(null);
+          }}
+          orderId={selectedOrderId}
+        />
+      )}
     </div>
   );
 };
