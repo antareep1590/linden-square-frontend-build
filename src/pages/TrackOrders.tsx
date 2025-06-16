@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
-import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, ChevronDown, ChevronRight, User } from 'lucide-react';
+import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 interface SubOrder {
   recipientName: string;
@@ -19,6 +20,7 @@ interface SubOrder {
   status: 'placed' | 'fulfilled' | 'shipped' | 'delivered';
   trackingNumber?: string;
   estimatedDelivery: string;
+  giftBoxName: string;
 }
 
 interface Order {
@@ -39,8 +41,7 @@ const TrackOrders = () => {
   const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
   const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   // Mock orders data with sub-orders
   const orders: Order[] = [
@@ -61,7 +62,8 @@ const TrackOrders = () => {
           carrier: 'FedEx',
           status: 'delivered',
           trackingNumber: 'FX123456789',
-          estimatedDelivery: '2024-01-18'
+          estimatedDelivery: '2024-01-18',
+          giftBoxName: 'Premium Coffee Set'
         },
         {
           recipientName: 'Mike Davis',
@@ -70,7 +72,8 @@ const TrackOrders = () => {
           carrier: 'FedEx',
           status: 'delivered',
           trackingNumber: 'FX123456790',
-          estimatedDelivery: '2024-01-18'
+          estimatedDelivery: '2024-01-18',
+          giftBoxName: 'Premium Coffee Set'
         }
       ]
     },
@@ -91,7 +94,8 @@ const TrackOrders = () => {
           carrier: 'UPS',
           status: 'shipped',
           trackingNumber: 'UP987654321',
-          estimatedDelivery: '2024-01-20'
+          estimatedDelivery: '2024-01-20',
+          giftBoxName: 'Wellness Package'
         },
         {
           recipientName: 'Lisa Wong',
@@ -100,7 +104,8 @@ const TrackOrders = () => {
           carrier: 'UPS',
           status: 'fulfilled',
           trackingNumber: 'UP987654322',
-          estimatedDelivery: '2024-01-21'
+          estimatedDelivery: '2024-01-21',
+          giftBoxName: 'Wellness Package'
         }
       ]
     },
@@ -121,7 +126,8 @@ const TrackOrders = () => {
           carrier: 'DHL',
           status: 'shipped',
           trackingNumber: 'DH555666777',
-          estimatedDelivery: '2024-01-22'
+          estimatedDelivery: '2024-01-22',
+          giftBoxName: 'Tech Accessories Kit'
         }
       ]
     },
@@ -139,7 +145,8 @@ const TrackOrders = () => {
           address: '456 Oak Street, Chicago, IL 60601',
           carrier: 'USPS',
           status: 'placed',
-          estimatedDelivery: '2024-01-25'
+          estimatedDelivery: '2024-01-25',
+          giftBoxName: 'Holiday Gift Box'
         }
       ]
     }
@@ -168,16 +175,6 @@ const TrackOrders = () => {
     );
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'placed': return <Package className="h-4 w-4" />;
-      case 'fulfilled': return <Clock className="h-4 w-4" />;
-      case 'shipped': return <Truck className="h-4 w-4" />;
-      case 'delivered': return <MapPin className="h-4 w-4" />;
-      default: return <Package className="h-4 w-4" />;
-    }
-  };
-
   const filteredOrders = orders.filter(order => {
     const overallStatus = getOverallStatus(order.subOrders);
     const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -199,65 +196,47 @@ const TrackOrders = () => {
     delivered: filteredOrders.filter(order => getOverallStatus(order.subOrders) === 'delivered').length,
   };
 
-  const handleViewTimeline = (order: Order) => {
+  const handleViewOrderDetails = (order: Order) => {
     setSelectedOrder(order);
-    setShowTimeline(true);
+    setShowOrderDetails(true);
   };
 
-  const toggleOrderExpansion = (orderId: string) => {
-    const newExpanded = new Set(expandedOrders);
-    if (newExpanded.has(orderId)) {
-      newExpanded.delete(orderId);
-    } else {
-      newExpanded.add(orderId);
-    }
-    setExpandedOrders(newExpanded);
-  };
-
-  const renderTimeline = (order: Order) => {
-    return (
-      <div className="space-y-6">
-        {order.subOrders.map((subOrder, index) => (
-          <div key={index} className="border rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">{subOrder.recipientName}</span>
-              <span className="text-sm text-gray-500">({subOrder.recipientEmail})</span>
-            </div>
-            
-            <div className="space-y-3 ml-6">
-              {[
-                { status: 'placed', label: 'Order Placed', date: order.orderDate, completed: true },
-                { status: 'fulfilled', label: 'Order Fulfilled', date: '2024-01-17', completed: ['fulfilled', 'shipped', 'delivered'].includes(subOrder.status) },
-                { status: 'shipped', label: 'Shipped', date: '2024-01-18', completed: ['shipped', 'delivered'].includes(subOrder.status) },
-                { status: 'delivered', label: 'Delivered', date: subOrder.estimatedDelivery, completed: subOrder.status === 'delivered' }
-              ].map((step, stepIndex) => (
-                <div key={stepIndex} className="flex items-center gap-4">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {getStatusIcon(step.status)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-medium ${step.completed ? 'text-gray-900' : 'text-gray-500'}`}>
-                        {step.label}
-                      </span>
-                      <span className="text-xs text-gray-500">{step.date}</span>
-                    </div>
-                    {step.status === 'shipped' && subOrder.trackingNumber && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        Tracking: {subOrder.trackingNumber} ({subOrder.carrier})
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+  const handleExportOrders = () => {
+    // Flatten all sub-orders into a single array for export
+    const exportData = orders.flatMap(order => 
+      order.subOrders.map(subOrder => ({
+        'Order ID': order.orderNumber,
+        'Recipient Name': subOrder.recipientName,
+        'Recipient Email': subOrder.recipientEmail,
+        'Shipping Address': subOrder.address,
+        'Carrier': subOrder.carrier,
+        'Tracking Number': subOrder.trackingNumber || 'N/A',
+        'Shipment Status': subOrder.status.charAt(0).toUpperCase() + subOrder.status.slice(1),
+        'Estimated Delivery': subOrder.estimatedDelivery
+      }))
     );
+
+    // Convert to CSV format
+    const headers = Object.keys(exportData[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...exportData.map(row => 
+        headers.map(header => `"${row[header as keyof typeof row] || ''}"`).join(',')
+      )
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `orders-tracking-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success('Orders exported successfully!');
   };
 
   return (
@@ -267,6 +246,10 @@ const TrackOrders = () => {
           <h1 className="text-2xl font-bold">Track Orders</h1>
           <p className="text-gray-600">Monitor the status and delivery progress of your gift orders</p>
         </div>
+        <Button onClick={handleExportOrders} className="flex items-center gap-2">
+          <Download className="h-4 w-4" />
+          Export Orders & Tracking Info
+        </Button>
       </div>
 
       {/* Summary Cards */}
@@ -393,7 +376,6 @@ const TrackOrders = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10"></TableHead>
                 <TableHead>Order Number</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead>Recipients</TableHead>
@@ -405,97 +387,97 @@ const TrackOrders = () => {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <React.Fragment key={order.id}>
-                  {/* Main Order Row */}
-                  <TableRow>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleOrderExpansion(order.id)}
-                        className="p-0 h-6 w-6"
-                      >
-                        {expandedOrders.has(order.id) ? 
-                          <ChevronDown className="h-4 w-4" /> : 
-                          <ChevronRight className="h-4 w-4" />
-                        }
-                      </Button>
-                    </TableCell>
-                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                    <TableCell>{order.items}</TableCell>
-                    <TableCell>{order.subOrders.length} recipients</TableCell>
-                    <TableCell>{order.orderDate}</TableCell>
-                    <TableCell>{getStatusBadge(getOverallStatus(order.subOrders))}</TableCell>
-                    <TableCell>{order.estimatedDelivery}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewTimeline(order)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {/* Sub-Order Details Rows */}
-                  {expandedOrders.has(order.id) && order.subOrders.map((subOrder, index) => (
-                    <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
-                      <TableCell></TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 pl-4">
-                          <User className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium">{subOrder.recipientName}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">{subOrder.recipientEmail}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600 max-w-xs truncate">
-                          <MapPin className="h-3 w-3 inline mr-1" />
-                          {subOrder.address}
-                        </div>
-                      </TableCell>
-                      <TableCell></TableCell>
-                      <TableCell>{getStatusBadge(subOrder.status)}</TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">
-                          {subOrder.estimatedDelivery}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {subOrder.trackingNumber && (
-                          <div className="text-xs text-gray-500">
-                            {subOrder.trackingNumber}
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </React.Fragment>
+                <TableRow key={order.id}>
+                  <TableCell 
+                    className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer"
+                    onClick={() => handleViewOrderDetails(order)}
+                  >
+                    {order.orderNumber}
+                  </TableCell>
+                  <TableCell>{order.items}</TableCell>
+                  <TableCell>{order.subOrders.length} recipients</TableCell>
+                  <TableCell>{order.orderDate}</TableCell>
+                  <TableCell>{getStatusBadge(getOverallStatus(order.subOrders))}</TableCell>
+                  <TableCell>{order.estimatedDelivery}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewOrderDetails(order)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Order Timeline Modal */}
-      <Dialog open={showTimeline} onOpenChange={setShowTimeline}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      {/* Order Details Modal */}
+      <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Timeline - {selectedOrder?.orderNumber}</DialogTitle>
+            <DialogTitle>Order Details - {selectedOrder?.orderNumber}</DialogTitle>
           </DialogHeader>
           
           {selectedOrder && (
-            <div className="space-y-4">
-              <div className="border-b pb-4">
-                <div className="font-medium">{selectedOrder.orderNumber}</div>
-                <div className="text-sm text-gray-600">Items: {selectedOrder.items}</div>
-                <div className="text-sm text-gray-600">{selectedOrder.subOrders.length} recipients</div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Order Date:</span>
+                  <p className="text-sm">{selectedOrder.orderDate}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Items:</span>
+                  <p className="text-sm">{selectedOrder.items}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Total Recipients:</span>
+                  <p className="text-sm">{selectedOrder.subOrders.length}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Overall Status:</span>
+                  <div className="mt-1">{getStatusBadge(getOverallStatus(selectedOrder.subOrders))}</div>
+                </div>
               </div>
-              
-              {renderTimeline(selectedOrder)}
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Individual Shipments</h3>
+                <div className="space-y-4">
+                  {selectedOrder.subOrders.map((subOrder, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Recipient Name:</span>
+                          <p className="text-sm font-medium">{subOrder.recipientName}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Gift Box:</span>
+                          <p className="text-sm">{subOrder.giftBoxName}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <span className="text-sm font-medium text-gray-600">Address:</span>
+                          <p className="text-sm">{subOrder.address}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Status:</span>
+                          <div className="mt-1">{getStatusBadge(subOrder.status)}</div>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Carrier & Tracking:</span>
+                          <p className="text-sm">{subOrder.carrier} - {subOrder.trackingNumber || 'N/A'}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <span className="text-sm font-medium text-gray-600">Estimated Delivery:</span>
+                          <p className="text-sm">{subOrder.estimatedDelivery}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>

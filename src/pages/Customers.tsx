@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { Search } from "lucide-react";
 
-// Updated mock data for recipients with split names and addresses
+// Updated mock data for recipients with combined address
 const mockRecipients = [
   {
     id: "1",
@@ -17,10 +17,7 @@ const mockRecipients = [
     lastName: "Smith",
     email: "john@company.com",
     phone: "+1234567890",
-    street: "123 Main St",
-    city: "Anytown",
-    state: "CA",
-    zip: "12345",
+    address: "123 Main St, Anytown, CA 12345",
     tag: "Client",
     lastOrderDate: "2023-11-15"
   },
@@ -30,10 +27,7 @@ const mockRecipients = [
     lastName: "Johnson",
     email: "sarah@partner.com",
     phone: "+1234567891",
-    street: "456 Oak Ave",
-    city: "Somewhere",
-    state: "NY",
-    zip: "67890",
+    address: "456 Oak Ave, Somewhere, NY 67890",
     tag: "Partner",
     lastOrderDate: "2023-11-10"
   },
@@ -43,10 +37,7 @@ const mockRecipients = [
     lastName: "Wilson",
     email: "mike@team.com",
     phone: "+1234567892",
-    street: "789 Pine Rd",
-    city: "Nowhere",
-    state: "TX",
-    zip: "54321",
+    address: "789 Pine Rd, Nowhere, TX 54321",
     tag: "Team Member",
     lastOrderDate: "2023-11-05"
   }
@@ -63,7 +54,8 @@ const Recipients = () => {
     const matchesSearch = recipient.firstName.toLowerCase().includes(searchLower) ||
                          recipient.lastName.toLowerCase().includes(searchLower) ||
                          recipient.email.toLowerCase().includes(searchLower) ||
-                         recipient.phone.toLowerCase().includes(searchLower);
+                         recipient.phone.toLowerCase().includes(searchLower) ||
+                         recipient.address.toLowerCase().includes(searchLower);
     const matchesTag = tagFilter === "all" || recipient.tag === tagFilter;
     return matchesSearch && matchesTag;
   });
@@ -80,7 +72,7 @@ const Recipients = () => {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
             <Input
-              placeholder="Search by first name, last name, email, or phone..."
+              placeholder="Search by name, email, phone, or address..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-full"
@@ -119,10 +111,7 @@ const Recipients = () => {
                 <TableHead>Last Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Street</TableHead>
-                <TableHead>City</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead>Zip</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Tag</TableHead>
                 <TableHead>Last Order</TableHead>
               </TableRow>
@@ -134,10 +123,9 @@ const Recipients = () => {
                   <TableCell className="font-medium">{recipient.lastName}</TableCell>
                   <TableCell>{recipient.email}</TableCell>
                   <TableCell>{recipient.phone}</TableCell>
-                  <TableCell>{recipient.street}</TableCell>
-                  <TableCell>{recipient.city}</TableCell>
-                  <TableCell>{recipient.state}</TableCell>
-                  <TableCell>{recipient.zip}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={recipient.address}>
+                    {recipient.address}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="text-xs">
                       {recipient.tag}
