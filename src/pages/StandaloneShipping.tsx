@@ -10,9 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Upload, Download, Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X, Info } from 'lucide-react';
+import { Package, Truck, Save, Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, DollarSign, Clock, X, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import BulkUploadModal from '@/components/BulkUploadModal';
 import AddRecipientModal from '@/components/AddRecipientModal';
 
 interface GiftBox {
@@ -38,8 +37,6 @@ interface Recipient {
 const StandaloneShipping = () => {
   const [autoAssignMode, setAutoAssignMode] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState('');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showAddRecipient, setShowAddRecipient] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
@@ -126,18 +123,6 @@ const StandaloneShipping = () => {
     console.log('Saved shipping defaults:', shippingDefaults);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      toast.success('CSV file uploaded and processed successfully');
-    }
-  };
-
-  const downloadTemplate = () => {
-    toast.success('CSV template downloaded');
-  };
-
   const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
     if (editingRecipient) {
       setRecipients(prev => prev.map(r => 
@@ -166,25 +151,6 @@ const StandaloneShipping = () => {
     setRecipients(prev => prev.filter(r => r.id !== id));
     setSelectedRecipients(prev => prev.filter(selectedId => selectedId !== id));
     toast.success('Recipient removed');
-  };
-
-  const handleBulkUploadSuccess = (newRecipients: any[]) => {
-    const formattedRecipients: Recipient[] = newRecipients.map((r, index) => ({
-      id: Math.max(...recipients.map(r => r.id), 0) + index + 1,
-      name: r.name,
-      email: r.email,
-      phone: r.phone || '',
-      department: r.department || '',
-      address: r.address || '',
-      status: (r.address && r.assignedGiftBoxes?.length > 0) ? 'confirmed' : 'pending',
-      shippingMode: r.address ? 'FedEx Standard' : '',
-      cost: r.address ? '$12.50' : '',
-      source: 'bulk',
-      assignedGiftBoxes: r.assignedGiftBoxes || []
-    }));
-    
-    setRecipients(prev => [...prev, ...formattedRecipients]);
-    setShowBulkUpload(false);
   };
 
   const handleSelectRecipient = (id: number) => {
@@ -350,59 +316,6 @@ const StandaloneShipping = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* Bulk Upload Default Recipients */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Bulk Upload Default Recipients
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4 mb-4">
-                <Button variant="outline" onClick={downloadTemplate}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download CSV Template
-                </Button>
-                <span className="text-sm text-gray-600">
-                  Use our template to ensure proper formatting
-                </span>
-              </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="csv-upload"
-                  />
-                  <label htmlFor="csv-upload" className="cursor-pointer">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-lg font-medium text-gray-900 mb-2">
-                      {uploadedFile ? uploadedFile.name : 'Upload CSV File'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {uploadedFile 
-                        ? 'File uploaded successfully. Preview below.'
-                        : 'Click to upload or drag and drop your CSV file here'
-                      }
-                    </p>
-                  </label>
-                </div>
-                
-                <Button
-                  onClick={() => setShowBulkUpload(true)}
-                  className="bg-linden-blue hover:bg-linden-blue/90"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Bulk Upload
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Default Recipient Management */}
           <Card>
@@ -644,12 +557,6 @@ const StandaloneShipping = () => {
       </div>
 
       {/* Modals */}
-      <BulkUploadModal
-        isOpen={showBulkUpload}
-        onClose={() => setShowBulkUpload(false)}
-        onUploadSuccess={handleBulkUploadSuccess}
-      />
-
       <AddRecipientModal
         open={showAddRecipient}
         onOpenChange={(open) => {
