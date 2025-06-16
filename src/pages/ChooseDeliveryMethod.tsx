@@ -12,6 +12,12 @@ const ChooseDeliveryMethod = () => {
   const navigate = useNavigate();
   const [deliveryMethod, setDeliveryMethod] = useState<'email' | 'shipping' | ''>('');
 
+  const handleDeliveryMethodChange = (value: string) => {
+    if (value === 'email' || value === 'shipping') {
+      setDeliveryMethod(value);
+    }
+  };
+
   const handleContinue = () => {
     if (!deliveryMethod) {
       toast.error('Please select a delivery method');
@@ -51,7 +57,7 @@ const ChooseDeliveryMethod = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
+              <RadioGroup value={deliveryMethod} onValueChange={handleDeliveryMethodChange}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="email" id="email" />
                   <Label htmlFor="email" className="text-sm font-medium cursor-pointer">
@@ -100,7 +106,7 @@ const ChooseDeliveryMethod = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <RadioGroup value={deliveryMethod} onValueChange={setDeliveryMethod}>
+              <RadioGroup value={deliveryMethod} onValueChange={handleDeliveryMethodChange}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="shipping" id="shipping" />
                   <Label htmlFor="shipping" className="text-sm font-medium cursor-pointer">
