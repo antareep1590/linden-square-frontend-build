@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -88,6 +89,7 @@ function App() {
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/customization" element={<CustomizationPage />} />
                 <Route path="/shipping-fulfillment" element={<ShippingFulfillment />} />
+                <Route path="/egift-send-options" element={<EGiftSendOptions />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />
