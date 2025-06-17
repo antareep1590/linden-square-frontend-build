@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,30 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Package, Palette, User, Users, Gift, Upload, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Package, Palette, User, Users, Gift, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
-
-interface CustomizationData {
-  messageGraphic?: string;
-  brandedNotecard?: {
-    enabled: boolean;
-    logo: File | null;
-    message: string;
-  };
-  giftTags?: {
-    enabled: boolean;
-    type: string;
-    presetMessage: string;
-    customMessage: string;
-  };
-  messageCard?: {
-    enabled: boolean;
-    message: string;
-    senderName: string;
-  };
-}
 
 const CustomizationPage = () => {
   const navigate = useNavigate();
@@ -46,22 +27,9 @@ const CustomizationPage = () => {
     { id: 3, name: 'Emily Rodriguez', email: 'emily.rodriguez@company.com' }
   ];
 
-  // Mock delivery method - in real app would come from context or previous selection
-  const deliveryMethod = 'email'; // This would be dynamically set based on previous selection
-
-  const selectedGiftBox = selectedBoxes[0];
-
-  const messageGraphics = [
-    { id: 'birthday', name: 'Birthday', emoji: '🎂' },
-    { id: 'thankyou', name: 'Thank You', emoji: '🙏' },
-    { id: 'congratulations', name: 'Congratulations', emoji: '🎉' },
-    { id: 'holiday', name: 'Holiday', emoji: '🎄' },
-    { id: 'appreciation', name: 'Appreciation', emoji: '⭐' },
-    { id: 'welcome', name: 'Welcome', emoji: '👋' }
-  ];
+  const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
-    messageGraphic: '',
     brandedNotecard: {
       enabled: false,
       logo: null as File | null,
@@ -80,7 +48,7 @@ const CustomizationPage = () => {
     }
   });
 
-  const [individualCustomizations, setIndividualCustomizations] = useState<Record<number, CustomizationData>>({});
+  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: number]: any}>({});
 
   const handleOrderLevelChange = (type: string, field: string, value: string | boolean | File | null) => {
     setOrderLevelCustomization(prev => ({
@@ -92,72 +60,21 @@ const CustomizationPage = () => {
     }));
   };
 
-  const handleOrderLevelGraphicChange = (graphicId: string) => {
-    setOrderLevelCustomization(prev => ({
-      ...prev,
-      messageGraphic: graphicId
-    }));
-  };
-
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
-    setIndividualCustomizations(prev => {
-      const currentRecipient: CustomizationData = prev[recipientId] || {
-        messageGraphic: '',
-        brandedNotecard: { enabled: false, logo: null, message: '' },
-        giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
-        messageCard: { enabled: false, message: '', senderName: '' }
-      };
-      
-      // Handle messageGraphic separately since it's a string, not an object
-      if (type === 'messageGraphic') {
-        return {
-          ...prev,
-          [recipientId]: {
-            ...currentRecipient,
-            messageGraphic: value as string
-          }
-        };
+    setIndividualCustomizations(prev => ({
+      ...prev,
+      [recipientId]: {
+        ...prev[recipientId],
+        [type]: {
+          ...prev[recipientId]?.[type],
+          [field]: value
+        }
       }
-      
-      // For object properties like brandedNotecard, giftTags, messageCard
-      const currentTypeValue = currentRecipient[type as keyof CustomizationData];
-      const currentType = (typeof currentTypeValue === 'object' && currentTypeValue !== null) ? currentTypeValue : {};
-      
-      return {
-        ...prev,
-        [recipientId]: {
-          ...currentRecipient,
-          [type]: {
-            ...currentType,
-            [field]: value
-          }
-        }
-      };
-    });
-  };
-
-  const handleIndividualGraphicChange = (recipientId: number, graphicId: string) => {
-    setIndividualCustomizations(prev => {
-      const currentRecipient: CustomizationData = prev[recipientId] || {
-        messageGraphic: '',
-        brandedNotecard: { enabled: false, logo: null, message: '' },
-        giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
-        messageCard: { enabled: false, message: '', senderName: '' }
-      };
-      
-      return {
-        ...prev,
-        [recipientId]: {
-          ...currentRecipient,
-          messageGraphic: graphicId
-        }
-      };
-    });
+    }));
   };
 
   const getCurrentCustomization = (recipientId: number) => {
     return individualCustomizations[recipientId] || {
-      messageGraphic: '',
       brandedNotecard: { enabled: false, logo: null, message: '' },
       giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
       messageCard: { enabled: false, message: '', senderName: '' }
@@ -196,13 +113,12 @@ const CustomizationPage = () => {
     if (customizationType === 'order') {
       // Check if at least one customization type is enabled with content
       const hasValidCustomization = 
-        orderLevelCustomization.messageGraphic ||
         (orderLevelCustomization.brandedNotecard.enabled && orderLevelCustomization.brandedNotecard.message.trim()) ||
         (orderLevelCustomization.giftTags.enabled && (orderLevelCustomization.giftTags.presetMessage || orderLevelCustomization.giftTags.customMessage)) ||
         (orderLevelCustomization.messageCard.enabled && orderLevelCustomization.messageCard.message.trim());
       
       if (!hasValidCustomization) {
-        toast.error('Please enable and fill out at least one customization option or select a message graphic');
+        toast.error('Please enable and fill out at least one customization option');
         return;
       }
     } else {
@@ -212,7 +128,6 @@ const CustomizationPage = () => {
         if (!customization) return true;
         
         const hasValid = 
-          customization.messageGraphic ||
           (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
           (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
           (customization.messageCard?.enabled && customization.messageCard?.message?.trim());
@@ -227,13 +142,7 @@ const CustomizationPage = () => {
     }
 
     toast.success('Customizations saved');
-    
-    // Navigate based on delivery method
-    if (deliveryMethod === 'email') {
-      navigate('/egift-send-options');
-    } else {
-      navigate('/shipping-fulfillment');
-    }
+    navigate('/shipping-fulfillment');
   };
 
   const handlePreviousRecipient = () => {
@@ -264,57 +173,11 @@ const CustomizationPage = () => {
   const currentRecipient = recipients[selectedRecipientIndex];
   const currentCustomization = getCurrentCustomization(currentRecipient.id);
 
-  const renderMessageGraphicSelection = (isIndividual: boolean, recipientId?: number) => {
-    const selectedGraphic = isIndividual 
-      ? currentCustomization.messageGraphic 
-      : orderLevelCustomization.messageGraphic;
-    
-    return (
-      <div className="border rounded-lg p-4 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MessageSquare className="h-5 w-5" />
-          <h4 className="font-medium">Message Graphic Selection</h4>
-        </div>
-        <p className="text-sm text-gray-600 mb-4">
-          Choose a graphic theme for your digital gift message
-        </p>
-        
-        <div className="grid grid-cols-3 gap-3">
-          {messageGraphics.map((graphic) => (
-            <div
-              key={graphic.id}
-              className={`p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                selectedGraphic === graphic.id
-                  ? 'border-linden-blue bg-linden-blue/5'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => {
-                if (recipientId !== undefined) {
-                  handleIndividualGraphicChange(recipientId, graphic.id);
-                } else {
-                  handleOrderLevelGraphicChange(graphic.id);
-                }
-              }}
-            >
-              <div className="text-center">
-                <div className="text-2xl mb-2">{graphic.emoji}</div>
-                <div className="text-xs font-medium">{graphic.name}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const renderCustomizationOptions = (isIndividual: boolean, recipientId?: number) => {
     const customization = isIndividual ? currentCustomization : orderLevelCustomization;
     
     return (
       <div className="space-y-6">
-        {/* Message Graphic Selection - only for digital delivery */}
-        {deliveryMethod === 'email' && renderMessageGraphicSelection(isIndividual, recipientId)}
-
         {/* Branded Notecards */}
         <div className="border rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
@@ -473,7 +336,7 @@ const CustomizationPage = () => {
           onClick={handleContinue}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
-          {deliveryMethod === 'email' ? 'Continue to Send Options' : 'Continue to Shipping'}
+          Continue to Shipping
         </Button>
       </div>
 
@@ -626,7 +489,6 @@ const CustomizationPage = () => {
                       {Object.keys(individualCustomizations).filter(id => {
                         const customization = individualCustomizations[parseInt(id)];
                         return customization && (
-                          customization.messageGraphic ||
                           (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
                           (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
                           (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
@@ -642,7 +504,6 @@ const CustomizationPage = () => {
                         width: `${(Object.keys(individualCustomizations).filter(id => {
                           const customization = individualCustomizations[parseInt(id)];
                           return customization && (
-                            customization.messageGraphic ||
                             (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
                             (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
                             (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
@@ -658,7 +519,7 @@ const CustomizationPage = () => {
                 className="w-full bg-linden-blue hover:bg-linden-blue/90 mt-4"
                 onClick={handleContinue}
               >
-                {deliveryMethod === 'email' ? 'Continue to Send Options' : 'Continue to Shipping'}
+                Continue to Shipping
               </Button>
             </CardContent>
           </Card>
@@ -673,7 +534,6 @@ const CustomizationPage = () => {
                 <div className="space-y-2">
                   {recipients.map((recipient, index) => {
                     const hasCustomization = individualCustomizations[recipient.id] && (
-                      individualCustomizations[recipient.id].messageGraphic ||
                       (individualCustomizations[recipient.id].brandedNotecard?.enabled && individualCustomizations[recipient.id].brandedNotecard?.message?.trim()) ||
                       (individualCustomizations[recipient.id].giftTags?.enabled && (individualCustomizations[recipient.id].giftTags?.presetMessage || individualCustomizations[recipient.id].giftTags?.customMessage)) ||
                       (individualCustomizations[recipient.id].messageCard?.enabled && individualCustomizations[recipient.id].messageCard?.message?.trim())

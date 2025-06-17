@@ -39,9 +39,9 @@ const EGiftSendOptions = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/select-recipients-egift')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Customization
+          Back to Recipients
         </Button>
         <div>
           <h1 className="text-2xl font-bold">E-Gift Send Options</h1>
