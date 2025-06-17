@@ -212,7 +212,7 @@ const Invoices = () => {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
@@ -228,7 +228,7 @@ const Invoices = () => {
                   <SelectValue placeholder="Date" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Dates</SelectItem>
+                  <SelectItem value="all">All Dates</SelectItem>
                   <SelectItem value="2024-03">March 2024</SelectItem>
                   <SelectItem value="2024-02">February 2024</SelectItem>
                   <SelectItem value="2024-01">January 2024</SelectItem>
