@@ -13,6 +13,26 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 
+interface CustomizationData {
+  messageGraphic?: string;
+  brandedNotecard?: {
+    enabled: boolean;
+    logo: File | null;
+    message: string;
+  };
+  giftTags?: {
+    enabled: boolean;
+    type: string;
+    presetMessage: string;
+    customMessage: string;
+  };
+  messageCard?: {
+    enabled: boolean;
+    message: string;
+    senderName: string;
+  };
+}
+
 const CustomizationPage = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
@@ -60,7 +80,7 @@ const CustomizationPage = () => {
     }
   });
 
-  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: number]: any}>({});
+  const [individualCustomizations, setIndividualCustomizations] = useState<Record<number, CustomizationData>>({});
 
   const handleOrderLevelChange = (type: string, field: string, value: string | boolean | File | null) => {
     setOrderLevelCustomization(prev => ({
@@ -81,10 +101,8 @@ const CustomizationPage = () => {
 
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => {
-      const currentRecipientData = prev[recipientId];
-      const currentRecipient = typeof currentRecipientData === 'object' && currentRecipientData !== null ? currentRecipientData : {};
-      const currentTypeData = currentRecipient[type];
-      const currentType = typeof currentTypeData === 'object' && currentTypeData !== null ? currentTypeData : {};
+      const currentRecipient = prev[recipientId] || {};
+      const currentType = currentRecipient[type as keyof CustomizationData] || {};
       
       return {
         ...prev,
@@ -101,8 +119,7 @@ const CustomizationPage = () => {
 
   const handleIndividualGraphicChange = (recipientId: number, graphicId: string) => {
     setIndividualCustomizations(prev => {
-      const currentRecipientData = prev[recipientId];
-      const currentRecipient = typeof currentRecipientData === 'object' && currentRecipientData !== null ? currentRecipientData : {};
+      const currentRecipient = prev[recipientId] || {};
       
       return {
         ...prev,
