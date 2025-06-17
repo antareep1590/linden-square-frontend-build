@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, Upload, Calendar as CalendarIcon, Send, Clock, Building } from 'lucide-react';
+import { ArrowLeft, Upload, Calendar as CalendarIcon, Send, Clock, Building, Package } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -18,6 +18,22 @@ const EGiftSendOptions = () => {
   const [sendOption, setSendOption] = useState<'now' | 'scheduled'>('now');
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [logoUploaded, setLogoUploaded] = useState(false);
+
+  // Mock data - in real app would come from previous steps
+  const [orderData, setOrderData] = useState({
+    recipients: 3,
+    messageGraphic: '',
+    giftBoxName: 'Premium Corporate Gift Box',
+    totalValue: '$450.00'
+  });
+
+  useEffect(() => {
+    // Get stored data from previous steps
+    const storedGraphic = localStorage.getItem('selectedMessageGraphic');
+    if (storedGraphic) {
+      setOrderData(prev => ({ ...prev, messageGraphic: storedGraphic }));
+    }
+  }, []);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -155,8 +171,9 @@ const EGiftSendOptions = () => {
           </Card>
         </div>
 
-        {/* Sidebar - Summary */}
+        {/* Sidebar */}
         <div className="space-y-6">
+          {/* Digital Gift Summary */}
           <Card className="sticky top-4">
             <CardHeader>
               <CardTitle>Digital Gift Summary</CardTitle>
@@ -185,6 +202,46 @@ const EGiftSendOptions = () => {
                     <span className="font-medium">{format(scheduledDate, "MMM d, yyyy")}</span>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Order Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span>Number of Recipients:</span>
+                  <span className="font-medium">{orderData.recipients}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Gift Box:</span>
+                  <span className="font-medium text-right">{orderData.giftBoxName}</span>
+                </div>
+                {orderData.messageGraphic && (
+                  <div className="flex justify-between">
+                    <span>Message Graphic:</span>
+                    <span className="font-medium">{orderData.messageGraphic}</span>
+                  </div>
+                )}
+                {sendOption === 'scheduled' && scheduledDate && (
+                  <div className="flex justify-between">
+                    <span>Scheduled Date:</span>
+                    <span className="font-medium">{format(scheduledDate, "MMM d")}</span>
+                  </div>
+                )}
+                <div className="border-t pt-3">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total Value:</span>
+                    <span>{orderData.totalValue}</span>
+                  </div>
+                </div>
               </div>
 
               <div className="border-t pt-4">
