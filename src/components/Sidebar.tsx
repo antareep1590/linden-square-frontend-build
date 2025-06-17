@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -95,11 +94,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
     );
   };
 
-  const handleItemClick = (item: MenuItem) => {
-    // Navigate to the main path
-    window.location.href = item.path;
-  };
-
   // Choose the appropriate menu items based on whether we're in admin mode
   const menuItems = isAdmin ? adminMenuItems : clientMenuItems;
 
@@ -143,7 +137,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
         <nav className="space-y-1 px-2">
           {menuItems.map((item) => (
             <div key={item.path}>
-              <div
+              <Link
+                to={item.path}
                 className={cn(
                   'flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors cursor-pointer',
                   location.pathname === item.path || (item.name === 'Order Management' && isOrderManagementPath(location.pathname))
@@ -151,7 +146,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
                     : 'text-gray-700 hover:bg-gray-100',
                   collapsed ? 'justify-center' : 'justify-between'
                 )}
-                onClick={() => handleItemClick(item)}
               >
                 <div className={cn('flex items-center', collapsed ? 'justify-center' : '')}>
                   {item.icon}
@@ -165,12 +159,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
                       expandedItems.includes(item.name) ? 'rotate-180' : ''
                     )}
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       toggleSubMenu(item.name);
                     }}
                   />
                 )}
-              </div>
+              </Link>
 
               {/* Sub-items */}
               {!collapsed && item.subItems && expandedItems.includes(item.name) && (
