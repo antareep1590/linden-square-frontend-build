@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Search, Download, Eye, Filter, Calendar } from 'lucide-react';
+import { FileText, Search, Download, Eye, Filter, Calendar, CheckCircle, Clock, AlertTriangle, FileEdit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Invoice {
@@ -22,8 +22,8 @@ interface Invoice {
 const Invoices = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
 
   // Mock invoices data
   const [invoices] = useState<Invoice[]>([
@@ -77,30 +77,62 @@ const Invoices = () => {
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || invoice.status === statusFilter;
-    const matchesDate = !dateFilter || invoice.date.includes(dateFilter);
+    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
+    const matchesDate = dateFilter === 'all' || invoice.date.includes(dateFilter);
     
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'paid': return 'default';
-      case 'pending': return 'secondary';
-      case 'overdue': return 'destructive';
-      case 'draft': return 'outline';
-      default: return 'outline';
+      case 'paid':
+        return {
+          icon: CheckCircle,
+          variant: 'default' as const,
+          className: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
+          iconColor: 'text-green-600'
+        };
+      case 'pending':
+        return {
+          icon: Clock,
+          variant: 'secondary' as const,
+          className: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200',
+          iconColor: 'text-yellow-600'
+        };
+      case 'overdue':
+        return {
+          icon: AlertTriangle,
+          variant: 'destructive' as const,
+          className: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200',
+          iconColor: 'text-red-600'
+        };
+      case 'draft':
+        return {
+          icon: FileEdit,
+          variant: 'outline' as const,
+          className: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+          iconColor: 'text-gray-600'
+        };
+      default:
+        return {
+          icon: FileEdit,
+          variant: 'outline' as const,
+          className: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+          iconColor: 'text-gray-600'
+        };
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'text-green-600';
-      case 'pending': return 'text-yellow-600';
-      case 'overdue': return 'text-red-600';
-      case 'draft': return 'text-gray-600';
-      default: return 'text-gray-600';
-    }
+  const StatusBadge = ({ status }: { status: string }) => {
+    const config = getStatusConfig(status);
+    const IconComponent = config.icon;
+    
+    return (
+      <Badge className={`flex items-center gap-1.5 px-3 py-1.5 font-medium transition-colors ${config.className}`}>
+        <IconComponent className={`h-3.5 w-3.5 ${config.iconColor}`} />
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
   };
 
   const handleViewInvoice = (invoiceId: string) => {
@@ -156,7 +188,7 @@ const Invoices = () => {
                 <p className="text-2xl font-bold text-green-600">{statusCounts.paid || 0}</p>
               </div>
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-green-600 rounded-full"></div>
+                <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -170,7 +202,7 @@ const Invoices = () => {
                 <p className="text-2xl font-bold text-yellow-600">{statusCounts.pending || 0}</p>
               </div>
               <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-yellow-600 rounded-full"></div>
+                <Clock className="w-5 h-5 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -184,7 +216,7 @@ const Invoices = () => {
                 <p className="text-2xl font-bold text-red-600">{statusCounts.overdue || 0}</p>
               </div>
               <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-red-600 rounded-full"></div>
+                <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
             </div>
           </CardContent>
@@ -236,13 +268,13 @@ const Invoices = () => {
               </Select>
             </div>
 
-            {(searchTerm || statusFilter || dateFilter) && (
+            {(searchTerm || statusFilter !== 'all' || dateFilter !== 'all') && (
               <Button
                 variant="outline"
                 onClick={() => {
                   setSearchTerm('');
-                  setStatusFilter('');
-                  setDateFilter('');
+                  setStatusFilter('all');
+                  setDateFilter('all');
                 }}
               >
                 Clear
@@ -284,12 +316,7 @@ const Invoices = () => {
                     <TableCell>{invoice.recipientCount}</TableCell>
                     <TableCell className="font-medium">${invoice.amount.toLocaleString()}</TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={getStatusBadgeVariant(invoice.status)}
-                        className={getStatusColor(invoice.status)}
-                      >
-                        {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
-                      </Badge>
+                      <StatusBadge status={invoice.status} />
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -320,7 +347,7 @@ const Invoices = () => {
               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
               <p className="text-gray-500">
-                {searchTerm || statusFilter || dateFilter
+                {searchTerm || statusFilter !== 'all' || dateFilter !== 'all'
                   ? 'Try adjusting your search criteria'
                   : 'Your invoices will appear here once you place orders'
                 }

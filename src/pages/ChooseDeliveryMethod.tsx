@@ -24,11 +24,8 @@ const ChooseDeliveryMethod = () => {
       return;
     }
 
-    if (deliveryMethod === 'email') {
-      navigate('/customize-egift');
-    } else {
-      navigate('/recipient-selection');
-    }
+    // Both delivery methods now go to recipient selection
+    navigate('/recipient-selection');
   };
 
   return (
@@ -150,8 +147,7 @@ const ChooseDeliveryMethod = () => {
           className="bg-linden-blue hover:bg-linden-blue/90 px-8"
           disabled={!deliveryMethod}
         >
-          {deliveryMethod === 'email' ? 'Continue to E-Gift Setup' : 
-           deliveryMethod === 'shipping' ? 'Continue to Add Recipients' : 'Continue'}
+          Continue to Add Recipients
         </Button>
       </div>
     </div>
