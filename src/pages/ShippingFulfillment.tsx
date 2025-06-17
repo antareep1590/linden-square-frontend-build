@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Package, Clock, Edit, Trash2, Users, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Truck, Package, Clock, CheckCircle, AlertCircle, Edit, Trash2, Users, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -25,10 +26,10 @@ interface Recipient {
   phone: string;
   department: string;
   address: string;
-  status: 'confirmed'; // All recipients are confirmed by default
+  status: 'pending' | 'confirmed';
   shippingMode: string;
   source: 'manual' | 'bulk';
-  assignedGiftBox: string;
+  assignedGiftBox?: string;
 }
 
 const ShippingFulfillment = () => {
@@ -42,7 +43,7 @@ const ShippingFulfillment = () => {
     { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 6 }
   ];
 
-  // Sample recipient addresses - all confirmed by default since they appear in this section
+  // Sample recipient addresses with single gift box assignment
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -74,9 +75,9 @@ const ShippingFulfillment = () => {
       email: 'emily.rodriguez@company.com',
       phone: '+1 (555) 345-6789',
       department: 'Sales',
-      address: '789 Pine St, Los Angeles, CA 90210',
-      status: 'confirmed',
-      shippingMode: 'FedEx Standard',
+      address: '',
+      status: 'pending',
+      shippingMode: '',
       source: 'manual',
       assignedGiftBox: 'Premium Coffee Collection'
     }
@@ -87,30 +88,40 @@ const ShippingFulfillment = () => {
     {
       id: 'fedex',
       name: 'FedEx',
+      logo: '/placeholder.svg',
       services: ['Standard', 'Express', 'Overnight'],
       estimatedDays: '2-3 business days'
     },
     {
       id: 'ups',
       name: 'UPS',
+      logo: '/placeholder.svg',
       services: ['Ground', 'Express', 'Next Day'],
       estimatedDays: '3-5 business days'
     },
     {
       id: 'dhl',
       name: 'DHL',
+      logo: '/placeholder.svg',
       services: ['Standard', 'Express', 'Priority'],
       estimatedDays: '2-4 business days'
     },
     {
       id: 'usps',
       name: 'USPS',
+      logo: '/placeholder.svg',
       services: ['Priority', 'Express', 'Ground'],
       estimatedDays: '3-5 business days'
     }
   ];
 
   const handleContinue = () => {
+    const pendingAddresses = recipients.filter(r => r.status === 'pending');
+    if (pendingAddresses.length > 0) {
+      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
+      return;
+    }
+    
     toast.success('Shipping configuration saved');
     navigate('/payment-method', { state: { total: calculateGrandTotal() } });
   };
@@ -164,9 +175,9 @@ const ShippingFulfillment = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/recipient-selection')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Customization
+          Back to Recipients
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Shipping & Fulfillment</h1>
@@ -176,8 +187,9 @@ const ShippingFulfillment = () => {
           <Button 
             onClick={handleContinue}
             className="bg-linden-blue hover:bg-linden-blue/90"
+            disabled={recipients.filter(r => r.status === 'pending').length > 0}
           >
-            Continue to Payment
+            Buy
           </Button>
         </div>
       </div>
@@ -266,7 +278,7 @@ const ShippingFulfillment = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  All recipients listed here are automatically confirmed. Gift box assignments are fixed and cannot be changed at this step.
+                  Manage recipient addresses and shipping details. Recipients with addresses are automatically confirmed.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -275,16 +287,16 @@ const ShippingFulfillment = () => {
                       <TableRow>
                         <TableHead className="w-12">
                           <Checkbox
-                            checked={selectedRecipients.length === recipients.length}
+                            checked={selectedRecipients.length === recipients.length && recipients.length > 0}
                             onCheckedChange={handleSelectAll}
                           />
                         </TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Recipient</TableHead>
                         <TableHead>Address</TableHead>
                         <TableHead>Gift Box Assignment</TableHead>
-                        <TableHead>Source</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Shipping</TableHead>
+                        <TableHead>Source</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -297,39 +309,54 @@ const ShippingFulfillment = () => {
                               onCheckedChange={() => handleSelectRecipient(recipient.id)}
                             />
                           </TableCell>
-                          <TableCell className="font-medium">{recipient.name}</TableCell>
-                          <TableCell>{recipient.email}</TableCell>
-                          <TableCell className="max-w-48 truncate">{recipient.address}</TableCell>
                           <TableCell>
-                            <span className="text-sm">{recipient.assignedGiftBox}</span>
+                            <div>
+                              <p className="font-medium">{recipient.name}</p>
+                              <p className="text-sm text-gray-600">{recipient.email}</p>
+                              {recipient.department && (
+                                <p className="text-xs text-gray-500">{recipient.department}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-48">
+                            <p className="text-sm truncate">{recipient.address || 'Not provided'}</p>
                           </TableCell>
                           <TableCell>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs ${getSourceBadgeColor(recipient.source)}`}
-                            >
+                            <span className="text-sm">{recipient.assignedGiftBox || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            {recipient.status === 'confirmed' ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                <CheckCircle className="mr-1 h-3 w-3" />
+                                Confirmed
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                <AlertCircle className="mr-1 h-3 w-3" />
+                                Pending
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm">{recipient.shippingMode || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`text-xs ${getSourceBadgeColor(recipient.source)}`}>
                               {recipient.source}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
-                              Confirmed
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex gap-1">
-                              <Button
-                                variant="outline"
+                              <Button 
+                                variant="ghost" 
                                 size="sm"
-                                className="h-7 w-7 p-0"
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
-                              <Button
-                                variant="outline"
+                              <Button 
+                                variant="ghost" 
                                 size="sm"
                                 onClick={() => handleDeleteRecipient(recipient.id)}
-                                className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
@@ -340,6 +367,20 @@ const ShippingFulfillment = () => {
                     </TableBody>
                   </Table>
                 </div>
+
+                {selectedRecipients.length > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                    <span className="text-sm font-medium">
+                      {selectedRecipients.length} recipient(s) selected
+                    </span>
+                    <Button variant="outline" size="sm">
+                      Assign Carrier
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Export Selected
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -348,35 +389,61 @@ const ShippingFulfillment = () => {
         {/* Sidebar - Summary */}
         <div className="space-y-6">
           {/* Shipping Summary */}
-          <Card className="sticky top-4">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
+                <Package className="h-5 w-5" />
                 Shipping Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              
+              {/* Shipping Configuration */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Shipping Mode:</span>
+                  <span className="font-medium">
+                    {bulkShippingMode ? 'Auto-assign' : 'Manual selection'}
+                  </span>
+                </div>
+                
+                {!bulkShippingMode && selectedCarrier && (
+                  <div className="flex justify-between text-sm">
+                    <span>Selected Carrier:</span>
+                    <span className="font-medium">
+                      {carriers.find(c => c.id === selectedCarrier)?.name}
+                    </span>
+                  </div>
+                )}
+
+                <Separator />
                 <div className="flex justify-between text-sm">
                   <span>Total Recipients:</span>
                   <span className="font-medium">{recipients.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Confirmed Recipients:</span>
-                  <span className="font-medium">{recipients.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Shipping Mode:</span>
-                  <span className="font-medium">
-                    {bulkShippingMode ? 'Auto-assign' : 'Manual'}
+                  <span>Confirmed Addresses:</span>
+                  <span className="font-medium text-green-600">
+                    {recipients.filter(r => r.status === 'confirmed').length}
                   </span>
                 </div>
-                {!bulkShippingMode && selectedCarrier && (
-                  <div className="flex justify-between text-sm">
-                    <span>Selected Carrier:</span>
-                    <span className="font-medium capitalize">{selectedCarrier}</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-sm">
+                  <span>Pending Addresses:</span>
+                  <span className="font-medium text-orange-600">
+                    {recipients.filter(r => r.status === 'pending').length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Tracking Information */}
+              <div className="pt-4 border-t">
+                <h4 className="font-medium mb-3">After Shipment</h4>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                  <p>✓ Tracking numbers will be automatically generated</p>
+                  <p>✓ Recipients will receive email notifications</p>
+                  <p>✓ Real-time tracking available in dashboard</p>
+                  <p>✓ Delivery confirmations sent to you</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -390,41 +457,59 @@ const ShippingFulfillment = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Gift Boxes:</h4>
-                {orderGiftBoxes.map(box => (
+              
+              {/* Gift Boxes */}
+              <div className="space-y-3">
+                <h4 className="font-medium">Gift Boxes</h4>
+                {orderGiftBoxes.map((box) => (
                   <div key={box.id} className="flex justify-between text-sm">
-                    <span>{box.name} (×{box.quantity})</span>
+                    <div>
+                      <p className="font-medium">{box.name}</p>
+                      <p className="text-gray-600">{box.quantity} × ${box.price.toFixed(2)}</p>
+                    </div>
                     <span>${(box.price * box.quantity).toFixed(2)}</span>
                   </div>
                 ))}
-                
-                <div className="border-t pt-2 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal:</span>
-                    <span>${calculateGiftBoxesSubtotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Customizations:</span>
-                    <span>${calculateCustomizationsTotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Processing Fee (3%):</span>
-                    <span>${calculateProcessingFee().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold pt-1 border-t">
-                    <span>Total:</span>
-                    <span>${calculateGrandTotal().toFixed(2)}</span>
-                  </div>
+                <div className="flex justify-between text-sm font-medium pt-2 border-t">
+                  <span>Gift Boxes Subtotal:</span>
+                  <span>${calculateGiftBoxesSubtotal().toFixed(2)}</span>
                 </div>
               </div>
-              
-              <Button 
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
-                onClick={handleContinue}
-              >
-                Continue to Payment
-              </Button>
+
+              <Separator />
+
+              {/* Cost Breakdown */}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Customizations:</span>
+                  <span>${calculateCustomizationsTotal().toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Processing Fee (3%):</span>
+                  <span>${calculateProcessingFee().toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <span>Total Cost:</span>
+                  <span className="text-linden-blue">${calculateGrandTotal().toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <Button 
+                  className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
+                  onClick={handleContinue}
+                  disabled={recipients.filter(r => r.status === 'pending').length > 0}
+                >
+                  Buy
+                </Button>
+                
+                {recipients.filter(r => r.status === 'pending').length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Complete all addresses to continue
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
