@@ -79,7 +79,7 @@ const giftBoxes = [
 const BoxListing = () => {
   const navigate = useNavigate();
   const { addBox } = useCart();
-  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null); // Changed to single selection
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null);
   const [expandedBoxes, setExpandedBoxes] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     size: '',
@@ -128,7 +128,7 @@ const BoxListing = () => {
     if (box) {
       addBox(box);
       toast.success('Gift box added to cart');
-      navigate('/choose-delivery-method');
+      navigate('/recipient-selection'); // Navigate to recipients first
     }
   };
 
