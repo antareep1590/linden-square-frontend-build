@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,7 +101,12 @@ const CustomizationPage = () => {
 
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => {
-      const currentRecipient = prev[recipientId] || {};
+      const currentRecipient: CustomizationData = prev[recipientId] || {
+        messageGraphic: '',
+        brandedNotecard: { enabled: false, logo: null, message: '' },
+        giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
+        messageCard: { enabled: false, message: '', senderName: '' }
+      };
       
       // Handle messageGraphic separately since it's a string, not an object
       if (type === 'messageGraphic') {
@@ -135,7 +138,12 @@ const CustomizationPage = () => {
 
   const handleIndividualGraphicChange = (recipientId: number, graphicId: string) => {
     setIndividualCustomizations(prev => {
-      const currentRecipient = prev[recipientId] || {};
+      const currentRecipient: CustomizationData = prev[recipientId] || {
+        messageGraphic: '',
+        brandedNotecard: { enabled: false, logo: null, message: '' },
+        giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
+        messageCard: { enabled: false, message: '', senderName: '' }
+      };
       
       return {
         ...prev,
@@ -704,4 +712,3 @@ const CustomizationPage = () => {
 };
 
 export default CustomizationPage;
-
