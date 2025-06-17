@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,6 +104,19 @@ const CustomizationPage = () => {
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => {
       const currentRecipient = prev[recipientId] || {};
+      
+      // Handle messageGraphic separately since it's a string, not an object
+      if (type === 'messageGraphic') {
+        return {
+          ...prev,
+          [recipientId]: {
+            ...currentRecipient,
+            messageGraphic: value as string
+          }
+        };
+      }
+      
+      // For object properties like brandedNotecard, giftTags, messageCard
       const currentTypeValue = currentRecipient[type as keyof CustomizationData];
       const currentType = (typeof currentTypeValue === 'object' && currentTypeValue !== null) ? currentTypeValue : {};
       
@@ -690,3 +704,4 @@ const CustomizationPage = () => {
 };
 
 export default CustomizationPage;
+
