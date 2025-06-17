@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Package, Palette, User, Users, Gift, Upload } from 'lucide-react';
+import { ArrowLeft, Package, Palette, User, Users, Gift, Upload, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -29,6 +29,18 @@ const CustomizationPage = () => {
 
   const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
+  // Message graphic options for digital delivery
+  const messageGraphics = [
+    { id: 'birthday', name: 'Birthday', icon: '🎂' },
+    { id: 'thank-you', name: 'Thank You', icon: '🙏' },
+    { id: 'congratulations', name: 'Congratulations', icon: '🎉' },
+    { id: 'welcome', name: 'Welcome', icon: '👋' },
+    { id: 'holiday', name: 'Holiday', icon: '🎄' },
+    { id: 'appreciation', name: 'Appreciation', icon: '⭐' },
+    { id: 'celebration', name: 'Celebration', icon: '🥳' },
+    { id: 'achievement', name: 'Achievement', icon: '🏆' }
+  ];
+
   // Preset messages for gift tags
   const presetMessages = [
     'Thank you for your hard work!',
@@ -43,6 +55,16 @@ const CustomizationPage = () => {
     'Happy anniversary!'
   ];
 
+  // Digital gift customization state
+  const [digitalOrderCustomization, setDigitalOrderCustomization] = useState({
+    messageGraphic: '',
+    message: '',
+    senderName: ''
+  });
+
+  const [digitalIndividualCustomizations, setDigitalIndividualCustomizations] = useState<{[key: number]: any}>({});
+
+  // Physical delivery customization state (existing)
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -64,6 +86,33 @@ const CustomizationPage = () => {
 
   const [individualCustomizations, setIndividualCustomizations] = useState<{[key: number]: any}>({});
 
+  // Digital customization handlers
+  const handleDigitalOrderChange = (field: string, value: string) => {
+    setDigitalOrderCustomization(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleDigitalIndividualChange = (recipientId: number, field: string, value: string) => {
+    setDigitalIndividualCustomizations(prev => ({
+      ...prev,
+      [recipientId]: {
+        ...prev[recipientId],
+        [field]: value
+      }
+    }));
+  };
+
+  const getCurrentDigitalCustomization = (recipientId: number) => {
+    return digitalIndividualCustomizations[recipientId] || {
+      messageGraphic: '',
+      message: '',
+      senderName: ''
+    };
+  };
+
+  // Physical delivery customization handlers (existing)
   const handleOrderLevelChange = (type: string, field: string, value: string | boolean | File | null) => {
     setOrderLevelCustomization(prev => ({
       ...prev,
@@ -169,6 +218,90 @@ const CustomizationPage = () => {
 
   const currentRecipient = recipients[selectedRecipientIndex];
   const currentCustomization = getCurrentCustomization(currentRecipient.id);
+  const currentDigitalCustomization = getCurrentDigitalCustomization(currentRecipient.id);
+
+  const renderDigitalCustomizationOptions = (isIndividual: boolean, recipientId?: number) => {
+    const customization = isIndividual ? currentDigitalCustomization : digitalOrderCustomization;
+    
+    return (
+      <div className="space-y-6">
+        {/* Message Graphic Selection */}
+        <div className="border rounded-lg p-4">
+          <div className="mb-4">
+            <h4 className="font-medium flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Message Graphic Selection
+            </h4>
+            <p className="text-sm text-gray-600">Choose a graphic theme for your digital gift</p>
+          </div>
+
+          <Select
+            value={customization?.messageGraphic || ''}
+            onValueChange={(value) => {
+              if (isIndividual && recipientId !== undefined) {
+                handleDigitalIndividualChange(recipientId, 'messageGraphic', value);
+              } else {
+                handleDigitalOrderChange('messageGraphic', value);
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a message graphic" />
+            </SelectTrigger>
+            <SelectContent>
+              {messageGraphics.map((graphic) => (
+                <SelectItem key={graphic.id} value={graphic.id}>
+                  <span className="flex items-center gap-2">
+                    <span>{graphic.icon}</span>
+                    <span>{graphic.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Message */}
+        <div className="border rounded-lg p-4">
+          <div className="mb-4">
+            <h4 className="font-medium">Message</h4>
+            <p className="text-sm text-gray-600">Enter your personal message</p>
+          </div>
+          <Textarea
+            placeholder="Enter your message"
+            value={customization?.message || ''}
+            onChange={(e) => {
+              if (isIndividual && recipientId !== undefined) {
+                handleDigitalIndividualChange(recipientId, 'message', e.target.value);
+              } else {
+                handleDigitalOrderChange('message', e.target.value);
+              }
+            }}
+            rows={4}
+          />
+        </div>
+
+        {/* Sender Name */}
+        <div className="border rounded-lg p-4">
+          <div className="mb-4">
+            <h4 className="font-medium">From (Sender Name)</h4>
+            <p className="text-sm text-gray-600">Your name or company name</p>
+          </div>
+          <Input
+            placeholder="Your name or company name"
+            value={customization?.senderName || ''}
+            onChange={(e) => {
+              if (isIndividual && recipientId !== undefined) {
+                handleDigitalIndividualChange(recipientId, 'senderName', e.target.value);
+              } else {
+                handleDigitalOrderChange('senderName', e.target.value);
+              }
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
 
   const renderCustomizationOptions = (isIndividual: boolean, recipientId?: number) => {
     const customization = isIndividual ? currentCustomization : orderLevelCustomization;
@@ -348,13 +481,18 @@ const CustomizationPage = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Order</h1>
-          <p className="text-gray-600">Personalize your gift box with custom messages and branding (optional)</p>
+          <p className="text-gray-600">
+            {deliveryMethod === 'email' 
+              ? 'Personalize your digital gift with custom messages and graphics (optional)'
+              : 'Personalize your gift box with custom messages and branding (optional)'
+            }
+          </p>
         </div>
         <Button 
           onClick={handleContinue}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
-          Continue to Shipping
+          {deliveryMethod === 'email' ? 'Continue to Digital Gift Settings' : 'Continue to Shipping'}
         </Button>
       </div>
 
@@ -478,9 +616,16 @@ const CustomizationPage = () => {
                 </div>
               )}
               
-              {renderCustomizationOptions(
-                customizationType === 'individual', 
-                customizationType === 'individual' ? currentRecipient.id : undefined
+              {deliveryMethod === 'email' ? (
+                renderDigitalCustomizationOptions(
+                  customizationType === 'individual', 
+                  customizationType === 'individual' ? currentRecipient.id : undefined
+                )
+              ) : (
+                renderCustomizationOptions(
+                  customizationType === 'individual', 
+                  customizationType === 'individual' ? currentRecipient.id : undefined
+                )
               )}
             </CardContent>
           </Card>
@@ -503,7 +648,7 @@ const CustomizationPage = () => {
                 className="w-full bg-linden-blue hover:bg-linden-blue/90 mt-4"
                 onClick={handleContinue}
               >
-                Continue to Shipping
+                {deliveryMethod === 'email' ? 'Continue to Digital Gift Settings' : 'Continue to Shipping'}
               </Button>
 
               <div className="text-xs text-gray-500 mt-4">
@@ -523,11 +668,17 @@ const CustomizationPage = () => {
               <CardContent>
                 <div className="space-y-2">
                   {recipients.map((recipient, index) => {
-                    const hasCustomization = individualCustomizations[recipient.id] && (
-                      (individualCustomizations[recipient.id].brandedNotecard?.enabled && individualCustomizations[recipient.id].brandedNotecard?.message?.trim()) ||
-                      (individualCustomizations[recipient.id].giftTags?.enabled && (individualCustomizations[recipient.id].giftTags?.presetMessage || individualCustomizations[recipient.id].giftTags?.customMessage)) ||
-                      (individualCustomizations[recipient.id].messageCard?.enabled && individualCustomizations[recipient.id].messageCard?.message?.trim())
-                    );
+                    const hasCustomization = deliveryMethod === 'email' 
+                      ? digitalIndividualCustomizations[recipient.id] && (
+                          digitalIndividualCustomizations[recipient.id].messageGraphic ||
+                          digitalIndividualCustomizations[recipient.id].message?.trim() ||
+                          digitalIndividualCustomizations[recipient.id].senderName?.trim()
+                        )
+                      : individualCustomizations[recipient.id] && (
+                          (individualCustomizations[recipient.id].brandedNotecard?.enabled && individualCustomizations[recipient.id].brandedNotecard?.message?.trim()) ||
+                          (individualCustomizations[recipient.id].giftTags?.enabled && (individualCustomizations[recipient.id].giftTags?.presetMessage || individualCustomizations[recipient.id].giftTags?.customMessage)) ||
+                          (individualCustomizations[recipient.id].messageCard?.enabled && individualCustomizations[recipient.id].messageCard?.message?.trim())
+                        );
                     
                     return (
                       <div
