@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,18 @@ const CustomizationPage = () => {
 
   const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
+  // Message graphics options
+  const messageGraphics = [
+    { id: 'birthday', name: 'Birthday', emoji: '🎂' },
+    { id: 'thankyou', name: 'Thank You', emoji: '🙏' },
+    { id: 'congratulations', name: 'Congratulations', emoji: '🎉' },
+    { id: 'holiday', name: 'Holiday', emoji: '🎄' },
+    { id: 'appreciation', name: 'Appreciation', emoji: '💝' },
+    { id: 'welcome', name: 'Welcome', emoji: '👋' }
+  ];
+
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
+    messageGraphic: '',
     brandedNotecard: {
       enabled: false,
       logo: null as File | null,
@@ -60,6 +70,13 @@ const CustomizationPage = () => {
     }));
   };
 
+  const handleOrderLevelGraphicChange = (graphicId: string) => {
+    setOrderLevelCustomization(prev => ({
+      ...prev,
+      messageGraphic: graphicId
+    }));
+  };
+
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => ({
       ...prev,
@@ -73,8 +90,19 @@ const CustomizationPage = () => {
     }));
   };
 
+  const handleIndividualGraphicChange = (recipientId: number, graphicId: string) => {
+    setIndividualCustomizations(prev => ({
+      ...prev,
+      [recipientId]: {
+        ...prev[recipientId],
+        messageGraphic: graphicId
+      }
+    }));
+  };
+
   const getCurrentCustomization = (recipientId: number) => {
     return individualCustomizations[recipientId] || {
+      messageGraphic: '',
       brandedNotecard: { enabled: false, logo: null, message: '' },
       giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
       messageCard: { enabled: false, message: '', senderName: '' }
@@ -110,39 +138,26 @@ const CustomizationPage = () => {
   };
 
   const handleContinue = () => {
+    // Check for message graphic selection
     if (customizationType === 'order') {
-      // Check if at least one customization type is enabled with content
-      const hasValidCustomization = 
-        (orderLevelCustomization.brandedNotecard.enabled && orderLevelCustomization.brandedNotecard.message.trim()) ||
-        (orderLevelCustomization.giftTags.enabled && (orderLevelCustomization.giftTags.presetMessage || orderLevelCustomization.giftTags.customMessage)) ||
-        (orderLevelCustomization.messageCard.enabled && orderLevelCustomization.messageCard.message.trim());
-      
-      if (!hasValidCustomization) {
-        toast.error('Please enable and fill out at least one customization option');
+      if (!orderLevelCustomization.messageGraphic) {
+        toast.error('Please select a message graphic');
         return;
       }
     } else {
-      // Check if all recipients have at least one customization
-      const missingCustomizations = recipients.filter(r => {
+      const missingGraphics = recipients.filter(r => {
         const customization = individualCustomizations[r.id];
-        if (!customization) return true;
-        
-        const hasValid = 
-          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-          (customization.messageCard?.enabled && customization.messageCard?.message?.trim());
-        
-        return !hasValid;
+        return !customization?.messageGraphic;
       });
       
-      if (missingCustomizations.length > 0) {
-        toast.error(`Please add customizations for ${missingCustomizations.length} recipient(s)`);
+      if (missingGraphics.length > 0) {
+        toast.error(`Please select message graphics for ${missingGraphics.length} recipient(s)`);
         return;
       }
     }
 
     toast.success('Customizations saved');
-    navigate('/shipping-fulfillment');
+    navigate('/egift-send-options');
   };
 
   const handlePreviousRecipient = () => {
@@ -173,20 +188,61 @@ const CustomizationPage = () => {
   const currentRecipient = recipients[selectedRecipientIndex];
   const currentCustomization = getCurrentCustomization(currentRecipient.id);
 
+  const renderMessageGraphicSelection = (isIndividual: boolean, recipientId?: number) => {
+    const selectedGraphic = isIndividual ? currentCustomization.messageGraphic : orderLevelCustomization.messageGraphic;
+    
+    return (
+      <div className="border rounded-lg p-6">
+        <div className="mb-4">
+          <h4 className="font-medium text-lg">Message Graphic Selection</h4>
+          <p className="text-sm text-gray-600">Choose a graphic that will appear with your digital gift</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {messageGraphics.map((graphic) => (
+            <div
+              key={graphic.id}
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                selectedGraphic === graphic.id
+                  ? 'border-linden-blue bg-linden-blue/5'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => {
+                if (isIndividual && recipientId) {
+                  handleIndividualGraphicChange(recipientId, graphic.id);
+                } else {
+                  handleOrderLevelGraphicChange(graphic.id);
+                }
+              }}
+            >
+              <div className="text-center">
+                <div className="text-2xl mb-2">{graphic.emoji}</div>
+                <div className="text-sm font-medium">{graphic.name}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderCustomizationOptions = (isIndividual: boolean, recipientId?: number) => {
     const customization = isIndividual ? currentCustomization : orderLevelCustomization;
     
     return (
       <div className="space-y-6">
+        {/* Message Graphic Selection */}
+        {renderMessageGraphicSelection(isIndividual, recipientId)}
+
         {/* Branded Notecards */}
-        <div className="border rounded-lg p-4">
+        <div className="border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="font-medium">Branded Notecards</h4>
-              <p className="text-sm text-gray-600">Add your logo and custom message</p>
+              <h4 className="font-medium text-lg">Branded Notecards</h4>
+              <p className="text-sm text-gray-600">Add your logo and custom message to premium notecards</p>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline">+$5.00</Badge>
+              <Badge variant="outline" className="text-green-600">+$5.00</Badge>
               <Switch
                 checked={customization?.brandedNotecard?.enabled || false}
                 onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked, recipientId)}
@@ -195,10 +251,10 @@ const CustomizationPage = () => {
           </div>
 
           {customization?.brandedNotecard?.enabled && (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
               <div>
-                <Label>Upload Your Logo</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <Label className="text-sm font-medium">Logo Upload</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mt-2">
                   <input
                     type="file"
                     accept="image/*"
@@ -211,7 +267,7 @@ const CustomizationPage = () => {
                     <p className="text-sm text-gray-600">
                       {customization.brandedNotecard.logo 
                         ? customization.brandedNotecard.logo.name 
-                        : 'Click to upload logo (PNG, JPG, max 5MB)'
+                        : 'Upload your logo (PNG, JPG, max 5MB)'
                       }
                     </p>
                   </label>
@@ -219,12 +275,13 @@ const CustomizationPage = () => {
               </div>
 
               <div>
-                <Label>Custom Message</Label>
+                <Label className="text-sm font-medium">Custom Message</Label>
                 <Textarea
-                  placeholder="Enter your message for the notecard..."
+                  placeholder="Enter your custom message for the notecard..."
                   value={customization.brandedNotecard.message || ''}
                   onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value, recipientId)}
                   rows={3}
+                  className="mt-2"
                 />
               </div>
             </div>
@@ -232,14 +289,14 @@ const CustomizationPage = () => {
         </div>
 
         {/* Gift Tags */}
-        <div className="border rounded-lg p-4">
+        <div className="border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="font-medium">Gift Tags</h4>
-              <p className="text-sm text-gray-600">Add special tags to your gifts</p>
+              <h4 className="font-medium text-lg">Gift Tags</h4>
+              <p className="text-sm text-gray-600">Add special tags with custom messages</p>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline">+$2.00</Badge>
+              <Badge variant="outline" className="text-green-600">+$2.00</Badge>
               <Switch
                 checked={customization?.giftTags?.enabled || false}
                 onCheckedChange={(checked) => toggleCustomization('giftTags', checked, recipientId)}
@@ -248,14 +305,14 @@ const CustomizationPage = () => {
           </div>
 
           {customization?.giftTags?.enabled && (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
               <div>
-                <Label>Tag Type</Label>
+                <Label className="text-sm font-medium">Tag Type</Label>
                 <Select
                   value={customization.giftTags?.type || 'preset'}
                   onValueChange={(value) => updateCustomization('giftTags', 'type', value, recipientId)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,13 +322,34 @@ const CustomizationPage = () => {
                 </Select>
               </div>
 
+              {customization.giftTags?.type === 'preset' && (
+                <div>
+                  <Label className="text-sm font-medium">Select Preset Message</Label>
+                  <Select
+                    value={customization.giftTags?.presetMessage || ''}
+                    onValueChange={(value) => updateCustomization('giftTags', 'presetMessage', value, recipientId)}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choose a preset message" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="thank-you">Thank You for Your Hard Work</SelectItem>
+                      <SelectItem value="congratulations">Congratulations on Your Achievement</SelectItem>
+                      <SelectItem value="appreciation">We Appreciate You</SelectItem>
+                      <SelectItem value="welcome">Welcome to the Team</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {customization.giftTags?.type === 'custom' && (
                 <div>
-                  <Label>Custom Tag Message</Label>
+                  <Label className="text-sm font-medium">Custom Tag Message</Label>
                   <Input
                     placeholder="Enter your custom tag message"
                     value={customization.giftTags?.customMessage || ''}
                     onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value, recipientId)}
+                    className="mt-2"
                   />
                 </div>
               )}
@@ -280,14 +358,14 @@ const CustomizationPage = () => {
         </div>
 
         {/* Message Cards */}
-        <div className="border rounded-lg p-4">
+        <div className="border rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="font-medium">Message Cards</h4>
-              <p className="text-sm text-gray-600">Include a personal message inside the box</p>
+              <h4 className="font-medium text-lg">Message Cards</h4>
+              <p className="text-sm text-gray-600">Include a personal message with the digital gift</p>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline">+$3.00</Badge>
+              <Badge variant="outline" className="text-green-600">+$3.00</Badge>
               <Switch
                 checked={customization?.messageCard?.enabled || false}
                 onCheckedChange={(checked) => toggleCustomization('messageCard', checked, recipientId)}
@@ -296,22 +374,24 @@ const CustomizationPage = () => {
           </div>
 
           {customization?.messageCard?.enabled && (
-            <div className="space-y-4">
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
               <div>
-                <Label>Message</Label>
+                <Label className="text-sm font-medium">Personal Message</Label>
                 <Textarea
                   placeholder="Enter your personal message..."
                   value={customization.messageCard?.message || ''}
                   onChange={(e) => updateCustomization('messageCard', 'message', e.target.value, recipientId)}
                   rows={3}
+                  className="mt-2"
                 />
               </div>
               <div>
-                <Label>From (Sender Name)</Label>
+                <Label className="text-sm font-medium">From (Sender Name)</Label>
                 <Input
                   placeholder="Your name or company name"
                   value={customization.messageCard?.senderName || ''}
                   onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value, recipientId)}
+                  className="mt-2"
                 />
               </div>
             </div>
@@ -330,13 +410,13 @@ const CustomizationPage = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Order</h1>
-          <p className="text-gray-600">Personalize your gift box with custom messages and branding</p>
+          <p className="text-gray-600">Personalize your digital gift with custom messages and branding</p>
         </div>
         <Button 
           onClick={handleContinue}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
-          Continue to Shipping
+          Continue to Send Options
         </Button>
       </div>
 
@@ -412,7 +492,7 @@ const CustomizationPage = () => {
                       <span className="font-medium">Individual Customization</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">
-                      Customize the gift box differently for each recipient
+                      Customize the gift differently for each recipient
                     </p>
                   </Label>
                 </div>
@@ -432,7 +512,7 @@ const CustomizationPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handlePreviousRecipient}
+                    onClick={() => setSelectedRecipientIndex(Math.max(0, selectedRecipientIndex - 1))}
                     disabled={selectedRecipientIndex === 0}
                   >
                     Previous
@@ -443,7 +523,7 @@ const CustomizationPage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleNextRecipient}
+                    onClick={() => setSelectedRecipientIndex(Math.min(recipients.length - 1, selectedRecipientIndex + 1))}
                     disabled={selectedRecipientIndex === recipients.length - 1}
                   >
                     Next
@@ -488,11 +568,7 @@ const CustomizationPage = () => {
                     <span className="font-medium text-green-600">
                       {Object.keys(individualCustomizations).filter(id => {
                         const customization = individualCustomizations[parseInt(id)];
-                        return customization && (
-                          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-                          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-                          (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
-                        );
+                        return customization?.messageGraphic;
                       }).length} of {recipients.length}
                     </span>
                   </div>
@@ -503,11 +579,7 @@ const CustomizationPage = () => {
                       style={{
                         width: `${(Object.keys(individualCustomizations).filter(id => {
                           const customization = individualCustomizations[parseInt(id)];
-                          return customization && (
-                            (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-                            (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-                            (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
-                          );
+                          return customization?.messageGraphic;
                         }).length / recipients.length) * 100}%`
                       }}
                     />
@@ -519,7 +591,7 @@ const CustomizationPage = () => {
                 className="w-full bg-linden-blue hover:bg-linden-blue/90 mt-4"
                 onClick={handleContinue}
               >
-                Continue to Shipping
+                Continue to Send Options
               </Button>
             </CardContent>
           </Card>
@@ -533,11 +605,7 @@ const CustomizationPage = () => {
               <CardContent>
                 <div className="space-y-2">
                   {recipients.map((recipient, index) => {
-                    const hasCustomization = individualCustomizations[recipient.id] && (
-                      (individualCustomizations[recipient.id].brandedNotecard?.enabled && individualCustomizations[recipient.id].brandedNotecard?.message?.trim()) ||
-                      (individualCustomizations[recipient.id].giftTags?.enabled && (individualCustomizations[recipient.id].giftTags?.presetMessage || individualCustomizations[recipient.id].giftTags?.customMessage)) ||
-                      (individualCustomizations[recipient.id].messageCard?.enabled && individualCustomizations[recipient.id].messageCard?.message?.trim())
-                    );
+                    const hasCustomization = individualCustomizations[recipient.id]?.messageGraphic;
                     
                     return (
                       <div

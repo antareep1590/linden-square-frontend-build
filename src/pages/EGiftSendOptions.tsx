@@ -39,13 +39,13 @@ const EGiftSendOptions = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/select-recipients-egift')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipients
+          Back to Customization
         </Button>
         <div>
           <h1 className="text-2xl font-bold">E-Gift Send Options</h1>
-          <p className="text-gray-600">Configure branding and delivery timing</p>
+          <p className="text-gray-600">Configure branding and delivery timing for your digital gifts</p>
         </div>
       </div>
 
@@ -57,26 +57,28 @@ const EGiftSendOptions = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                Company Branding
+                Logo Upload
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <Label>Company Logo</Label>
+                  <Label className="text-sm font-medium">Company Logo</Label>
                   <p className="text-sm text-gray-600 mb-3">
-                    Upload your company logo to include in the e-gift email notifications.
+                    Upload your company logo to include in the digital gift experience and email notifications.
                   </p>
-                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-8">
                     <div className="text-center">
-                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                      <Upload className="mx-auto h-10 w-10 text-gray-400 mb-3" />
                       <Label htmlFor="logo-upload" className="cursor-pointer text-sm font-medium text-linden-blue hover:text-linden-blue/80">
                         {logoUploaded ? 'Change Logo' : 'Upload Logo'}
                       </Label>
                       <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoUpload} className="sr-only" />
-                      <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 2MB</p>
+                      <p className="text-xs text-gray-500 mt-2">PNG, JPG up to 2MB. Recommended size: 300x100px</p>
                       {logoUploaded && (
-                        <p className="text-xs text-green-600 mt-2">✓ Logo uploaded successfully</p>
+                        <p className="text-xs text-green-600 mt-2 flex items-center justify-center gap-1">
+                          ✓ Logo uploaded successfully
+                        </p>
                       )}
                     </div>
                   </div>
@@ -85,72 +87,79 @@ const EGiftSendOptions = () => {
             </CardContent>
           </Card>
 
-          {/* Send Options */}
+          {/* Send Settings */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                Choose Send Option
+                Send Settings
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={sendOption} onValueChange={(value: 'now' | 'scheduled') => setSendOption(value)}>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                    <RadioGroupItem value="now" id="send-now" />
-                    <div className="flex-1">
-                      <Label htmlFor="send-now" className="flex items-center gap-2 cursor-pointer">
-                        <Send className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">Send Now</span>
-                      </Label>
-                      <p className="text-sm text-gray-600 mt-1">
-                        E-gift notifications will be sent immediately after payment confirmation.
-                      </p>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  Choose when to send your digital gift notifications to recipients.
+                </p>
+                
+                <RadioGroup value={sendOption} onValueChange={(value: 'now' | 'scheduled') => setSendOption(value)}>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <RadioGroupItem value="now" id="send-now" className="mt-1" />
+                      <div className="flex-1">
+                        <Label htmlFor="send-now" className="flex items-center gap-2 cursor-pointer font-medium">
+                          <Send className="h-4 w-4 text-green-600" />
+                          Send Now
+                        </Label>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Digital gift notifications will be sent immediately after payment confirmation.
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                    <RadioGroupItem value="scheduled" id="send-scheduled" />
-                    <div className="flex-1">
-                      <Label htmlFor="send-scheduled" className="flex items-center gap-2 cursor-pointer">
-                        <Clock className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium">Schedule Send Date</span>
-                      </Label>
-                      <p className="text-sm text-gray-600 mt-1 mb-3">
-                        Choose a specific date to send the e-gift notifications.
-                      </p>
-                      
-                      {sendOption === 'scheduled' && (
-                        <div className="mt-3">
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full justify-start text-left font-normal",
-                                  !scheduledDate && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={scheduledDate}
-                                onSelect={setScheduledDate}
-                                disabled={(date) => date < new Date()}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      )}
+                    <div className="flex items-start space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <RadioGroupItem value="scheduled" id="send-scheduled" className="mt-1" />
+                      <div className="flex-1">
+                        <Label htmlFor="send-scheduled" className="flex items-center gap-2 cursor-pointer font-medium">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          Schedule Send Date
+                        </Label>
+                        <p className="text-sm text-gray-600 mt-1 mb-3">
+                          Choose a specific date to send the digital gift notifications to all recipients.
+                        </p>
+                        
+                        {sendOption === 'scheduled' && (
+                          <div className="mt-3">
+                            <Label className="text-sm font-medium">Select Send Date</Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal mt-2",
+                                    !scheduledDate && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={scheduledDate}
+                                  onSelect={setScheduledDate}
+                                  disabled={(date) => date < new Date()}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </RadioGroup>
+                </RadioGroup>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -159,17 +168,17 @@ const EGiftSendOptions = () => {
         <div className="space-y-6">
           <Card className="sticky top-4">
             <CardHeader>
-              <CardTitle>E-Gift Summary</CardTitle>
+              <CardTitle>Digital Gift Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span>Delivery Method:</span>
-                  <span className="font-medium">Email</span>
+                  <span className="font-medium">Digital Gift</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Logo Branding:</span>
-                  <span className={logoUploaded ? "text-green-600" : "text-gray-500"}>
+                  <span className={logoUploaded ? "text-green-600 font-medium" : "text-gray-500"}>
                     {logoUploaded ? "✓ Uploaded" : "Not uploaded"}
                   </span>
                 </div>
@@ -196,11 +205,14 @@ const EGiftSendOptions = () => {
                 </Button>
               </div>
 
-              <div className="text-xs text-gray-500">
-                <p>
-                  Recipients will receive an email notification with redemption instructions.
-                  They can then provide their shipping address and preferences.
-                </p>
+              <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-1">What happens next?</h4>
+                <ul className="space-y-1">
+                  <li>• Recipients will receive email notifications</li>
+                  <li>• They can redeem their digital gifts online</li>
+                  <li>• Tracking available in your dashboard</li>
+                  <li>• Delivery confirmations sent to you</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
