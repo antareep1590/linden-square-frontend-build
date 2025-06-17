@@ -49,7 +49,6 @@ const clientMenuItems: MenuItem[] = [
     path: '/gift-box-flow', 
     icon: <ShoppingCart size={20} />,
     subItems: [
-      { name: 'Gift Theme Selection', icon: <Gift size={16} />, isViewOnly: true },
       { name: 'Choose Delivery Method', icon: <Mail size={16} />, isViewOnly: true },
       { name: 'Select Recipients', icon: <Users size={16} />, isViewOnly: true },
       { name: 'Customize Your Order', icon: <Palette size={16} />, isViewOnly: true },
@@ -80,7 +79,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<string[]>(['Order Management']);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const location = useLocation();
   
   const toggleSidebar = () => {
@@ -94,6 +93,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
         ? prev.filter(item => item !== itemName)
         : [...prev, itemName]
     );
+  };
+
+  const handleItemClick = (item: MenuItem) => {
+    // Navigate to the main path
+    window.location.href = item.path;
   };
 
   // Choose the appropriate menu items based on whether we're in admin mode
@@ -147,13 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
                     : 'text-gray-700 hover:bg-gray-100',
                   collapsed ? 'justify-center' : 'justify-between'
                 )}
-                onClick={() => {
-                  if (item.subItems && !collapsed) {
-                    toggleSubMenu(item.name);
-                  } else {
-                    window.location.href = item.path;
-                  }
-                }}
+                onClick={() => handleItemClick(item)}
               >
                 <div className={cn('flex items-center', collapsed ? 'justify-center' : '')}>
                   {item.icon}
@@ -166,6 +164,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isAdmin = false }) => {
                       'transition-transform',
                       expandedItems.includes(item.name) ? 'rotate-180' : ''
                     )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSubMenu(item.name);
+                    }}
                   />
                 )}
               </div>
