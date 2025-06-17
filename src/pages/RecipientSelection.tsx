@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Mail, Phone, Building2, Upload } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Mail, Phone, Building2, Upload, Download, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -20,42 +20,70 @@ interface Recipient {
   email: string;
   phone?: string;
   department?: string;
+  assigned?: boolean;
 }
 
-interface GiftBoxAssignment {
-  [boxId: string]: string[];
+interface PreviousOrder {
+  id: string;
+  date: string;
+  giftBoxName: string;
+  recipientCount: number;
 }
 
 const RecipientSelection = () => {
   const navigate = useNavigate();
   const { selectedBoxes } = useCart();
   
-  // Initialize with sample recipients
+  // Mock previous orders data
+  const [previousOrders] = useState<PreviousOrder[]>([
+    {
+      id: 'ORD-2024-001',
+      date: '2024-02-15',
+      giftBoxName: 'Premium Coffee Set',
+      recipientCount: 25
+    },
+    {
+      id: 'ORD-2024-002',
+      date: '2024-01-20',
+      giftBoxName: 'Wellness Package',
+      recipientCount: 15
+    },
+    {
+      id: 'ORD-2023-045',
+      date: '2023-12-10',
+      giftBoxName: 'Tech Starter Kit',
+      recipientCount: 30
+    }
+  ]);
+  
+  // Initialize with sample recipients - all pre-assigned to the selected gift box
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
       name: 'Sarah Johnson',
       email: 'sarah.johnson@company.com',
       phone: '555-0123',
-      department: 'Marketing'
+      department: 'Marketing',
+      assigned: true
     },
     {
       id: 2,
       name: 'Michael Chen',
       email: 'michael.chen@company.com',
       phone: '555-0124',
-      department: 'Engineering'
+      department: 'Engineering',
+      assigned: true
     },
     {
       id: 3,
       name: 'Emily Rodriguez',
       email: 'emily.rodriguez@company.com',
       phone: '555-0125',
-      department: 'Sales'
+      department: 'Sales',
+      assigned: true
     }
   ]);
   
-  const [giftBoxAssignments, setGiftBoxAssignments] = useState<GiftBoxAssignment>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
@@ -67,6 +95,8 @@ const RecipientSelection = () => {
     phone: '',
     department: ''
   });
+
+  const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
   const resetForm = () => {
     setFormData({
@@ -88,7 +118,8 @@ const RecipientSelection = () => {
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      department: formData.department
+      department: formData.department,
+      assigned: true // Pre-assign new recipients
     };
 
     setRecipients([...recipients, newRecipient]);
@@ -129,14 +160,6 @@ const RecipientSelection = () => {
 
   const handleDeleteRecipient = (id: number) => {
     setRecipients(recipients.filter(r => r.id !== id));
-    
-    // Remove from all gift box assignments
-    const updatedAssignments = { ...giftBoxAssignments };
-    Object.keys(updatedAssignments).forEach(boxId => {
-      updatedAssignments[boxId] = updatedAssignments[boxId].filter(recipientId => recipientId !== id.toString());
-    });
-    setGiftBoxAssignments(updatedAssignments);
-    
     toast.success('Recipient removed');
   };
 
@@ -146,37 +169,30 @@ const RecipientSelection = () => {
       name: r.name,
       email: r.email,
       phone: r.phone,
-      department: r.department
+      department: r.department,
+      assigned: true // Pre-assign bulk uploaded recipients
     }));
     
     setRecipients(prev => [...prev, ...newRecipients]);
     setIsBulkUploadOpen(false);
   };
 
-  const handleRecipientAssignment = (boxId: string, recipientId: string, assigned: boolean) => {
-    setGiftBoxAssignments(prev => {
-      const currentAssignments = prev[boxId] || [];
-      
-      if (assigned) {
-        return {
-          ...prev,
-          [boxId]: [...currentAssignments, recipientId]
-        };
-      } else {
-        return {
-          ...prev,
-          [boxId]: currentAssignments.filter(id => id !== recipientId)
-        };
-      }
-    });
+  const handleRecipientAssignment = (recipientId: number, assigned: boolean) => {
+    setRecipients(prev => 
+      prev.map(r => 
+        r.id === recipientId ? { ...r, assigned } : r
+      )
+    );
   };
 
-  const handleAssignAllToBox = (boxId: string) => {
-    setGiftBoxAssignments(prev => ({
-      ...prev,
-      [boxId]: recipients.map(r => r.id.toString())
-    }));
-    toast.success('All recipients assigned to this gift box');
+  const handleAssignAll = () => {
+    setRecipients(prev => prev.map(r => ({ ...r, assigned: true })));
+    toast.success('All recipients assigned to gift box');
+  };
+
+  const handleUnassignAll = () => {
+    setRecipients(prev => prev.map(r => ({ ...r, assigned: false })));
+    toast.success('All recipients unassigned from gift box');
   };
 
   const handleContinue = () => {
@@ -185,33 +201,34 @@ const RecipientSelection = () => {
       return;
     }
 
-    const hasAssignments = Object.values(giftBoxAssignments).some(assignments => assignments.length > 0);
-    if (!hasAssignments) {
-      toast.error('Please assign recipients to at least one gift box');
+    const assignedRecipients = recipients.filter(r => r.assigned);
+    if (assignedRecipients.length === 0) {
+      toast.error('Please assign at least one recipient to the gift box');
       return;
     }
 
-    navigate('/shipping-fulfillment');
+    navigate('/customization');
   };
 
-  const getAssignedRecipientCount = (boxId: string) => {
-    return giftBoxAssignments[boxId]?.length || 0;
+  const handleDownloadCSV = (orderId: string) => {
+    // Mock CSV download - in real app would fetch actual data
+    toast.success(`Downloading recipients for order ${orderId}`);
   };
 
-  const isRecipientAssigned = (boxId: string, recipientId: string) => {
-    return giftBoxAssignments[boxId]?.includes(recipientId) || false;
+  const getAssignedRecipientCount = () => {
+    return recipients.filter(r => r.assigned).length;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/choose-delivery-method')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Customization
+          Back to Delivery Method
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Select Recipients</h1>
-          <p className="text-gray-600">Manage recipients and assign them to gift boxes</p>
+          <p className="text-gray-600">Manage recipients and assign them to your selected gift box</p>
         </div>
         <div className="flex items-center gap-4">
           <Button 
@@ -304,10 +321,10 @@ const RecipientSelection = () => {
           
           <Button 
             onClick={handleContinue}
-            disabled={recipients.length === 0}
+            disabled={recipients.length === 0 || getAssignedRecipientCount() === 0}
             className="bg-linden-blue hover:bg-linden-blue/90"
           >
-            Continue to Shipping
+            Continue to Customization
           </Button>
         </div>
       </div>
@@ -316,6 +333,52 @@ const RecipientSelection = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
+          {/* Previous Orders Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Previous Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {previousOrders.length > 0 ? (
+                <div className="space-y-3">
+                  {previousOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <p className="font-medium">{order.id}</p>
+                            <p className="text-sm text-gray-600">{order.date}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{order.giftBoxName}</p>
+                            <p className="text-sm text-gray-600">{order.recipientCount} recipients</p>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadCSV(order.id)}
+                        className="flex items-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download CSV
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  <Calendar className="mx-auto h-8 w-8 mb-2 text-gray-300" />
+                  <p>No previous orders found</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Recipients Table */}
           <Card>
             <CardHeader>
@@ -370,87 +433,87 @@ const RecipientSelection = () => {
             </CardContent>
           </Card>
 
-          {/* Gift Box Assignments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5" />
-                Assign Recipients to Gift Boxes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {selectedBoxes.length > 0 ? (
-                <div className="space-y-6">
-                  {selectedBoxes.map((box) => (
-                    <div key={box.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            <img 
-                              src={box.image || '/placeholder.svg'} 
-                              alt={box.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/placeholder.svg';
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <h3 className="font-medium">{box.name}</h3>
-                            <p className="text-sm text-gray-600">{box.theme}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">
-                            {getAssignedRecipientCount(box.id)} of {recipients.length} assigned
-                          </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAssignAllToBox(box.id)}
-                            disabled={recipients.length === 0}
-                          >
-                            Assign All
-                          </Button>
-                        </div>
+          {/* Gift Box Assignment */}
+          {selectedGiftBox && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  Assign Recipients to Gift Box
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        <img 
+                          src={selectedGiftBox.image || '/placeholder.svg'} 
+                          alt={selectedGiftBox.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder.svg';
+                          }}
+                        />
                       </div>
-                      
-                      {recipients.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {recipients.map((recipient) => (
-                            <div key={recipient.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                              <Checkbox
-                                id={`${box.id}-${recipient.id}`}
-                                checked={isRecipientAssigned(box.id, recipient.id.toString())}
-                                onCheckedChange={(checked) => 
-                                  handleRecipientAssignment(box.id, recipient.id.toString(), checked as boolean)
-                                }
-                              />
-                              <label 
-                                htmlFor={`${box.id}-${recipient.id}`} 
-                                className="text-sm cursor-pointer flex-1"
-                              >
-                                {recipient.name}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 text-center py-4">
-                          Add recipients to assign them to this gift box
-                        </p>
-                      )}
+                      <div>
+                        <h3 className="font-medium">{selectedGiftBox.name}</h3>
+                        <p className="text-sm text-gray-600">{selectedGiftBox.theme}</p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {getAssignedRecipientCount()} of {recipients.length} assigned
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAssignAll}
+                        disabled={recipients.length === 0}
+                      >
+                        Assign All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleUnassignAll}
+                        disabled={recipients.length === 0}
+                      >
+                        Unassign All
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {recipients.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {recipients.map((recipient) => (
+                        <div key={recipient.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                          <Checkbox
+                            id={`recipient-${recipient.id}`}
+                            checked={recipient.assigned || false}
+                            onCheckedChange={(checked) => 
+                              handleRecipientAssignment(recipient.id, checked as boolean)
+                            }
+                          />
+                          <label 
+                            htmlFor={`recipient-${recipient.id}`} 
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {recipient.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      Add recipients to assign them to this gift box
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <p className="text-center text-gray-500 py-8">
-                  No gift boxes selected
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Sidebar - Summary */}
@@ -469,36 +532,28 @@ const RecipientSelection = () => {
                   <span className="font-medium">{recipients.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Gift Boxes:</span>
-                  <span className="font-medium">{selectedBoxes.length}</span>
+                  <span>Assigned Recipients:</span>
+                  <span className="font-medium text-green-600">{getAssignedRecipientCount()}</span>
                 </div>
-              </div>
-              
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">Gift Box Assignments:</h4>
-                <div className="space-y-2">
-                  {selectedBoxes.map(box => (
-                    <div key={box.id} className="flex justify-between text-sm">
-                      <span className="truncate">{box.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {getAssignedRecipientCount(box.id)}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                {selectedGiftBox && (
+                  <div className="flex justify-between">
+                    <span>Selected Gift Box:</span>
+                    <span className="font-medium">{selectedGiftBox.name}</span>
+                  </div>
+                )}
               </div>
               
               <Button 
                 className="w-full bg-linden-blue hover:bg-linden-blue/90"
                 onClick={handleContinue}
-                disabled={recipients.length === 0}
+                disabled={recipients.length === 0 || getAssignedRecipientCount() === 0}
               >
-                Continue to Shipping
+                Continue to Customization
               </Button>
               
-              {recipients.length === 0 && (
+              {(recipients.length === 0 || getAssignedRecipientCount() === 0) && (
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Add recipients to continue
+                  {recipients.length === 0 ? 'Add recipients to continue' : 'Assign recipients to continue'}
                 </p>
               )}
             </CardContent>

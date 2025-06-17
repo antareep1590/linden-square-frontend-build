@@ -27,7 +27,7 @@ const ChooseDeliveryMethod = () => {
     if (deliveryMethod === 'email') {
       navigate('/customize-egift');
     } else {
-      navigate('/customization');
+      navigate('/recipient-selection');
     }
   };
 
@@ -151,7 +151,7 @@ const ChooseDeliveryMethod = () => {
           disabled={!deliveryMethod}
         >
           {deliveryMethod === 'email' ? 'Continue to E-Gift Setup' : 
-           deliveryMethod === 'shipping' ? 'Continue to Customization' : 'Continue'}
+           deliveryMethod === 'shipping' ? 'Continue to Add Recipients' : 'Continue'}
         </Button>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Package, Clock, CheckCircle, AlertCircle, Edit, Trash2, Users, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Truck, Package, Clock, CheckCircle, Edit, Trash2, Users, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -26,7 +26,7 @@ interface Recipient {
   phone: string;
   department: string;
   address: string;
-  status: 'pending' | 'confirmed';
+  status: 'confirmed'; // All recipients are confirmed by default
   shippingMode: string;
   source: 'manual' | 'bulk';
   assignedGiftBox?: string;
@@ -43,7 +43,7 @@ const ShippingFulfillment = () => {
     { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 6 }
   ];
 
-  // Sample recipient addresses with single gift box assignment
+  // Sample recipient addresses - all confirmed by default since they appear in this section
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -75,9 +75,9 @@ const ShippingFulfillment = () => {
       email: 'emily.rodriguez@company.com',
       phone: '+1 (555) 345-6789',
       department: 'Sales',
-      address: '',
-      status: 'pending',
-      shippingMode: '',
+      address: '789 Pine Rd, Chicago, IL 60601',
+      status: 'confirmed',
+      shippingMode: 'USPS Priority',
       source: 'manual',
       assignedGiftBox: 'Premium Coffee Collection'
     }
@@ -116,12 +116,6 @@ const ShippingFulfillment = () => {
   ];
 
   const handleContinue = () => {
-    const pendingAddresses = recipients.filter(r => r.status === 'pending');
-    if (pendingAddresses.length > 0) {
-      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
-      return;
-    }
-    
     toast.success('Shipping configuration saved');
     navigate('/payment-method', { state: { total: calculateGrandTotal() } });
   };
@@ -175,9 +169,9 @@ const ShippingFulfillment = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/recipient-selection')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipients
+          Back to Customization
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Shipping & Fulfillment</h1>
@@ -187,7 +181,6 @@ const ShippingFulfillment = () => {
           <Button 
             onClick={handleContinue}
             className="bg-linden-blue hover:bg-linden-blue/90"
-            disabled={recipients.filter(r => r.status === 'pending').length > 0}
           >
             Buy
           </Button>
@@ -278,7 +271,7 @@ const ShippingFulfillment = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Manage recipient addresses and shipping details. Recipients with addresses are automatically confirmed.
+                  All recipients listed here are automatically confirmed. Manage shipping details and carrier assignments.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -293,7 +286,7 @@ const ShippingFulfillment = () => {
                         </TableHead>
                         <TableHead>Recipient</TableHead>
                         <TableHead>Address</TableHead>
-                        <TableHead>Gift Box Assignment</TableHead>
+                        <TableHead>Gift Box</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Shipping</TableHead>
                         <TableHead>Source</TableHead>
@@ -325,17 +318,10 @@ const ShippingFulfillment = () => {
                             <span className="text-sm">{recipient.assignedGiftBox || '-'}</span>
                           </TableCell>
                           <TableCell>
-                            {recipient.status === 'confirmed' ? (
-                              <Badge variant="outline" className="text-green-600 border-green-600">
-                                <CheckCircle className="mr-1 h-3 w-3" />
-                                Confirmed
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-orange-600 border-orange-600">
-                                <AlertCircle className="mr-1 h-3 w-3" />
-                                Pending
-                              </Badge>
-                            )}
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              <CheckCircle className="mr-1 h-3 w-3" />
+                              Confirmed
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <span className="text-sm">{recipient.shippingMode || '-'}</span>
@@ -422,16 +408,8 @@ const ShippingFulfillment = () => {
                   <span className="font-medium">{recipients.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Confirmed Addresses:</span>
-                  <span className="font-medium text-green-600">
-                    {recipients.filter(r => r.status === 'confirmed').length}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Pending Addresses:</span>
-                  <span className="font-medium text-orange-600">
-                    {recipients.filter(r => r.status === 'pending').length}
-                  </span>
+                  <span>Confirmed Recipients:</span>
+                  <span className="font-medium text-green-600">{recipients.length}</span>
                 </div>
               </div>
 
@@ -499,16 +477,9 @@ const ShippingFulfillment = () => {
                 <Button 
                   className="w-full bg-linden-blue hover:bg-linden-blue/90 mb-2"
                   onClick={handleContinue}
-                  disabled={recipients.filter(r => r.status === 'pending').length > 0}
                 >
                   Buy
                 </Button>
-                
-                {recipients.filter(r => r.status === 'pending').length > 0 && (
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Complete all addresses to continue
-                  </p>
-                )}
               </div>
             </CardContent>
           </Card>

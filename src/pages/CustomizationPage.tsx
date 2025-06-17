@@ -1,488 +1,461 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Upload, Gift, ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft, Package, Palette, User, Users, Gift } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
 
 const CustomizationPage = () => {
   const navigate = useNavigate();
-  const [customizationLevel, setCustomizationLevel] = useState<'individual' | 'order'>('individual');
-
-  // Sample gift boxes with proper image handling
-  const giftBoxes = [
-    {
-      id: '1',
-      name: 'Premium Coffee Collection',
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02040d0a901?w=400&h=300&fit=crop',
-      theme: 'Appreciation',
-      basePrice: 49.99,
-      items: ['Premium Coffee Beans', 'Coffee Mug', 'Artisan Cookies']
-    },
-    {
-      id: '2',
-      name: 'Wellness Package',
-      image: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=300&fit=crop',
-      theme: 'Wellness',
-      basePrice: 79.99,
-      items: ['Essential Oils', 'Aromatherapy Candle', 'Wellness Journal']
-    },
-    {
-      id: '3',
-      name: 'Tech Accessories Kit',
-      image: 'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=400&h=300&fit=crop',
-      theme: 'Professional',
-      basePrice: 89.99,
-      items: ['Wireless Charger', 'Phone Stand', 'Cable Organizer']
-    }
+  const { selectedBoxes } = useCart();
+  const [customizationType, setCustomizationType] = useState<'order' | 'individual'>('order');
+  const [selectedRecipientIndex, setSelectedRecipientIndex] = useState(0);
+  
+  // Mock recipients data - in real app would come from previous step
+  const recipients = [
+    { id: 1, name: 'Sarah Johnson', email: 'sarah.johnson@company.com' },
+    { id: 2, name: 'Michael Chen', email: 'michael.chen@company.com' },
+    { id: 3, name: 'Emily Rodriguez', email: 'emily.rodriguez@company.com' }
   ];
 
+  const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
+
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
-    brandedNotecard: {
-      enabled: false,
-      template: '',
-      message: '',
-      logo: null as File | null
-    },
-    giftTags: {
-      enabled: false,
-      type: 'preset',
-      presetMessage: '',
-      customMessage: ''
-    },
-    messageCard: {
-      enabled: false,
-      message: '',
-      senderName: ''
-    }
+    message: '',
+    senderName: '',
+    packaging: 'standard',
+    ribbon: 'blue'
   });
 
-  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: string]: any}>(() => {
-    const initial: {[key: string]: any} = {};
-    giftBoxes.forEach(box => {
-      initial[box.id] = {
-        brandedNotecard: {
-          enabled: false,
-          template: '',
-          message: '',
-          logo: null as File | null
-        },
-        giftTags: {
-          enabled: false,
-          type: 'preset',
-          presetMessage: '',
-          customMessage: ''
-        },
-        messageCard: {
-          enabled: false,
-          message: '',
-          senderName: ''
-        }
-      };
-    });
-    return initial;
-  });
+  const [individualCustomizations, setIndividualCustomizations] = useState<{[key: number]: any}>({});
+
+  const handleOrderLevelChange = (field: string, value: string) => {
+    setOrderLevelCustomization(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleIndividualChange = (recipientId: number, field: string, value: string) => {
+    setIndividualCustomizations(prev => ({
+      ...prev,
+      [recipientId]: {
+        ...prev[recipientId],
+        [field]: value
+      }
+    }));
+  };
+
+  const getCurrentCustomization = (recipientId: number) => {
+    return individualCustomizations[recipientId] || {
+      message: '',
+      senderName: '',
+      packaging: 'standard',
+      ribbon: 'blue'
+    };
+  };
 
   const handleContinue = () => {
-    toast.success('Customization preferences saved for this order');
-    navigate('/recipient-selection');
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: string, boxId?: string) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (type === 'logo') {
-        if (customizationLevel === 'order') {
-          setOrderLevelCustomization(prev => ({
-            ...prev,
-            brandedNotecard: { ...prev.brandedNotecard, logo: file }
-          }));
-        } else if (boxId) {
-          setIndividualCustomizations(prev => ({
-            ...prev,
-            [boxId]: {
-              ...prev[boxId],
-              brandedNotecard: { ...prev[boxId].brandedNotecard, logo: file }
-            }
-          }));
-        }
-        toast.success('Logo uploaded successfully');
+    if (customizationType === 'order') {
+      if (!orderLevelCustomization.message.trim()) {
+        toast.error('Please add a gift message');
+        return;
+      }
+    } else {
+      // Check if all recipients have customizations
+      const missingCustomizations = recipients.filter(r => 
+        !individualCustomizations[r.id]?.message?.trim()
+      );
+      
+      if (missingCustomizations.length > 0) {
+        toast.error(`Please add messages for ${missingCustomizations.length} recipient(s)`);
+        return;
       }
     }
+
+    toast.success('Customizations saved');
+    navigate('/shipping-fulfillment');
   };
 
-  const toggleCustomization = (type: string, enabled: boolean, boxId?: string) => {
-    if (customizationLevel === 'order') {
-      setOrderLevelCustomization(prev => ({
-        ...prev,
-        [type]: { ...prev[type as keyof typeof prev], enabled }
-      }));
-    } else if (boxId) {
-      setIndividualCustomizations(prev => ({
-        ...prev,
-        [boxId]: {
-          ...prev[boxId],
-          [type]: { ...prev[boxId][type], enabled }
-        }
-      }));
+  const handlePreviousRecipient = () => {
+    if (selectedRecipientIndex > 0) {
+      setSelectedRecipientIndex(selectedRecipientIndex - 1);
     }
   };
 
-  const updateCustomization = (type: string, field: string, value: any, boxId?: string) => {
-    if (customizationLevel === 'order') {
-      setOrderLevelCustomization(prev => ({
-        ...prev,
-        [type]: { ...prev[type as keyof typeof prev], [field]: value }
-      }));
-    } else if (boxId) {
-      setIndividualCustomizations(prev => ({
-        ...prev,
-        [boxId]: {
-          ...prev[boxId],
-          [type]: { ...prev[boxId][type], [field]: value }
-        }
-      }));
+  const handleNextRecipient = () => {
+    if (selectedRecipientIndex < recipients.length - 1) {
+      setSelectedRecipientIndex(selectedRecipientIndex + 1);
     }
   };
 
-  const renderCustomizationForm = (boxId?: string) => {
-    const customization = boxId ? individualCustomizations[boxId] : orderLevelCustomization;
-    
+  if (!selectedGiftBox) {
     return (
-      <div className="space-y-6">
-        {/* Branded Notecards */}
-        <div className="border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="font-medium">Branded Notecards</h4>
-              <p className="text-sm text-gray-600">Add your logo and custom message</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">+$5.00</Badge>
-              <Switch
-                checked={customization?.brandedNotecard.enabled || false}
-                onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked, boxId)}
-              />
-            </div>
-          </div>
-
-          {customization?.brandedNotecard.enabled && (
-            <div className="space-y-4">
-              <div>
-                <Label>Upload Your Logo</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, 'logo', boxId)}
-                    className="hidden"
-                    id={`logo-upload-${boxId || 'order'}`}
-                  />
-                  <label htmlFor={`logo-upload-${boxId || 'order'}`} className="cursor-pointer">
-                    <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-600">
-                      {customization.brandedNotecard.logo 
-                        ? customization.brandedNotecard.logo.name 
-                        : 'Click to upload logo (PNG, JPG, max 5MB)'
-                      }
-                    </p>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <Label>Custom Message</Label>
-                <Textarea
-                  placeholder="Enter your message for the notecard..."
-                  value={customization.brandedNotecard.message}
-                  onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value, boxId)}
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Gift Tags */}
-        <div className="border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="font-medium">Gift Tags</h4>
-              <p className="text-sm text-gray-600">Add special tags to your gifts</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">+$2.00</Badge>
-              <Switch
-                checked={customization?.giftTags.enabled || false}
-                onCheckedChange={(checked) => toggleCustomization('giftTags', checked, boxId)}
-              />
-            </div>
-          </div>
-
-          {customization?.giftTags.enabled && (
-            <div className="space-y-4">
-              <div>
-                <Label>Tag Type</Label>
-                <Select
-                  value={customization.giftTags.type}
-                  onValueChange={(value) => updateCustomization('giftTags', 'type', value, boxId)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="preset">Preset Messages</SelectItem>
-                    <SelectItem value="custom">Custom Message</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {customization.giftTags.type === 'custom' && (
-                <div>
-                  <Label>Custom Tag Message</Label>
-                  <Input
-                    placeholder="Enter your custom tag message"
-                    value={customization.giftTags.customMessage}
-                    onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value, boxId)}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Message Cards */}
-        <div className="border rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="font-medium">Message Cards</h4>
-              <p className="text-sm text-gray-600">Include a personal message inside the box</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">+$3.00</Badge>
-              <Switch
-                checked={customization?.messageCard.enabled || false}
-                onCheckedChange={(checked) => toggleCustomization('messageCard', checked, boxId)}
-              />
-            </div>
-          </div>
-
-          {customization?.messageCard.enabled && (
-            <div className="space-y-4">
-              <div>
-                <Label>Message</Label>
-                <Textarea
-                  placeholder="Enter your personal message..."
-                  value={customization.messageCard.message}
-                  onChange={(e) => updateCustomization('messageCard', 'message', e.target.value, boxId)}
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label>From (Sender Name)</Label>
-                <Input
-                  placeholder="Your name or company name"
-                  value={customization.messageCard.senderName}
-                  onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value, boxId)}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <Package className="h-16 w-16 text-gray-400" />
+        <h2 className="text-xl font-semibold text-gray-600">No gift box selected</h2>
+        <p className="text-gray-500">Please select a gift box first</p>
+        <Button onClick={() => navigate('/box-listing')}>
+          Select Gift Box
+        </Button>
       </div>
     );
-  };
+  }
+
+  const currentRecipient = recipients[selectedRecipientIndex];
+  const currentCustomization = getCurrentCustomization(currentRecipient.id);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/choose-delivery-method')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/recipient-selection')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Delivery Method
+          Back to Recipients
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Order</h1>
-          <p className="text-gray-600">Add personalization and branding to your gift boxes</p>
+          <p className="text-gray-600">Personalize your gift box with custom messages and packaging</p>
         </div>
+        <Button 
+          onClick={handleContinue}
+          className="bg-linden-blue hover:bg-linden-blue/90"
+        >
+          Continue to Shipping
+        </Button>
       </div>
-
-      {/* How This Works Info */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-blue-800 mb-1">Customization Options</h4>
-              <p className="text-blue-700 text-sm">
-                Choose how you want to customize your gift boxes. You can apply the same customization to all boxes or customize each one individually.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Available Gift Boxes */}
+          {/* Selected Gift Box */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gift className="h-5 w-5" />
-                Available Gift Boxes ({giftBoxes.length})
+                Selected Gift Box
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {giftBoxes.map((box) => (
-                  <div key={box.id} className="border rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={box.image} 
-                          alt={box.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder.svg';
-                          }}
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{box.name}</h3>
-                        <p className="text-sm text-gray-600">${box.basePrice}</p>
-                        <Badge variant="outline" className="text-xs">{box.theme}</Badge>
-                      </div>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                  <img 
+                    src={selectedGiftBox.image || '/placeholder.svg'} 
+                    alt={selectedGiftBox.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{selectedGiftBox.name}</h3>
+                  <p className="text-gray-600">{selectedGiftBox.theme}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="outline">{selectedGiftBox.size}</Badge>
+                    <Badge variant="outline">${selectedGiftBox.basePrice}</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customization Type Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Customization Type
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup 
+                value={customizationType} 
+                onValueChange={(value: 'order' | 'individual') => setCustomizationType(value)}
+                className="space-y-4"
+              >
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                  <RadioGroupItem value="order" id="order" />
+                  <Label htmlFor="order" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium">Order-Level Customization</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      All recipients will receive the same customization
+                    </p>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                  <RadioGroupItem value="individual" id="individual" />
+                  <Label htmlFor="individual" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">Individual Customization</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Customize the gift box differently for each recipient
+                    </p>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+
+          {/* Customization Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                {customizationType === 'order' ? 'Order Customization' : `Customize for ${currentRecipient.name}`}
+              </CardTitle>
+              {customizationType === 'individual' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousRecipient}
+                    disabled={selectedRecipientIndex === 0}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-gray-600">
+                    {selectedRecipientIndex + 1} of {recipients.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextRecipient}
+                    disabled={selectedRecipientIndex === recipients.length - 1}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {customizationType === 'order' ? (
+                // Order-level customization form
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="order-message">Gift Message</Label>
+                    <Textarea
+                      id="order-message"
+                      placeholder="Enter your gift message for all recipients..."
+                      value={orderLevelCustomization.message}
+                      onChange={(e) => handleOrderLevelChange('message', e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="order-sender">From (Sender Name)</Label>
+                    <Input
+                      id="order-sender"
+                      placeholder="Your name or company name"
+                      value={orderLevelCustomization.senderName}
+                      onChange={(e) => handleOrderLevelChange('senderName', e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Packaging Style</Label>
+                      <Select 
+                        value={orderLevelCustomization.packaging}
+                        onValueChange={(value) => handleOrderLevelChange('packaging', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard Box</SelectItem>
+                          <SelectItem value="premium">Premium Box</SelectItem>
+                          <SelectItem value="eco">Eco-Friendly Box</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Ribbon Color</Label>
+                      <Select 
+                        value={orderLevelCustomization.ribbon}
+                        onValueChange={(value) => handleOrderLevelChange('ribbon', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="blue">Blue</SelectItem>
+                          <SelectItem value="red">Red</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customization Level Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Choose Customization Level</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div
-                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    customizationLevel === 'individual'
-                      ? 'border-linden-blue bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setCustomizationLevel('individual')}
-                >
-                  <h4 className="font-medium mb-2">Individual Customization</h4>
-                  <p className="text-sm text-gray-600">
-                    Customize each gift box individually with different messages and branding
-                  </p>
-                </div>
-                <div
-                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    customizationLevel === 'order'
-                      ? 'border-linden-blue bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setCustomizationLevel('order')}
-                >
-                  <h4 className="font-medium mb-2">Order-Level Customization</h4>
-                  <p className="text-sm text-gray-600">
-                    Apply the same customization to all gift boxes in an order
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customization Options */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {customizationLevel === 'order' ? 'Order-Level Customization' : 'Individual Box Customization'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {customizationLevel === 'order' ? (
-                renderCustomizationForm()
+                </>
               ) : (
-                <div className="space-y-6">
-                  {giftBoxes.map((box) => (
-                    <div key={box.id} className="border rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                          <img 
-                            src={box.image} 
-                            alt={box.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder.svg';
-                            }}
-                            loading="lazy"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{box.name}</h3>
-                          <p className="text-sm text-gray-600">{box.theme}</p>
-                        </div>
-                      </div>
-                      {renderCustomizationForm(box.id)}
+                // Individual customization form
+                <>
+                  <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Recipient:</strong> {currentRecipient.name} ({currentRecipient.email})
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="individual-message">Personal Gift Message</Label>
+                    <Textarea
+                      id="individual-message"
+                      placeholder={`Enter a personalized message for ${currentRecipient.name}...`}
+                      value={currentCustomization.message}
+                      onChange={(e) => handleIndividualChange(currentRecipient.id, 'message', e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="individual-sender">From (Sender Name)</Label>
+                    <Input
+                      id="individual-sender"
+                      placeholder="Your name or company name"
+                      value={currentCustomization.senderName}
+                      onChange={(e) => handleIndividualChange(currentRecipient.id, 'senderName', e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Packaging Style</Label>
+                      <Select 
+                        value={currentCustomization.packaging}
+                        onValueChange={(value) => handleIndividualChange(currentRecipient.id, 'packaging', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">Standard Box</SelectItem>
+                          <SelectItem value="premium">Premium Box</SelectItem>
+                          <SelectItem value="eco">Eco-Friendly Box</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Ribbon Color</Label>
+                      <Select 
+                        value={currentCustomization.ribbon}
+                        onValueChange={(value) => handleIndividualChange(currentRecipient.id, 'ribbon', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="blue">Blue</SelectItem>
+                          <SelectItem value="red">Red</SelectItem>
+                          <SelectItem value="gold">Gold</SelectItem>
+                          <SelectItem value="silver">Silver</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar - Summary */}
+        {/* Sidebar */}
         <div className="space-y-6">
-          <Card className="sticky top-4">
+          {/* Progress Summary */}
+          <Card>
             <CardHeader>
-              <CardTitle>Order Progress</CardTitle>
+              <CardTitle>Customization Progress</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Delivery Method:</span>
-                  <span className="font-medium">Shipping</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Customization Level:</span>
-                  <span className="font-medium">
-                    {customizationLevel === 'order' ? 'Order-Level' : 'Individual'}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Available Boxes:</span>
-                  <span className="font-medium">{giftBoxes.length}</span>
-                </div>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Recipients:</span>
+                <span className="font-medium">{recipients.length}</span>
               </div>
-
+              
+              {customizationType === 'individual' && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span>Completed:</span>
+                    <span className="font-medium text-green-600">
+                      {Object.keys(individualCustomizations).filter(id => 
+                        individualCustomizations[parseInt(id)]?.message?.trim()
+                      ).length} of {recipients.length}
+                    </span>
+                  </div>
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${(Object.keys(individualCustomizations).filter(id => 
+                          individualCustomizations[parseInt(id)]?.message?.trim()
+                        ).length / recipients.length) * 100}%`
+                      }}
+                    />
+                  </div>
+                </>
+              )}
+              
               <Button 
-                className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                className="w-full bg-linden-blue hover:bg-linden-blue/90 mt-4"
                 onClick={handleContinue}
               >
-                Continue to Select Recipients
+                Continue to Shipping
               </Button>
-
-              <div className="text-xs text-gray-500 text-center">
-                Next: Select recipients for your gift boxes
-              </div>
             </CardContent>
           </Card>
+
+          {/* Individual Recipients List */}
+          {customizationType === 'individual' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Recipients</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {recipients.map((recipient, index) => (
+                    <div
+                      key={recipient.id}
+                      className={`p-2 rounded-lg cursor-pointer transition-colors ${
+                        index === selectedRecipientIndex 
+                          ? 'bg-linden-blue text-white' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                      onClick={() => setSelectedRecipientIndex(index)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{recipient.name}</span>
+                        {individualCustomizations[recipient.id]?.message?.trim() && (
+                          <Badge variant={index === selectedRecipientIndex ? "outline" : "default"} 
+                                className={index === selectedRecipientIndex ? "border-white text-white" : "bg-green-100 text-green-800"}>
+                            Done
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

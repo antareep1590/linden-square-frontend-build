@@ -4,166 +4,133 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  Search, 
-  Download, 
-  CreditCard, 
-  Eye,
-  DollarSign,
-  FileText,
-  CheckCircle2
-} from 'lucide-react';
+import { FileText, Search, Download, Eye, Filter, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 interface Invoice {
   id: string;
-  invoiceNumber: string;
-  orderNumber: string;
+  date: string;
   amount: number;
-  status: 'paid' | 'pending' | 'overdue';
-  issueDate: string;
-  dueDate: string;
-  paymentSchedule: 'one-time' | 'monthly' | 'quarterly' | 'milestone';
-  nextDueDate?: string;
-  milestone?: string;
+  status: 'paid' | 'pending' | 'overdue' | 'draft';
+  description: string;
+  orderCount: number;
+  recipientCount: number;
 }
 
 const Invoices = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [scheduleFilter, setScheduleFilter] = useState('all');
-  const [dueDateFilter, setDueDateFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
 
-  const currentYear = new Date().getFullYear();
-  const today = new Date().toISOString().split('T')[0];
-
-  // Mock invoices data with current year dates
-  const [invoices, setInvoices] = useState<Invoice[]>([
+  // Mock invoices data
+  const [invoices] = useState<Invoice[]>([
     {
-      id: '1',
-      invoiceNumber: 'INV-2024-001',
-      orderNumber: 'ORD-2024-001',
-      amount: 75.00,
+      id: 'INV-2024-001',
+      date: '2024-03-15',
+      amount: 2750.00,
       status: 'paid',
-      issueDate: `${currentYear}-01-15`,
-      dueDate: `${currentYear}-01-30`,
-      paymentSchedule: 'one-time'
+      description: 'Q1 Employee Recognition Gift Boxes',
+      orderCount: 3,
+      recipientCount: 45
     },
     {
-      id: '2',
-      invoiceNumber: 'INV-2024-002',
-      orderNumber: 'ORD-2024-002',
-      amount: 120.00,
+      id: 'INV-2024-002',
+      date: '2024-03-10',
+      amount: 1850.50,
       status: 'pending',
-      issueDate: `${currentYear}-01-16`,
-      dueDate: `${currentYear}-12-31`,
-      paymentSchedule: 'monthly',
-      nextDueDate: today
+      description: 'Client Appreciation Packages',
+      orderCount: 2,
+      recipientCount: 28
     },
     {
-      id: '3',
-      invoiceNumber: 'INV-2024-003',
-      orderNumber: 'ORD-2024-003',
-      amount: 45.00,
-      status: 'pending',
-      issueDate: `${currentYear}-01-10`,
-      dueDate: today,
-      paymentSchedule: 'one-time'
+      id: 'INV-2024-003',
+      date: '2024-02-28',
+      amount: 950.75,
+      status: 'paid',
+      description: 'New Employee Welcome Boxes',
+      orderCount: 1,
+      recipientCount: 15
     },
     {
-      id: '4',
-      invoiceNumber: 'INV-2024-004',
-      orderNumber: 'ORD-2024-004',
-      amount: 85.00,
-      status: 'pending',
-      issueDate: `${currentYear}-01-18`,
-      dueDate: `${currentYear}-12-15`,
-      paymentSchedule: 'milestone',
-      milestone: '50% upfront'
+      id: 'INV-2024-004',
+      date: '2024-02-15',
+      amount: 3200.00,
+      status: 'overdue',
+      description: 'Holiday Gift Campaign',
+      orderCount: 4,
+      recipientCount: 60
+    },
+    {
+      id: 'INV-2024-005',
+      date: '2024-02-05',
+      amount: 1275.25,
+      status: 'draft',
+      description: 'Sales Team Rewards',
+      orderCount: 2,
+      recipientCount: 22
     }
   ]);
 
-  const getStatusBadge = (status: string) => {
-    const configs = {
-      paid: { color: 'bg-green-100 text-green-800', label: 'Paid' },
-      pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
-      overdue: { color: 'bg-red-100 text-red-800', label: 'Overdue' }
-    };
+  const filteredInvoices = invoices.filter(invoice => {
+    const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         invoice.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || invoice.status === statusFilter;
+    const matchesDate = !dateFilter || invoice.date.includes(dateFilter);
     
-    const config = configs[status as keyof typeof configs];
-    return (
-      <Badge className={config.color}>
-        {config.label}
-      </Badge>
-    );
-  };
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
-  const shouldShowPayNow = (invoice: Invoice) => {
-    if (invoice.status === 'paid') return false;
-    
-    switch (invoice.paymentSchedule) {
-      case 'one-time':
-        return invoice.status === 'pending';
-      case 'monthly':
-      case 'quarterly':
-        return invoice.nextDueDate && invoice.nextDueDate <= today;
-      case 'milestone':
-        return true; // Always show for milestone-based
-      default:
-        return false;
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'paid': return 'default';
+      case 'pending': return 'secondary';
+      case 'overdue': return 'destructive';
+      case 'draft': return 'outline';
+      default: return 'outline';
     }
   };
 
-  const handleScheduleChange = (invoiceId: string, newSchedule: string) => {
-    setInvoices(prev => prev.map(inv => 
-      inv.id === invoiceId 
-        ? { ...inv, paymentSchedule: newSchedule as Invoice['paymentSchedule'] }
-        : inv
-    ));
-    toast.success('Payment schedule updated');
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'text-green-600';
+      case 'pending': return 'text-yellow-600';
+      case 'overdue': return 'text-red-600';
+      case 'draft': return 'text-gray-600';
+      default: return 'text-gray-600';
+    }
   };
 
-  const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-    const matchesSchedule = scheduleFilter === 'all' || invoice.paymentSchedule === scheduleFilter;
-    const matchesDueDate = dueDateFilter === 'all' || 
-      (dueDateFilter === 'thisWeek' && new Date(invoice.dueDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) ||
-      (dueDateFilter === 'thisMonth' && new Date(invoice.dueDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
-    
-    return matchesSearch && matchesStatus && matchesSchedule && matchesDueDate;
-  });
-
-  const handleViewInvoice = (invoice: Invoice) => {
-    navigate(`/view-invoice/${invoice.invoiceNumber}`);
+  const handleViewInvoice = (invoiceId: string) => {
+    navigate(`/view-invoice/${invoiceId}`);
   };
 
-  const handlePayNow = (invoice: Invoice) => {
-    navigate('/payment-method', { state: { invoiceId: invoice.id, amount: invoice.amount } });
+  const handleDownloadInvoice = (invoiceId: string) => {
+    // Mock download functionality
+    console.log(`Downloading invoice ${invoiceId}`);
   };
 
-  const handleDownloadInvoice = (invoice: Invoice) => {
-    toast.success(`Downloaded ${invoice.invoiceNumber}`);
+  const getTotalAmount = () => {
+    return filteredInvoices.reduce((total, invoice) => total + invoice.amount, 0);
   };
 
-  // Calculate summary stats
-  const totalAmountPaid = filteredInvoices.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + inv.amount, 0);
-  const totalAmountDue = filteredInvoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue').reduce((sum, inv) => sum + inv.amount, 0);
-  const paidInvoices = filteredInvoices.filter(inv => inv.status === 'paid').length;
-  const totalInvoices = filteredInvoices.length;
+  const getStatusCounts = () => {
+    return filteredInvoices.reduce((acc, invoice) => {
+      acc[invoice.status] = (acc[invoice.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  };
+
+  const statusCounts = getStatusCounts();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Invoices & Payments</h1>
-          <p className="text-gray-600">Manage your payment history and outstanding invoices</p>
+          <h1 className="text-2xl font-bold">Invoices</h1>
+          <p className="text-gray-600">Manage your billing and payment history</p>
         </div>
       </div>
 
@@ -171,47 +138,53 @@ const Invoices = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Amount Paid</p>
-                <p className="text-xl font-bold">${totalAmountPaid.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">Total Amount</p>
+                <p className="text-2xl font-bold">${getTotalAmount().toLocaleString()}</p>
+              </div>
+              <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Paid</p>
+                <p className="text-2xl font-bold text-green-600">{statusCounts.paid || 0}</p>
+              </div>
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-green-600 rounded-full"></div>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-red-600" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Amount Due</p>
-                <p className="text-xl font-bold">${totalAmountDue.toFixed(2)}</p>
+                <p className="text-sm text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">{statusCounts.pending || 0}</p>
+              </div>
+              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-yellow-600 rounded-full"></div>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-green-600" />
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Paid Invoices</p>
-                <p className="text-xl font-bold">{paidInvoices}</p>
+                <p className="text-sm text-gray-600">Overdue</p>
+                <p className="text-2xl font-bold text-red-600">{statusCounts.overdue || 0}</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Total Invoices</p>
-                <p className="text-xl font-bold">{totalInvoices}</p>
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <div className="w-4 h-4 bg-red-600 rounded-full"></div>
               </div>
             </div>
           </CardContent>
@@ -221,64 +194,60 @@ const Invoices = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search invoices..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 flex-1">
+              <Search className="h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search invoices..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
             </div>
             
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Status</Label>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="">All Status</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Dates</SelectItem>
+                  <SelectItem value="2024-03">March 2024</SelectItem>
+                  <SelectItem value="2024-02">February 2024</SelectItem>
+                  <SelectItem value="2024-01">January 2024</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Payment Schedule</Label>
-              <Select value={scheduleFilter} onValueChange={setScheduleFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Schedules" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Schedules</SelectItem>
-                  <SelectItem value="one-time">One-time</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                  <SelectItem value="milestone">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Due Date</Label>
-              <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Due Dates" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Due Dates</SelectItem>
-                  <SelectItem value="thisWeek">Due This Week</SelectItem>
-                  <SelectItem value="thisMonth">Due This Month</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {(searchTerm || statusFilter || dateFilter) && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('');
+                  setDateFilter('');
+                }}
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -286,94 +255,78 @@ const Invoices = () => {
       {/* Invoices Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Invoices ({filteredInvoices.length})</CardTitle>
+          <CardTitle>Invoice History</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Order #</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Payment Schedule</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Next Due</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                  <TableCell>{invoice.orderNumber}</TableCell>
-                  <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                  <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                  <TableCell>
-                    <div className="space-y-2">
-                      <Select 
-                        value={invoice.paymentSchedule} 
-                        onValueChange={(value) => handleScheduleChange(invoice.id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="one-time">One-time</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="milestone">Milestone</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {invoice.milestone && (
-                        <div className="text-xs text-gray-500">{invoice.milestone}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{invoice.dueDate}</TableCell>
-                  <TableCell>
-                    {invoice.nextDueDate ? (
-                      <div className="text-sm">{invoice.nextDueDate}</div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewInvoice(invoice)}
-                        title="View Invoice"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDownloadInvoice(invoice)}
-                        title="Download Invoice"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      
-                      {shouldShowPayNow(invoice) && (
-                        <Button
-                          size="sm"
-                          onClick={() => handlePayNow(invoice)}
-                          className="bg-linden-blue hover:bg-linden-blue/90"
-                          title="Pay Now"
-                        >
-                          <CreditCard className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Orders</TableHead>
+                  <TableHead>Recipients</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">{invoice.id}</TableCell>
+                    <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
+                    <TableCell className="max-w-48">
+                      <span className="truncate">{invoice.description}</span>
+                    </TableCell>
+                    <TableCell>{invoice.orderCount}</TableCell>
+                    <TableCell>{invoice.recipientCount}</TableCell>
+                    <TableCell className="font-medium">${invoice.amount.toLocaleString()}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={getStatusBadgeVariant(invoice.status)}
+                        className={getStatusColor(invoice.status)}
+                      >
+                        {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewInvoice(invoice.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadInvoice(invoice.id)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {filteredInvoices.length === 0 && (
+            <div className="text-center py-8">
+              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
+              <p className="text-gray-500">
+                {searchTerm || statusFilter || dateFilter
+                  ? 'Try adjusting your search criteria'
+                  : 'Your invoices will appear here once you place orders'
+                }
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
