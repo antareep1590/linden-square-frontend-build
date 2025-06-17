@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,7 +103,8 @@ const CustomizationPage = () => {
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => {
       const currentRecipient = prev[recipientId] || {};
-      const currentType = currentRecipient[type as keyof CustomizationData] || {};
+      const currentTypeValue = currentRecipient[type as keyof CustomizationData];
+      const currentType = (typeof currentTypeValue === 'object' && currentTypeValue !== null) ? currentTypeValue : {};
       
       return {
         ...prev,
