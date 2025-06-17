@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Filter, X, ShoppingCart, ChevronDown, ChevronUp, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -79,7 +79,7 @@ const giftBoxes = [
 const BoxListing = () => {
   const navigate = useNavigate();
   const { addBox } = useCart();
-  const [selectedBoxes, setSelectedBoxes] = useState<string[]>([]);
+  const [selectedBoxId, setSelectedBoxId] = useState<string | null>(null); // Changed to single selection
   const [expandedBoxes, setExpandedBoxes] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     size: '',
@@ -106,11 +106,8 @@ const BoxListing = () => {
   });
 
   const handleBoxSelect = (boxId: string) => {
-    setSelectedBoxes(prev => 
-      prev.includes(boxId) 
-        ? prev.filter(id => id !== boxId)
-        : [...prev, boxId]
-    );
+    // Only allow single selection
+    setSelectedBoxId(selectedBoxId === boxId ? null : boxId);
   };
 
   const toggleBoxExpansion = (boxId: string) => {
@@ -122,21 +119,17 @@ const BoxListing = () => {
   };
 
   const handleAddToCart = () => {
-    if (selectedBoxes.length === 0) {
-      toast.error('Please select at least one gift box');
+    if (!selectedBoxId) {
+      toast.error('Please select a gift box');
       return;
     }
 
-    selectedBoxes.forEach(boxId => {
-      const box = giftBoxes.find(b => b.id === boxId);
-      if (box) {
-        addBox(box);
-      }
-    });
-
-    toast.success(`${selectedBoxes.length} gift box(es) added to cart`);
-    // Route to Choose Delivery Method instead of skipping it
-    navigate('/choose-delivery-method');
+    const box = giftBoxes.find(b => b.id === selectedBoxId);
+    if (box) {
+      addBox(box);
+      toast.success('Gift box added to cart');
+      navigate('/choose-delivery-method');
+    }
   };
 
   const clearFilter = (filterType: string) => {
@@ -154,11 +147,11 @@ const BoxListing = () => {
         </div>
         <Button 
           onClick={handleAddToCart}
-          disabled={selectedBoxes.length === 0}
+          disabled={!selectedBoxId}
           className="bg-linden-blue hover:bg-linden-blue/90"
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Continue ({selectedBoxes.length})
+          Continue {selectedBoxId ? '(1)' : '(0)'}
         </Button>
       </div>
 
@@ -253,8 +246,9 @@ const BoxListing = () => {
           <Card 
             key={box.id} 
             className={`group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
-              selectedBoxes.includes(box.id) ? 'ring-2 ring-linden-blue bg-blue-50' : ''
+              selectedBoxId === box.id ? 'ring-2 ring-linden-blue bg-blue-50' : ''
             }`}
+            onClick={() => handleBoxSelect(box.id)}
           >
             <CardContent className="p-0">
               <div className="relative">
@@ -271,11 +265,17 @@ const BoxListing = () => {
                   />
                 </div>
                 <div className="absolute top-3 right-3">
-                  <Checkbox
-                    checked={selectedBoxes.includes(box.id)}
-                    onCheckedChange={() => handleBoxSelect(box.id)}
-                    className="bg-white shadow-md"
-                  />
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    selectedBoxId === box.id 
+                      ? 'bg-linden-blue border-linden-blue' 
+                      : 'bg-white border-gray-300'
+                  }`}>
+                    {selectedBoxId === box.id && (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="absolute bottom-3 left-3">
                   <Badge variant="secondary" className="text-xs">
@@ -307,7 +307,7 @@ const BoxListing = () => {
                   onOpenChange={() => toggleBoxExpansion(box.id)}
                 >
                   <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="w-full text-xs h-7">
+                    <Button variant="ghost" size="sm" className="w-full text-xs h-7" onClick={(e) => e.stopPropagation()}>
                       <Package className="h-3 w-3 mr-1" />
                       View Contents
                       {expandedBoxes.includes(box.id) ? 

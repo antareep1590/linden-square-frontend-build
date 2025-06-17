@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { DateRange } from "react-day-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OrderDetailsModal from "@/components/OrderDetailsModal";
 
 const Dashboard: React.FC = () => {
@@ -19,7 +20,7 @@ const Dashboard: React.FC = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
-  // Mock data for recent orders (3 orders instead of 1)
+  // Mock data for recent orders
   const recentOrders = [
     {
       id: 'ORD-001',
@@ -47,10 +48,38 @@ const Dashboard: React.FC = () => {
     }
   ];
 
+  // Mock data for draft orders
+  const draftOrders = [
+    {
+      id: 'DRAFT-001',
+      giftName: 'Premium Coffee Set',
+      recipients: 8,
+      status: 'Draft',
+      date: '2025-04-01',
+      estimatedDelivery: '-',
+      lastStep: 'recipient-selection'
+    },
+    {
+      id: 'DRAFT-002',
+      giftName: 'Wellness Package',
+      recipients: 15,
+      status: 'Draft',
+      date: '2025-03-30',
+      estimatedDelivery: '-',
+      lastStep: 'customization'
+    }
+  ];
+
   const handleOrderClick = (orderId: string) => {
     console.log('Opening order details for:', orderId);
     setSelectedOrderId(orderId);
     setIsOrderModalOpen(true);
+  };
+
+  const handleDraftOrderClick = (orderId: string, lastStep: string) => {
+    console.log('Resuming draft order:', orderId, 'at step:', lastStep);
+    // Navigate to the appropriate step in the order flow
+    window.location.href = `/${lastStep}`;
   };
 
   const getTotalSpendByFilter = () => {
@@ -156,13 +185,13 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
       
-      {/* Recent Orders Section */}
+      {/* Orders Section with Tabs */}
       <Card className="bg-white border-0 shadow-sm">
         <CardHeader className="border-b border-gray-100 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Recent Orders</CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Your latest gift orders and their status</p>
+              <CardTitle className="text-xl font-semibold text-gray-900">Orders</CardTitle>
+              <p className="text-sm text-gray-600 mt-1">Manage your completed and draft orders</p>
             </div>
             <Button variant="outline" className="px-4 py-2">
               View All Orders
@@ -170,93 +199,186 @@ const Dashboard: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="space-y-6">
-            {recentOrders.map((order, index) => (
-              <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:border-linden-blue transition-colors">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-linden-lightblue rounded-lg">
-                      <Package className="h-5 w-5 text-linden-blue" />
+          <Tabs defaultValue="recent" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="recent">Recent Orders</TabsTrigger>
+              <TabsTrigger value="draft">Draft Orders</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="recent" className="space-y-6 mt-6">
+              {recentOrders.map((order, index) => (
+                <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:border-linden-blue transition-colors">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-linden-lightblue rounded-lg">
+                        <Package className="h-5 w-5 text-linden-blue" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Order ID</p>
+                        <button 
+                          className="font-semibold text-linden-blue hover:underline"
+                          onClick={() => handleOrderClick(order.id)}
+                        >
+                          {order.id}
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Order ID</p>
-                      <button 
-                        className="font-semibold text-linden-blue hover:underline"
-                        onClick={() => handleOrderClick(order.id)}
-                      >
-                        {order.id}
-                      </button>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <Gift className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Gift Box</p>
+                        <button 
+                          className="font-semibold text-gray-900 hover:text-linden-blue"
+                          onClick={() => handleOrderClick(order.id)}
+                        >
+                          {order.giftName}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Users className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Recipients</p>
+                        <button 
+                          className="font-semibold text-gray-900 hover:text-linden-blue"
+                          onClick={() => handleOrderClick(order.id)}
+                        >
+                          {order.recipients}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <Calendar className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Est. Delivery</p>
+                        <p className="font-semibold text-gray-900">{new Date(order.estimatedDelivery).toLocaleDateString()}</p>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Gift className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Gift Box</p>
-                      <button 
-                        className="font-semibold text-gray-900 hover:text-linden-blue"
-                        onClick={() => handleOrderClick(order.id)}
-                      >
-                        {order.giftName}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Users className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Recipients</p>
-                      <button 
-                        className="font-semibold text-gray-900 hover:text-linden-blue"
-                        onClick={() => handleOrderClick(order.id)}
-                      >
-                        {order.recipients}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-amber-100 rounded-lg">
-                      <Calendar className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Est. Delivery</p>
-                      <p className="font-semibold text-gray-900">{new Date(order.estimatedDelivery).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Order Status */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Status:</span>
-                    <Badge 
-                      variant="secondary"
-                      className={
-                        order.status === 'Delivered' ? 'bg-green-100 text-green-800 border-green-200' :
-                        order.status === 'In Transit' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                        'bg-amber-100 text-amber-800 border-amber-200'
-                      }
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <Badge 
+                        variant="secondary"
+                        className={
+                          order.status === 'Delivered' ? 'bg-green-100 text-green-800 border-green-200' :
+                          order.status === 'In Transit' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                          'bg-amber-100 text-amber-800 border-amber-200'
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleOrderClick(order.id)}
                     >
-                      {order.status}
-                    </Badge>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleOrderClick(order.id)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </TabsContent>
+            
+            <TabsContent value="draft" className="space-y-6 mt-6">
+              {draftOrders.map((order, index) => (
+                <div key={order.id} className="border border-gray-200 rounded-lg p-4 hover:border-linden-blue transition-colors bg-orange-50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-orange-100 rounded-lg">
+                        <Package className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Order ID</p>
+                        <button 
+                          className="font-semibold text-orange-600 hover:underline"
+                          onClick={() => handleDraftOrderClick(order.id, order.lastStep)}
+                        >
+                          {order.id}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <Gift className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Gift Box</p>
+                        <button 
+                          className="font-semibold text-gray-900 hover:text-linden-blue"
+                          onClick={() => handleDraftOrderClick(order.id, order.lastStep)}
+                        >
+                          {order.giftName}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Users className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Recipients</p>
+                        <button 
+                          className="font-semibold text-gray-900 hover:text-linden-blue"
+                          onClick={() => handleDraftOrderClick(order.id, order.lastStep)}
+                        >
+                          {order.recipients}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-gray-100 rounded-lg">
+                        <Calendar className="h-5 w-5 text-gray-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Est. Delivery</p>
+                        <p className="font-semibold text-gray-900">{order.estimatedDelivery}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDraftOrderClick(order.id, order.lastStep)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Resume Order
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {draftOrders.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Package className="mx-auto h-12 w-12 mb-4" />
+                  <p>No draft orders found</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

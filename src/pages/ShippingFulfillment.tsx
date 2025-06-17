@@ -1,18 +1,15 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Truck, Package, MapPin, Clock, DollarSign, CheckCircle, AlertCircle, Edit, Trash2, Plus, Users, X, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Truck, Package, Clock, CheckCircle, AlertCircle, Edit, Trash2, Users, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import AddRecipientModal from '@/components/AddRecipientModal';
 
 interface GiftBox {
   id: string;
@@ -31,34 +28,22 @@ interface Recipient {
   address: string;
   status: 'pending' | 'confirmed';
   shippingMode: string;
-  cost: string;
-  source: 'manual' | 'bulk' | 'auto';
-  assignedGiftBoxes?: string[];
+  source: 'manual' | 'bulk';
+  assignedGiftBox?: string;
 }
 
 const ShippingFulfillment = () => {
   const navigate = useNavigate();
   const [bulkShippingMode, setBulkShippingMode] = useState(false);
   const [selectedCarrier, setSelectedCarrier] = useState('');
-  const [showAddRecipient, setShowAddRecipient] = useState(false);
-  const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(null);
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
 
   // Mock order data - would come from context/state in real app
   const orderGiftBoxes: GiftBox[] = [
-    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 3 },
-    { id: '2', name: 'Wellness Package', theme: 'Wellness', price: 35.00, quantity: 2 },
-    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional', price: 55.00, quantity: 1 }
+    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 6 }
   ];
 
-  // Mock available gift boxes (from Gift Theme Selection step)
-  const availableGiftBoxes: GiftBox[] = [
-    { id: '1', name: 'Premium Coffee Collection', theme: 'Appreciation', price: 45.00, quantity: 1 },
-    { id: '2', name: 'Wellness Package', theme: 'Wellness', price: 35.00, quantity: 1 },
-    { id: '3', name: 'Tech Accessories Kit', theme: 'Professional', price: 55.00, quantity: 1 }
-  ];
-  
-  // Sample recipient addresses with gift box assignments
+  // Sample recipient addresses with single gift box assignment
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -69,9 +54,8 @@ const ShippingFulfillment = () => {
       address: '123 Main St, New York, NY 10001',
       status: 'confirmed',
       shippingMode: 'FedEx Express',
-      cost: '$12.50',
-      source: 'auto',
-      assignedGiftBoxes: ['1', '2']
+      source: 'manual',
+      assignedGiftBox: 'Premium Coffee Collection'
     },
     {
       id: 2,
@@ -82,9 +66,8 @@ const ShippingFulfillment = () => {
       address: '456 Oak Ave, San Francisco, CA 94102',
       status: 'confirmed',
       shippingMode: 'UPS Ground',
-      cost: '$11.75',
       source: 'bulk',
-      assignedGiftBoxes: ['3']
+      assignedGiftBox: 'Premium Coffee Collection'
     },
     {
       id: 3,
@@ -95,20 +78,18 @@ const ShippingFulfillment = () => {
       address: '',
       status: 'pending',
       shippingMode: '',
-      cost: '',
       source: 'manual',
-      assignedGiftBoxes: []
+      assignedGiftBox: 'Premium Coffee Collection'
     }
   ]);
 
-  // Mock shipping carriers data
+  // Mock shipping carriers data (without costs)
   const carriers = [
     {
       id: 'fedex',
       name: 'FedEx',
       logo: '/placeholder.svg',
       services: ['Standard', 'Express', 'Overnight'],
-      estimatedCost: '$12.50',
       estimatedDays: '2-3 business days'
     },
     {
@@ -116,7 +97,6 @@ const ShippingFulfillment = () => {
       name: 'UPS',
       logo: '/placeholder.svg',
       services: ['Ground', 'Express', 'Next Day'],
-      estimatedCost: '$11.75',
       estimatedDays: '3-5 business days'
     },
     {
@@ -124,7 +104,6 @@ const ShippingFulfillment = () => {
       name: 'DHL',
       logo: '/placeholder.svg',
       services: ['Standard', 'Express', 'Priority'],
-      estimatedCost: '$15.20',
       estimatedDays: '2-4 business days'
     },
     {
@@ -132,7 +111,6 @@ const ShippingFulfillment = () => {
       name: 'USPS',
       logo: '/placeholder.svg',
       services: ['Priority', 'Express', 'Ground'],
-      estimatedCost: '$9.99',
       estimatedDays: '3-5 business days'
     }
   ];
@@ -140,19 +118,12 @@ const ShippingFulfillment = () => {
   const handleContinue = () => {
     const pendingAddresses = recipients.filter(r => r.status === 'pending');
     if (pendingAddresses.length > 0) {
-      toast.error(`Please confirm addresses and gift assignments for ${pendingAddresses.length} recipients`);
+      toast.error(`Please confirm addresses for ${pendingAddresses.length} recipients`);
       return;
     }
     
     toast.success('Shipping configuration saved');
     navigate('/payment-method', { state: { total: calculateGrandTotal() } });
-  };
-
-  const getTotalShippingCost = () => {
-    return recipients.reduce((total, recipient) => {
-      const cost = parseFloat(recipient.cost?.replace('$', '') || '0');
-      return total + cost;
-    }, 0);
   };
 
   const calculateGiftBoxesSubtotal = () => {
@@ -168,31 +139,7 @@ const ShippingFulfillment = () => {
   };
 
   const calculateGrandTotal = () => {
-    return calculateGiftBoxesSubtotal() + calculateCustomizationsTotal() + getTotalShippingCost() + calculateProcessingFee();
-  };
-
-  const handleAddRecipient = (recipientData: Omit<Recipient, 'id'>) => {
-    if (editingRecipient) {
-      setRecipients(prev => prev.map(r => 
-        r.id === editingRecipient.id 
-          ? { ...recipientData, id: editingRecipient.id, cost: '$12.50' }
-          : r
-      ));
-      setEditingRecipient(null);
-    } else {
-      const newRecipient: Recipient = {
-        ...recipientData,
-        id: Math.max(...recipients.map(r => r.id), 0) + 1,
-        cost: '$12.50',
-        source: 'manual'
-      };
-      setRecipients(prev => [...prev, newRecipient]);
-    }
-  };
-
-  const handleEditRecipient = (recipient: Recipient) => {
-    setEditingRecipient(recipient);
-    setShowAddRecipient(true);
+    return calculateGiftBoxesSubtotal() + calculateCustomizationsTotal() + calculateProcessingFee();
   };
 
   const handleDeleteRecipient = (id: number) => {
@@ -217,35 +164,12 @@ const ShippingFulfillment = () => {
     }
   };
 
-  const handleGiftBoxAssignment = (recipientId: number, giftBoxIds: string[]) => {
-    setRecipients(prev => prev.map(r => {
-      if (r.id === recipientId) {
-        const hasAddress = r.address.trim() !== '';
-        const hasGiftBoxes = giftBoxIds.length > 0;
-        const newStatus = hasAddress && hasGiftBoxes ? 'confirmed' : 'pending';
-        
-        return {
-          ...r,
-          assignedGiftBoxes: giftBoxIds,
-          status: newStatus
-        };
-      }
-      return r;
-    }));
-  };
-
   const getSourceBadgeColor = (source: string) => {
     switch (source) {
       case 'manual': return 'bg-blue-100 text-blue-800';
       case 'bulk': return 'bg-green-100 text-green-800';
-      case 'auto': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getGiftBoxDisplayName = (giftBoxId: string) => {
-    const giftBox = availableGiftBoxes.find(box => box.id === giftBoxId);
-    return giftBox ? `${giftBox.name} (${giftBox.theme})` : 'Unknown Gift Box';
   };
 
   return (
@@ -274,7 +198,7 @@ const ShippingFulfillment = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* 1. Shipping Mode - Moved to top */}
+          {/* 1. Shipping Mode */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -298,7 +222,7 @@ const ShippingFulfillment = () => {
             </CardContent>
           </Card>
 
-          {/* 2. Choose Shipping Carrier - Right below Shipping Mode */}
+          {/* 2. Choose Shipping Carrier */}
           {!bulkShippingMode && (
             <Card>
               <CardHeader>
@@ -328,15 +252,9 @@ const ShippingFulfillment = () => {
                           <p className="text-sm text-gray-600 mb-2">
                             {carrier.services.join(', ')}
                           </p>
-                          <div className="flex items-center gap-4 text-xs">
-                            <div className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              <span>{carrier.estimatedCost}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{carrier.estimatedDays}</span>
-                            </div>
+                          <div className="flex items-center gap-1 text-xs">
+                            <Clock className="h-3 w-3" />
+                            <span>{carrier.estimatedDays}</span>
                           </div>
                         </div>
                       </div>
@@ -347,7 +265,7 @@ const ShippingFulfillment = () => {
             </Card>
           )}
 
-          {/* Recipient Address Management - Enhanced with Gift Box Assignment */}
+          {/* Recipient Address Management */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -355,20 +273,12 @@ const ShippingFulfillment = () => {
                   <Users className="h-5 w-5" />
                   Recipient Address Management ({recipients.length})
                 </CardTitle>
-                <Button
-                  onClick={() => setShowAddRecipient(true)}
-                  className="bg-linden-blue hover:bg-linden-blue/90"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Recipient
-                </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Manage all recipients including manually added, bulk uploaded, and auto-filled entries. 
-                  Each recipient must have an address and at least one gift box assigned to be confirmed.
+                  Manage recipient addresses and shipping details. Recipients with addresses are automatically confirmed.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -386,7 +296,6 @@ const ShippingFulfillment = () => {
                         <TableHead>Gift Box Assignment</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Shipping</TableHead>
-                        <TableHead>Cost</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -412,50 +321,8 @@ const ShippingFulfillment = () => {
                           <TableCell className="max-w-48">
                             <p className="text-sm truncate">{recipient.address || 'Not provided'}</p>
                           </TableCell>
-                          <TableCell className="max-w-64">
-                            <div className="space-y-1">
-                              <Select
-                                onValueChange={(value) => {
-                                  const currentBoxes = recipient.assignedGiftBoxes || [];
-                                  if (!currentBoxes.includes(value)) {
-                                    handleGiftBoxAssignment(recipient.id, [...currentBoxes, value]);
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue placeholder="Assign gift box" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {availableGiftBoxes
-                                    .filter(box => !recipient.assignedGiftBoxes?.includes(box.id))
-                                    .map((giftBox) => (
-                                      <SelectItem key={giftBox.id} value={giftBox.id} className="text-xs">
-                                        {getGiftBoxDisplayName(giftBox.id)}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                              
-                              {/* Display assigned gift boxes */}
-                              {recipient.assignedGiftBoxes && recipient.assignedGiftBoxes.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {recipient.assignedGiftBoxes.map((giftBoxId) => (
-                                    <Badge key={giftBoxId} variant="secondary" className="text-xs flex items-center gap-1">
-                                      {availableGiftBoxes.find(box => box.id === giftBoxId)?.name || 'Unknown'}
-                                      <button
-                                        onClick={() => {
-                                          const updatedBoxes = recipient.assignedGiftBoxes?.filter(id => id !== giftBoxId) || [];
-                                          handleGiftBoxAssignment(recipient.id, updatedBoxes);
-                                        }}
-                                        className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
-                                      >
-                                        <X className="h-2 w-2" />
-                                      </button>
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                          <TableCell>
+                            <span className="text-sm">{recipient.assignedGiftBox || '-'}</span>
                           </TableCell>
                           <TableCell>
                             {recipient.status === 'confirmed' ? (
@@ -474,9 +341,6 @@ const ShippingFulfillment = () => {
                             <span className="text-sm">{recipient.shippingMode || '-'}</span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm font-medium">{recipient.cost || '-'}</span>
-                          </TableCell>
-                          <TableCell>
                             <Badge className={`text-xs ${getSourceBadgeColor(recipient.source)}`}>
                               {recipient.source}
                             </Badge>
@@ -486,7 +350,6 @@ const ShippingFulfillment = () => {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => handleEditRecipient(recipient)}
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -570,11 +433,6 @@ const ShippingFulfillment = () => {
                     {recipients.filter(r => r.status === 'pending').length}
                   </span>
                 </div>
-                <Separator />
-                <div className="flex justify-between font-semibold">
-                  <span>Est. Shipping Cost:</span>
-                  <span>${getTotalShippingCost().toFixed(2)}</span>
-                </div>
               </div>
 
               {/* Tracking Information */}
@@ -627,10 +485,6 @@ const ShippingFulfillment = () => {
                   <span>${calculateCustomizationsTotal().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping Cost:</span>
-                  <span>${getTotalShippingCost().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
                   <span>Processing Fee (3%):</span>
                   <span>${calculateProcessingFee().toFixed(2)}</span>
                 </div>
@@ -652,7 +506,7 @@ const ShippingFulfillment = () => {
                 
                 {recipients.filter(r => r.status === 'pending').length > 0 && (
                   <p className="text-xs text-gray-500 mt-2 text-center">
-                    Complete all addresses and gift assignments to continue
+                    Complete all addresses to continue
                   </p>
                 )}
               </div>
@@ -660,18 +514,6 @@ const ShippingFulfillment = () => {
           </Card>
         </div>
       </div>
-
-      {/* Modals */}
-      <AddRecipientModal
-        open={showAddRecipient}
-        onOpenChange={(open) => {
-          setShowAddRecipient(open);
-          if (!open) setEditingRecipient(null);
-        }}
-        onAddRecipient={handleAddRecipient}
-        editingRecipient={editingRecipient}
-        availableGiftBoxes={availableGiftBoxes}
-      />
     </div>
   );
 };
