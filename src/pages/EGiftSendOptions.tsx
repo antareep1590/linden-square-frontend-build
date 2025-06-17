@@ -39,13 +39,13 @@ const EGiftSendOptions = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="outline" size="sm" onClick={() => navigate('/select-recipients-egift')}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/customization')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipients
+          Back to Customization
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">E-Gift Send Options</h1>
-          <p className="text-gray-600">Configure branding and delivery timing</p>
+          <h1 className="text-2xl font-bold">Digital Gift Settings</h1>
+          <p className="text-gray-600">Configure branding and delivery timing for your digital gifts</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ const EGiftSendOptions = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                Company Branding
+                Brand Logo Upload
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -65,7 +65,7 @@ const EGiftSendOptions = () => {
                 <div>
                   <Label>Company Logo</Label>
                   <p className="text-sm text-gray-600 mb-3">
-                    Upload your company logo to include in the e-gift email notifications.
+                    Upload your company logo to include in the digital gift email notifications.
                   </p>
                   <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6">
                     <div className="text-center">
@@ -90,7 +90,7 @@ const EGiftSendOptions = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
-                Choose Send Option
+                Send Settings
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -104,7 +104,7 @@ const EGiftSendOptions = () => {
                         <span className="font-medium">Send Now</span>
                       </Label>
                       <p className="text-sm text-gray-600 mt-1">
-                        E-gift notifications will be sent immediately after payment confirmation.
+                        Digital gift notifications will be sent immediately after payment confirmation.
                       </p>
                     </div>
                   </div>
@@ -114,10 +114,10 @@ const EGiftSendOptions = () => {
                     <div className="flex-1">
                       <Label htmlFor="send-scheduled" className="flex items-center gap-2 cursor-pointer">
                         <Clock className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium">Schedule Send Date</span>
+                        <span className="font-medium">Schedule for Future Date</span>
                       </Label>
                       <p className="text-sm text-gray-600 mt-1 mb-3">
-                        Choose a specific date to send the e-gift notifications.
+                        Choose a specific date to send the digital gift notifications.
                       </p>
                       
                       {sendOption === 'scheduled' && (
@@ -159,13 +159,13 @@ const EGiftSendOptions = () => {
         <div className="space-y-6">
           <Card className="sticky top-4">
             <CardHeader>
-              <CardTitle>E-Gift Summary</CardTitle>
+              <CardTitle>Digital Gift Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span>Delivery Method:</span>
-                  <span className="font-medium">Email</span>
+                  <span className="font-medium">Digital Email</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Logo Branding:</span>

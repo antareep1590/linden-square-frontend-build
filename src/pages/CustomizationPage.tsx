@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +18,8 @@ const CustomizationPage = () => {
   const { selectedBoxes } = useCart();
   const [customizationType, setCustomizationType] = useState<'order' | 'individual'>('order');
   const [selectedRecipientIndex, setSelectedRecipientIndex] = useState(0);
-  
+  const [deliveryMethod, setDeliveryMethod] = useState<string>('');
+
   // Mock recipients data - in real app would come from previous step
   const recipients = [
     { id: 1, name: 'Sarah Johnson', email: 'sarah.johnson@company.com' },
@@ -123,10 +123,23 @@ const CustomizationPage = () => {
     }
   };
 
+  useEffect(() => {
+    // Get delivery method from localStorage
+    const storedDeliveryMethod = localStorage.getItem('selectedDeliveryMethod');
+    if (storedDeliveryMethod) {
+      setDeliveryMethod(storedDeliveryMethod);
+    }
+  }, []);
+
   const handleContinue = () => {
-    // Allow proceeding even without any customizations enabled
-    toast.success('Customizations saved');
-    navigate('/shipping-fulfillment');
+    // Route based on delivery method
+    if (deliveryMethod === 'email') {
+      // Digital delivery goes to new E-Gift Send Options page
+      navigate('/egift-send-options');
+    } else {
+      // Physical delivery goes to shipping & fulfillment
+      navigate('/shipping-fulfillment');
+    }
   };
 
   const handlePreviousRecipient = () => {

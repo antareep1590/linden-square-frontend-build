@@ -24,7 +24,10 @@ const ChooseDeliveryMethod = () => {
       return;
     }
 
-    // Both delivery methods now go to recipient selection
+    // Store delivery method in localStorage to use throughout the flow
+    localStorage.setItem('selectedDeliveryMethod', deliveryMethod);
+    
+    // Route to recipient selection for both flows
     navigate('/recipient-selection');
   };
 

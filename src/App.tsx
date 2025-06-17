@@ -87,7 +87,10 @@ function App() {
                 <Route path="/choose-delivery-method" element={<ChooseDeliveryMethod />} />
                 <Route path="/recipient-selection" element={<RecipientSelection />} />
                 <Route path="/customization" element={<CustomizationPage />} />
+                {/* Shipping & Fulfillment only for physical delivery */}
                 <Route path="/shipping-fulfillment" element={<ShippingFulfillment />} />
+                {/* Digital gift settings for email delivery */}
+                <Route path="/egift-send-options" element={<EGiftSendOptions />} />
                 <Route path="/payment-method" element={<PaymentMethod />} />
                 <Route path="/add-personalization" element={<AddPersonalization />} />
                 <Route path="/track-orders" element={<TrackOrders />} />
@@ -96,10 +99,9 @@ function App() {
                 <Route path="/customization-defaults" element={<StandaloneCustomization />} />
                 <Route path="/shipping-defaults" element={<StandaloneShipping />} />
                 
-                {/* E-gift flow within dashboard layout */}
+                {/* Legacy e-gift flow routes - keeping for backward compatibility */}
                 <Route path="/customize-egift" element={<CustomizeEGift />} />
                 <Route path="/select-recipients-egift" element={<SelectRecipientsEGift />} />
-                <Route path="/egift-send-options" element={<EGiftSendOptions />} />
               </Route>
 
               {/* Admin routes */}
