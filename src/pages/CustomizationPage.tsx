@@ -81,15 +81,17 @@ const CustomizationPage = () => {
 
   const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => {
-      const currentRecipient = prev[recipientId] || {};
-      const currentType = currentRecipient[type];
+      const currentRecipientData = prev[recipientId];
+      const currentRecipient = typeof currentRecipientData === 'object' && currentRecipientData !== null ? currentRecipientData : {};
+      const currentTypeData = currentRecipient[type];
+      const currentType = typeof currentTypeData === 'object' && currentTypeData !== null ? currentTypeData : {};
       
       return {
         ...prev,
         [recipientId]: {
           ...currentRecipient,
           [type]: {
-            ...(typeof currentType === 'object' && currentType !== null ? currentType : {}),
+            ...currentType,
             [field]: value
           }
         }
@@ -98,13 +100,18 @@ const CustomizationPage = () => {
   };
 
   const handleIndividualGraphicChange = (recipientId: number, graphicId: string) => {
-    setIndividualCustomizations(prev => ({
-      ...prev,
-      [recipientId]: {
-        ...(prev[recipientId] || {}),
-        messageGraphic: graphicId
-      }
-    }));
+    setIndividualCustomizations(prev => {
+      const currentRecipientData = prev[recipientId];
+      const currentRecipient = typeof currentRecipientData === 'object' && currentRecipientData !== null ? currentRecipientData : {};
+      
+      return {
+        ...prev,
+        [recipientId]: {
+          ...currentRecipient,
+          messageGraphic: graphicId
+        }
+      };
+    });
   };
 
   const getCurrentCustomization = (recipientId: number) => {
