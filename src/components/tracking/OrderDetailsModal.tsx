@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, MapPin, Truck, Package, Clock, CheckCircle } from "lucide-react";
+import { User, MapPin, Truck, Package, Clock, CheckCircle, Circle } from "lucide-react";
 import { format } from "date-fns";
 
 interface SubOrder {
@@ -13,6 +13,8 @@ interface SubOrder {
   deliveryStatus: string;
   estimatedDelivery: string;
   giftBoxContents: string[];
+  trackingNumber?: string;
+  carrier: string;
 }
 
 interface Order {
@@ -60,7 +62,46 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
     }
   };
 
-  // Mock delivery history
+  // Generate delivery timeline for a shipment
+  const generateDeliveryTimeline = (subOrder: SubOrder) => {
+    const baseDate = order.shipDate;
+    const timeline = [
+      {
+        status: "Order Placed",
+        date: new Date(baseDate.getTime() - 2 * 24 * 60 * 60 * 1000),
+        completed: true,
+        icon: <Package className="h-4 w-4" />
+      },
+      {
+        status: "Processing",
+        date: new Date(baseDate.getTime() - 1 * 24 * 60 * 60 * 1000),
+        completed: true,
+        icon: <Clock className="h-4 w-4" />
+      },
+      {
+        status: "Shipped",
+        date: baseDate,
+        completed: subOrder.deliveryStatus !== 'placed',
+        icon: <Truck className="h-4 w-4" />
+      },
+      {
+        status: "Out for Delivery",
+        date: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000),
+        completed: subOrder.deliveryStatus === 'delivered',
+        icon: <MapPin className="h-4 w-4" />
+      },
+      {
+        status: "Delivered",
+        date: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000),
+        completed: subOrder.deliveryStatus === 'delivered',
+        icon: <CheckCircle className="h-4 w-4" />
+      }
+    ];
+
+    return timeline;
+  };
+
+  // Mock delivery history for overall order
   const deliveryHistory = [
     {
       status: "Order Placed",
@@ -145,17 +186,17 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Recipient Details
+                Individual Shipments
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {order.subOrders && order.subOrders.length > 0 ? (
                   order.subOrders.map((subOrder, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={index} className="border rounded-lg p-6">
+                      <div className="flex items-start justify-between mb-4">
                         <div>
-                          <p className="font-medium">{subOrder.recipientName}</p>
+                          <p className="font-medium text-lg">{subOrder.recipientName}</p>
                           <p className="text-sm text-gray-600">{subOrder.recipientEmail}</p>
                         </div>
                         <Badge className={`${getStatusColor(subOrder.deliveryStatus)}`}>
@@ -164,10 +205,15 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                         </Badge>
                       </div>
                       
-                      <div className="space-y-2 text-sm">
+                      <div className="space-y-3 text-sm mb-6">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
                           <span>{subOrder.shippingAddress}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4 text-gray-500" />
+                          <span>{subOrder.carrier} - {subOrder.trackingNumber || 'N/A'}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
@@ -188,6 +234,60 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                           </div>
                         )}
                       </div>
+
+                      {/* Delivery Timeline for Individual Shipment */}
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium text-gray-900 mb-4">Delivery Timeline</h4>
+                        <div className="relative">
+                          {generateDeliveryTimeline(subOrder).map((step, stepIndex) => (
+                            <div key={stepIndex} className="flex items-start gap-4 pb-4 relative">
+                              {/* Timeline line */}
+                              {stepIndex < generateDeliveryTimeline(subOrder).length - 1 && (
+                                <div className="absolute left-2 top-8 w-0.5 h-8 bg-gray-200"></div>
+                              )}
+                              
+                              {/* Timeline dot */}
+                              <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${
+                                step.completed 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-gray-200 text-gray-400'
+                              }`}>
+                                {step.completed ? (
+                                  <Circle className="w-2 h-2 fill-current" />
+                                ) : (
+                                  <Circle className="w-2 h-2" />
+                                )}
+                              </div>
+                              
+                              {/* Timeline content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className={step.completed ? 'text-green-600' : 'text-gray-400'}>
+                                      {step.icon}
+                                    </div>
+                                    <p className={`font-medium ${
+                                      step.completed ? 'text-gray-900' : 'text-gray-500'
+                                    }`}>
+                                      {step.status}
+                                    </p>
+                                  </div>
+                                  {step.completed && step.date && (
+                                    <span className="text-sm text-gray-500">
+                                      {format(step.date, "MMM d, h:mm a")}
+                                    </span>
+                                  )}
+                                </div>
+                                {step.status === "Shipped" && subOrder.trackingNumber && (
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Tracking: {subOrder.trackingNumber}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -203,10 +303,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             </CardContent>
           </Card>
 
-          {/* Delivery History */}
+          {/* Overall Delivery History */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Delivery History</CardTitle>
+              <CardTitle className="text-lg">Overall Order History</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

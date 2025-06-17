@@ -29,6 +29,20 @@ const CustomizationPage = () => {
 
   const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
+  // Preset messages for gift tags
+  const presetMessages = [
+    'Thank you for your hard work!',
+    'Congratulations on your achievement!',
+    'Welcome to the team!',
+    'Happy holidays!',
+    'Best wishes from the team',
+    'Celebrating your success',
+    'You\'re appreciated!',
+    'Well done!',
+    'Thank you for your dedication',
+    'Happy anniversary!'
+  ];
+
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
     brandedNotecard: {
       enabled: false,
@@ -110,37 +124,7 @@ const CustomizationPage = () => {
   };
 
   const handleContinue = () => {
-    if (customizationType === 'order') {
-      // Check if at least one customization type is enabled with content
-      const hasValidCustomization = 
-        (orderLevelCustomization.brandedNotecard.enabled && orderLevelCustomization.brandedNotecard.message.trim()) ||
-        (orderLevelCustomization.giftTags.enabled && (orderLevelCustomization.giftTags.presetMessage || orderLevelCustomization.giftTags.customMessage)) ||
-        (orderLevelCustomization.messageCard.enabled && orderLevelCustomization.messageCard.message.trim());
-      
-      if (!hasValidCustomization) {
-        toast.error('Please enable and fill out at least one customization option');
-        return;
-      }
-    } else {
-      // Check if all recipients have at least one customization
-      const missingCustomizations = recipients.filter(r => {
-        const customization = individualCustomizations[r.id];
-        if (!customization) return true;
-        
-        const hasValid = 
-          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-          (customization.messageCard?.enabled && customization.messageCard?.message?.trim());
-        
-        return !hasValid;
-      });
-      
-      if (missingCustomizations.length > 0) {
-        toast.error(`Please add customizations for ${missingCustomizations.length} recipient(s)`);
-        return;
-      }
-    }
-
+    // Allow proceeding even without any customizations enabled
     toast.success('Customizations saved');
     navigate('/shipping-fulfillment');
   };
@@ -265,6 +249,27 @@ const CustomizationPage = () => {
                 </Select>
               </div>
 
+              {customization.giftTags?.type === 'preset' && (
+                <div>
+                  <Label>Select Preset Message</Label>
+                  <Select
+                    value={customization.giftTags?.presetMessage || ''}
+                    onValueChange={(value) => updateCustomization('giftTags', 'presetMessage', value, recipientId)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a preset message" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {presetMessages.map((message, index) => (
+                        <SelectItem key={index} value={message}>
+                          {message}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {customization.giftTags?.type === 'custom' && (
                 <div>
                   <Label>Custom Tag Message</Label>
@@ -330,7 +335,7 @@ const CustomizationPage = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Customize Your Order</h1>
-          <p className="text-gray-600">Personalize your gift box with custom messages and branding</p>
+          <p className="text-gray-600">Personalize your gift box with custom messages and branding (optional)</p>
         </div>
         <Button 
           onClick={handleContinue}
@@ -481,46 +486,18 @@ const CustomizationPage = () => {
                 <span className="font-medium">{recipients.length}</span>
               </div>
               
-              {customizationType === 'individual' && (
-                <>
-                  <div className="flex justify-between text-sm">
-                    <span>Completed:</span>
-                    <span className="font-medium text-green-600">
-                      {Object.keys(individualCustomizations).filter(id => {
-                        const customization = individualCustomizations[parseInt(id)];
-                        return customization && (
-                          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-                          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-                          (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
-                        );
-                      }).length} of {recipients.length}
-                    </span>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${(Object.keys(individualCustomizations).filter(id => {
-                          const customization = individualCustomizations[parseInt(id)];
-                          return customization && (
-                            (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
-                            (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
-                            (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
-                          );
-                        }).length / recipients.length) * 100}%`
-                      }}
-                    />
-                  </div>
-                </>
-              )}
-              
               <Button 
                 className="w-full bg-linden-blue hover:bg-linden-blue/90 mt-4"
                 onClick={handleContinue}
               >
                 Continue to Shipping
               </Button>
+
+              <div className="text-xs text-gray-500 mt-4">
+                <p>
+                  Customizations are optional. You can proceed without any customizations or add them to personalize your gift boxes.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

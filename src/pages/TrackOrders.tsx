@@ -11,6 +11,7 @@ import { Search, Package, Truck, MapPin, Eye, Calendar, Clock, Download } from '
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
+import OrderDetailsModal from '@/components/tracking/OrderDetailsModal';
 
 interface SubOrder {
   recipientName: string;
@@ -173,6 +174,15 @@ const TrackOrders = () => {
         {config.label}
       </Badge>
     );
+  };
+
+  const getCarrierTrackingDisplay = (order: Order) => {
+    if (order.shippingCarrier && order.trackingNumber) {
+      return `${order.shippingCarrier} – ${order.trackingNumber}`;
+    } else if (order.shippingCarrier) {
+      return order.shippingCarrier;
+    }
+    return 'N/A';
   };
 
   const filteredOrders = orders.filter(order => {
@@ -381,6 +391,7 @@ const TrackOrders = () => {
                 <TableHead>Recipients</TableHead>
                 <TableHead>Order Date</TableHead>
                 <TableHead>Overall Status</TableHead>
+                <TableHead>Carrier & Tracking</TableHead>
                 <TableHead>Est. Delivery</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -398,6 +409,12 @@ const TrackOrders = () => {
                   <TableCell>{order.subOrders.length} recipients</TableCell>
                   <TableCell>{order.orderDate}</TableCell>
                   <TableCell>{getStatusBadge(getOverallStatus(order.subOrders))}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Truck className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">{getCarrierTrackingDisplay(order)}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{order.estimatedDelivery}</TableCell>
                   <TableCell>
                     <Button
@@ -416,72 +433,13 @@ const TrackOrders = () => {
       </Card>
 
       {/* Order Details Modal */}
-      <Dialog open={showOrderDetails} onOpenChange={setShowOrderDetails}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Order Details - {selectedOrder?.orderNumber}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Order Date:</span>
-                  <p className="text-sm">{selectedOrder.orderDate}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Items:</span>
-                  <p className="text-sm">{selectedOrder.items}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Total Recipients:</span>
-                  <p className="text-sm">{selectedOrder.subOrders.length}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Overall Status:</span>
-                  <div className="mt-1">{getStatusBadge(getOverallStatus(selectedOrder.subOrders))}</div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Individual Shipments</h3>
-                <div className="space-y-4">
-                  {selectedOrder.subOrders.map((subOrder, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Recipient Name:</span>
-                          <p className="text-sm font-medium">{subOrder.recipientName}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Gift Box:</span>
-                          <p className="text-sm">{subOrder.giftBoxName}</p>
-                        </div>
-                        <div className="md:col-span-2">
-                          <span className="text-sm font-medium text-gray-600">Address:</span>
-                          <p className="text-sm">{subOrder.address}</p>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Status:</span>
-                          <div className="mt-1">{getStatusBadge(subOrder.status)}</div>
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-gray-600">Carrier & Tracking:</span>
-                          <p className="text-sm">{subOrder.carrier} - {subOrder.trackingNumber || 'N/A'}</p>
-                        </div>
-                        <div className="md:col-span-2">
-                          <span className="text-sm font-medium text-gray-600">Estimated Delivery:</span>
-                          <p className="text-sm">{subOrder.estimatedDelivery}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {selectedOrder && (
+        <OrderDetailsModal
+          isOpen={showOrderDetails}
+          onClose={() => setShowOrderDetails(false)}
+          order={selectedOrder}
+        />
+      )}
     </div>
   );
 };
