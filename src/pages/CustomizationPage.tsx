@@ -7,8 +7,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Package, Palette, User, Users, Gift, FileText, Tag, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Package, Palette, User, Users, Gift, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -29,24 +30,27 @@ const CustomizationPage = () => {
   const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
   const [orderLevelCustomization, setOrderLevelCustomization] = useState({
-    brandedNotecards: {
+    brandedNotecard: {
       enabled: false,
-      logo: '',
+      logo: null as File | null,
       message: ''
     },
     giftTags: {
       enabled: false,
-      message: ''
+      type: 'preset',
+      presetMessage: '',
+      customMessage: ''
     },
-    messageCards: {
+    messageCard: {
       enabled: false,
-      message: ''
+      message: '',
+      senderName: ''
     }
   });
 
   const [individualCustomizations, setIndividualCustomizations] = useState<{[key: number]: any}>({});
 
-  const handleOrderLevelChange = (type: string, field: string, value: string | boolean) => {
+  const handleOrderLevelChange = (type: string, field: string, value: string | boolean | File | null) => {
     setOrderLevelCustomization(prev => ({
       ...prev,
       [type]: {
@@ -56,7 +60,7 @@ const CustomizationPage = () => {
     }));
   };
 
-  const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean) => {
+  const handleIndividualChange = (recipientId: number, type: string, field: string, value: string | boolean | File | null) => {
     setIndividualCustomizations(prev => ({
       ...prev,
       [recipientId]: {
@@ -71,19 +75,47 @@ const CustomizationPage = () => {
 
   const getCurrentCustomization = (recipientId: number) => {
     return individualCustomizations[recipientId] || {
-      brandedNotecards: { enabled: false, logo: '', message: '' },
-      giftTags: { enabled: false, message: '' },
-      messageCards: { enabled: false, message: '' }
+      brandedNotecard: { enabled: false, logo: null, message: '' },
+      giftTags: { enabled: false, type: 'preset', presetMessage: '', customMessage: '' },
+      messageCard: { enabled: false, message: '', senderName: '' }
     };
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, recipientId?: number) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (recipientId !== undefined) {
+        handleIndividualChange(recipientId, 'brandedNotecard', 'logo', file);
+      } else {
+        handleOrderLevelChange('brandedNotecard', 'logo', file);
+      }
+      toast.success('Logo uploaded successfully');
+    }
+  };
+
+  const toggleCustomization = (type: string, enabled: boolean, recipientId?: number) => {
+    if (recipientId !== undefined) {
+      handleIndividualChange(recipientId, type, 'enabled', enabled);
+    } else {
+      handleOrderLevelChange(type, 'enabled', enabled);
+    }
+  };
+
+  const updateCustomization = (type: string, field: string, value: any, recipientId?: number) => {
+    if (recipientId !== undefined) {
+      handleIndividualChange(recipientId, type, field, value);
+    } else {
+      handleOrderLevelChange(type, field, value);
+    }
   };
 
   const handleContinue = () => {
     if (customizationType === 'order') {
       // Check if at least one customization type is enabled with content
       const hasValidCustomization = 
-        (orderLevelCustomization.brandedNotecards.enabled && orderLevelCustomization.brandedNotecards.message.trim()) ||
-        (orderLevelCustomization.giftTags.enabled && orderLevelCustomization.giftTags.message.trim()) ||
-        (orderLevelCustomization.messageCards.enabled && orderLevelCustomization.messageCards.message.trim());
+        (orderLevelCustomization.brandedNotecard.enabled && orderLevelCustomization.brandedNotecard.message.trim()) ||
+        (orderLevelCustomization.giftTags.enabled && (orderLevelCustomization.giftTags.presetMessage || orderLevelCustomization.giftTags.customMessage)) ||
+        (orderLevelCustomization.messageCard.enabled && orderLevelCustomization.messageCard.message.trim());
       
       if (!hasValidCustomization) {
         toast.error('Please enable and fill out at least one customization option');
@@ -96,9 +128,9 @@ const CustomizationPage = () => {
         if (!customization) return true;
         
         const hasValid = 
-          (customization.brandedNotecards?.enabled && customization.brandedNotecards?.message?.trim()) ||
-          (customization.giftTags?.enabled && customization.giftTags?.message?.trim()) ||
-          (customization.messageCards?.enabled && customization.messageCards?.message?.trim());
+          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
+          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
+          (customization.messageCard?.enabled && customization.messageCard?.message?.trim());
         
         return !hasValid;
       });
@@ -147,143 +179,144 @@ const CustomizationPage = () => {
     return (
       <div className="space-y-6">
         {/* Branded Notecards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Branded Notecards
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="brandedNotecards">Enable Branded Notecards</Label>
+        <div className="border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="font-medium">Branded Notecards</h4>
+              <p className="text-sm text-gray-600">Add your logo and custom message</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">+$5.00</Badge>
               <Switch
-                id="brandedNotecards"
-                checked={customization.brandedNotecards?.enabled || false}
-                onCheckedChange={(checked) => 
-                  isIndividual && recipientId 
-                    ? handleIndividualChange(recipientId, 'brandedNotecards', 'enabled', checked)
-                    : handleOrderLevelChange('brandedNotecards', 'enabled', checked)
-                }
+                checked={customization?.brandedNotecard?.enabled || false}
+                onCheckedChange={(checked) => toggleCustomization('brandedNotecard', checked, recipientId)}
               />
             </div>
-            
-            {customization.brandedNotecards?.enabled && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="logo">Company Logo URL</Label>
-                  <Input
-                    id="logo"
-                    placeholder="Enter logo URL"
-                    value={customization.brandedNotecards?.logo || ''}
-                    onChange={(e) => 
-                      isIndividual && recipientId 
-                        ? handleIndividualChange(recipientId, 'brandedNotecards', 'logo', e.target.value)
-                        : handleOrderLevelChange('brandedNotecards', 'logo', e.target.value)
-                    }
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="notecardMessage">Custom Message</Label>
-                  <Textarea
-                    id="notecardMessage"
-                    placeholder="Enter your custom message for the branded notecard..."
-                    value={customization.brandedNotecards?.message || ''}
-                    onChange={(e) => 
-                      isIndividual && recipientId 
-                        ? handleIndividualChange(recipientId, 'brandedNotecards', 'message', e.target.value)
-                        : handleOrderLevelChange('brandedNotecards', 'message', e.target.value)
-                    }
-                    rows={3}
-                  />
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Gift Tags */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Tag className="h-5 w-5" />
-              Gift Tags
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="giftTags">Enable Gift Tags</Label>
-              <Switch
-                id="giftTags"
-                checked={customization.giftTags?.enabled || false}
-                onCheckedChange={(checked) => 
-                  isIndividual && recipientId 
-                    ? handleIndividualChange(recipientId, 'giftTags', 'enabled', checked)
-                    : handleOrderLevelChange('giftTags', 'enabled', checked)
-                }
-              />
-            </div>
-            
-            {customization.giftTags?.enabled && (
-              <div className="space-y-2">
-                <Label htmlFor="tagMessage">Tag Message</Label>
-                <Textarea
-                  id="tagMessage"
-                  placeholder="Enter message for the gift tag..."
-                  value={customization.giftTags?.message || ''}
-                  onChange={(e) => 
-                    isIndividual && recipientId 
-                      ? handleIndividualChange(recipientId, 'giftTags', 'message', e.target.value)
-                      : handleOrderLevelChange('giftTags', 'message', e.target.value)
-                  }
-                  rows={2}
-                />
+          {customization?.brandedNotecard?.enabled && (
+            <div className="space-y-4">
+              <div>
+                <Label>Upload Your Logo</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, recipientId)}
+                    className="hidden"
+                    id={`logo-upload-${recipientId || 'order'}`}
+                  />
+                  <label htmlFor={`logo-upload-${recipientId || 'order'}`} className="cursor-pointer">
+                    <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600">
+                      {customization.brandedNotecard.logo 
+                        ? customization.brandedNotecard.logo.name 
+                        : 'Click to upload logo (PNG, JPG, max 5MB)'
+                      }
+                    </p>
+                  </label>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Message Cards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Message Cards
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="messageCards">Enable Message Cards</Label>
-              <Switch
-                id="messageCards"
-                checked={customization.messageCards?.enabled || false}
-                onCheckedChange={(checked) => 
-                  isIndividual && recipientId 
-                    ? handleIndividualChange(recipientId, 'messageCards', 'enabled', checked)
-                    : handleOrderLevelChange('messageCards', 'enabled', checked)
-                }
-              />
-            </div>
-            
-            {customization.messageCards?.enabled && (
-              <div className="space-y-2">
-                <Label htmlFor="cardMessage">Personal Message</Label>
+              <div>
+                <Label>Custom Message</Label>
                 <Textarea
-                  id="cardMessage"
-                  placeholder="Enter personal message for inside the gift box..."
-                  value={customization.messageCards?.message || ''}
-                  onChange={(e) => 
-                    isIndividual && recipientId 
-                      ? handleIndividualChange(recipientId, 'messageCards', 'message', e.target.value)
-                      : handleOrderLevelChange('messageCards', 'message', e.target.value)
-                  }
+                  placeholder="Enter your message for the notecard..."
+                  value={customization.brandedNotecard.message || ''}
+                  onChange={(e) => updateCustomization('brandedNotecard', 'message', e.target.value, recipientId)}
                   rows={3}
                 />
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </div>
+
+        {/* Gift Tags */}
+        <div className="border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="font-medium">Gift Tags</h4>
+              <p className="text-sm text-gray-600">Add special tags to your gifts</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">+$2.00</Badge>
+              <Switch
+                checked={customization?.giftTags?.enabled || false}
+                onCheckedChange={(checked) => toggleCustomization('giftTags', checked, recipientId)}
+              />
+            </div>
+          </div>
+
+          {customization?.giftTags?.enabled && (
+            <div className="space-y-4">
+              <div>
+                <Label>Tag Type</Label>
+                <Select
+                  value={customization.giftTags?.type || 'preset'}
+                  onValueChange={(value) => updateCustomization('giftTags', 'type', value, recipientId)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="preset">Preset Messages</SelectItem>
+                    <SelectItem value="custom">Custom Message</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {customization.giftTags?.type === 'custom' && (
+                <div>
+                  <Label>Custom Tag Message</Label>
+                  <Input
+                    placeholder="Enter your custom tag message"
+                    value={customization.giftTags?.customMessage || ''}
+                    onChange={(e) => updateCustomization('giftTags', 'customMessage', e.target.value, recipientId)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Message Cards */}
+        <div className="border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h4 className="font-medium">Message Cards</h4>
+              <p className="text-sm text-gray-600">Include a personal message inside the box</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">+$3.00</Badge>
+              <Switch
+                checked={customization?.messageCard?.enabled || false}
+                onCheckedChange={(checked) => toggleCustomization('messageCard', checked, recipientId)}
+              />
+            </div>
+          </div>
+
+          {customization?.messageCard?.enabled && (
+            <div className="space-y-4">
+              <div>
+                <Label>Message</Label>
+                <Textarea
+                  placeholder="Enter your personal message..."
+                  value={customization.messageCard?.message || ''}
+                  onChange={(e) => updateCustomization('messageCard', 'message', e.target.value, recipientId)}
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label>From (Sender Name)</Label>
+                <Input
+                  placeholder="Your name or company name"
+                  value={customization.messageCard?.senderName || ''}
+                  onChange={(e) => updateCustomization('messageCard', 'senderName', e.target.value, recipientId)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -456,9 +489,9 @@ const CustomizationPage = () => {
                       {Object.keys(individualCustomizations).filter(id => {
                         const customization = individualCustomizations[parseInt(id)];
                         return customization && (
-                          (customization.brandedNotecards?.enabled && customization.brandedNotecards?.message?.trim()) ||
-                          (customization.giftTags?.enabled && customization.giftTags?.message?.trim()) ||
-                          (customization.messageCards?.enabled && customization.messageCards?.message?.trim())
+                          (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
+                          (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
+                          (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
                         );
                       }).length} of {recipients.length}
                     </span>
@@ -471,9 +504,9 @@ const CustomizationPage = () => {
                         width: `${(Object.keys(individualCustomizations).filter(id => {
                           const customization = individualCustomizations[parseInt(id)];
                           return customization && (
-                            (customization.brandedNotecards?.enabled && customization.brandedNotecards?.message?.trim()) ||
-                            (customization.giftTags?.enabled && customization.giftTags?.message?.trim()) ||
-                            (customization.messageCards?.enabled && customization.messageCards?.message?.trim())
+                            (customization.brandedNotecard?.enabled && customization.brandedNotecard?.message?.trim()) ||
+                            (customization.giftTags?.enabled && (customization.giftTags?.presetMessage || customization.giftTags?.customMessage)) ||
+                            (customization.messageCard?.enabled && customization.messageCard?.message?.trim())
                           );
                         }).length / recipients.length) * 100}%`
                       }}
@@ -501,9 +534,9 @@ const CustomizationPage = () => {
                 <div className="space-y-2">
                   {recipients.map((recipient, index) => {
                     const hasCustomization = individualCustomizations[recipient.id] && (
-                      (individualCustomizations[recipient.id].brandedNotecards?.enabled && individualCustomizations[recipient.id].brandedNotecards?.message?.trim()) ||
-                      (individualCustomizations[recipient.id].giftTags?.enabled && individualCustomizations[recipient.id].giftTags?.message?.trim()) ||
-                      (individualCustomizations[recipient.id].messageCards?.enabled && individualCustomizations[recipient.id].messageCards?.message?.trim())
+                      (individualCustomizations[recipient.id].brandedNotecard?.enabled && individualCustomizations[recipient.id].brandedNotecard?.message?.trim()) ||
+                      (individualCustomizations[recipient.id].giftTags?.enabled && (individualCustomizations[recipient.id].giftTags?.presetMessage || individualCustomizations[recipient.id].giftTags?.customMessage)) ||
+                      (individualCustomizations[recipient.id].messageCard?.enabled && individualCustomizations[recipient.id].messageCard?.message?.trim())
                     );
                     
                     return (
