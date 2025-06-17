@@ -16,12 +16,12 @@ import OrderDetailsModal from '@/components/tracking/OrderDetailsModal';
 interface SubOrder {
   recipientName: string;
   recipientEmail: string;
-  address: string;
-  carrier: string;
-  status: 'placed' | 'fulfilled' | 'shipped' | 'delivered';
-  trackingNumber?: string;
+  shippingAddress: string;
+  deliveryStatus: string;
   estimatedDelivery: string;
-  giftBoxName: string;
+  giftBoxContents: string[];
+  trackingNumber?: string;
+  carrier: string;
 }
 
 interface Order {
@@ -34,6 +34,11 @@ interface Order {
   estimatedDelivery?: string;
   shippingCarrier?: string;
   subOrders: SubOrder[];
+  // Additional properties needed for OrderDetailsModal
+  recipientCount: number;
+  shipDate: Date;
+  carrier: string;
+  trackingLink: string;
 }
 
 const TrackOrders = () => {
@@ -55,26 +60,30 @@ const TrackOrders = () => {
       trackingNumber: 'FX123456789',
       estimatedDelivery: '2024-01-18',
       shippingCarrier: 'FedEx',
+      recipientCount: 2,
+      shipDate: new Date('2024-01-16'),
+      carrier: 'FedEx',
+      trackingLink: 'https://fedex.com/track/FX123456789',
       subOrders: [
         {
           recipientName: 'Sarah Johnson',
           recipientEmail: 'sarah@company.com',
-          address: '123 Main St, New York, NY 10001',
+          shippingAddress: '123 Main St, New York, NY 10001',
           carrier: 'FedEx',
-          status: 'delivered',
+          deliveryStatus: 'delivered',
           trackingNumber: 'FX123456789',
           estimatedDelivery: '2024-01-18',
-          giftBoxName: 'Premium Coffee Set'
+          giftBoxContents: ['Premium Coffee', 'Coffee Mug', 'Gourmet Cookies']
         },
         {
           recipientName: 'Mike Davis',
           recipientEmail: 'mike@company.com',
-          address: '456 Oak Ave, New York, NY 10002',
+          shippingAddress: '456 Oak Ave, New York, NY 10002',
           carrier: 'FedEx',
-          status: 'delivered',
+          deliveryStatus: 'delivered',
           trackingNumber: 'FX123456790',
           estimatedDelivery: '2024-01-18',
-          giftBoxName: 'Premium Coffee Set'
+          giftBoxContents: ['Premium Coffee', 'Coffee Mug', 'Gourmet Cookies']
         }
       ]
     },
@@ -87,26 +96,30 @@ const TrackOrders = () => {
       trackingNumber: 'UP987654321',
       estimatedDelivery: '2024-01-20',
       shippingCarrier: 'UPS',
+      recipientCount: 2,
+      shipDate: new Date('2024-01-17'),
+      carrier: 'UPS',
+      trackingLink: 'https://ups.com/track/UP987654321',
       subOrders: [
         {
           recipientName: 'Michael Chen',
           recipientEmail: 'michael@company.com',
-          address: '789 Pine St, San Francisco, CA 94102',
+          shippingAddress: '789 Pine St, San Francisco, CA 94102',
           carrier: 'UPS',
-          status: 'shipped',
+          deliveryStatus: 'shipped',
           trackingNumber: 'UP987654321',
           estimatedDelivery: '2024-01-20',
-          giftBoxName: 'Wellness Package'
+          giftBoxContents: ['Wellness Tea', 'Essential Oils', 'Aromatherapy Candle']
         },
         {
           recipientName: 'Lisa Wong',
           recipientEmail: 'lisa@company.com',
-          address: '321 Elm St, San Francisco, CA 94103',
+          shippingAddress: '321 Elm St, San Francisco, CA 94103',
           carrier: 'UPS',
-          status: 'fulfilled',
+          deliveryStatus: 'fulfilled',
           trackingNumber: 'UP987654322',
           estimatedDelivery: '2024-01-21',
-          giftBoxName: 'Wellness Package'
+          giftBoxContents: ['Wellness Tea', 'Essential Oils', 'Aromatherapy Candle']
         }
       ]
     },
@@ -119,16 +132,20 @@ const TrackOrders = () => {
       trackingNumber: 'DH555666777',
       estimatedDelivery: '2024-01-22',
       shippingCarrier: 'DHL',
+      recipientCount: 1,
+      shipDate: new Date('2024-01-18'),
+      carrier: 'DHL',
+      trackingLink: 'https://dhl.com/track/DH555666777',
       subOrders: [
         {
           recipientName: 'John Smith',
           recipientEmail: 'john@company.com',
-          address: '789 Broadway, Los Angeles, CA 90210',
+          shippingAddress: '789 Broadway, Los Angeles, CA 90210',
           carrier: 'DHL',
-          status: 'shipped',
+          deliveryStatus: 'shipped',
           trackingNumber: 'DH555666777',
           estimatedDelivery: '2024-01-22',
-          giftBoxName: 'Tech Accessories Kit'
+          giftBoxContents: ['Wireless Charger', 'Phone Stand', 'USB Cable']
         }
       ]
     },
@@ -139,15 +156,19 @@ const TrackOrders = () => {
       orderDate: '2024-01-18',
       status: 'placed',
       estimatedDelivery: '2024-01-25',
+      recipientCount: 1,
+      shipDate: new Date('2024-01-19'),
+      carrier: 'USPS',
+      trackingLink: 'https://usps.com/track',
       subOrders: [
         {
           recipientName: 'Emma Wilson',
           recipientEmail: 'emma@company.com',
-          address: '456 Oak Street, Chicago, IL 60601',
+          shippingAddress: '456 Oak Street, Chicago, IL 60601',
           carrier: 'USPS',
-          status: 'placed',
+          deliveryStatus: 'placed',
           estimatedDelivery: '2024-01-25',
-          giftBoxName: 'Holiday Gift Box'
+          giftBoxContents: ['Holiday Cookies', 'Festive Ornament', 'Gift Card']
         }
       ]
     }
@@ -156,7 +177,7 @@ const TrackOrders = () => {
   // Calculate overall status based on most delayed sub-order
   const getOverallStatus = (subOrders: SubOrder[]) => {
     const statusPriority = { 'placed': 0, 'fulfilled': 1, 'shipped': 2, 'delivered': 3 };
-    const minStatus = Math.min(...subOrders.map(sub => statusPriority[sub.status]));
+    const minStatus = Math.min(...subOrders.map(sub => statusPriority[sub.deliveryStatus as keyof typeof statusPriority] || 0));
     return Object.keys(statusPriority).find(key => statusPriority[key as keyof typeof statusPriority] === minStatus) as Order['status'];
   };
 
@@ -218,10 +239,10 @@ const TrackOrders = () => {
         'Order ID': order.orderNumber,
         'Recipient Name': subOrder.recipientName,
         'Recipient Email': subOrder.recipientEmail,
-        'Shipping Address': subOrder.address,
+        'Shipping Address': subOrder.shippingAddress,
         'Carrier': subOrder.carrier,
         'Tracking Number': subOrder.trackingNumber || 'N/A',
-        'Shipment Status': subOrder.status.charAt(0).toUpperCase() + subOrder.status.slice(1),
+        'Shipment Status': subOrder.deliveryStatus.charAt(0).toUpperCase() + subOrder.deliveryStatus.slice(1),
         'Estimated Delivery': subOrder.estimatedDelivery
       }))
     );
