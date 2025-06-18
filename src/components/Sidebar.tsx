@@ -55,7 +55,7 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-// Updated admin menu items with Customization Settings added
+// Updated admin menu items with Customization Settings added above Settings
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Team', path: '/admin/users', icon: <UserCog size={20} /> },

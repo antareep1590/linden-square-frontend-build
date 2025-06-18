@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -290,23 +291,18 @@ const AdminClientManagement = () => {
           </DialogHeader>
           {selectedClient && (
             <div className="space-y-6">
-              {/* Client Logo */}
+              {/* Client Logo - Fixed with proper centering and rounded background */}
               <div className="flex justify-center">
-                <div className="w-24 h-24 rounded-full border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
-                  {selectedClient.logoUrl ? (
+                <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center overflow-hidden">
+                  {selectedClient.logoUrl && selectedClient.logoUrl !== '/placeholder.svg' ? (
                     <img 
                       src={selectedClient.logoUrl} 
                       alt={`${selectedClient.companyName} logo`}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
-                      }}
                     />
-                  ) : null}
-                  <div className="w-full h-full flex items-center justify-center text-gray-400" style={{ display: selectedClient.logoUrl ? 'none' : 'flex' }}>
-                    <Building className="w-8 h-8" />
-                  </div>
+                  ) : (
+                    <Building className="w-8 h-8 text-gray-400" />
+                  )}
                 </div>
               </div>
 
