@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Card,
@@ -33,7 +34,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Eye, Building } from "lucide-react";
-import { CalendarDate } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { toast } from "sonner";
 import AddClientModal from '@/components/admin/AddClientModal';
 
