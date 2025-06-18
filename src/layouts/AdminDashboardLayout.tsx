@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,8 @@ import {
   User,
   UserCog,
   Archive,
-  PackageOpen
+  PackageOpen,
+  Palette
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,12 +41,12 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { name: 'Team', href: '/admin/users', icon: UserCog },
     { name: 'Client Management', href: '/admin/client-management', icon: Users },
-    { name: 'Gift Catalog', href: '/admin/gift-catalog', icon: Gift },
     { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: PackageOpen },
     { name: 'Packaging & Delivery', href: '/admin/packaging-delivery', icon: Package },
     { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
     { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
     { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },
+    { name: 'Customization Settings', href: '/admin/customization-settings', icon: Palette },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
