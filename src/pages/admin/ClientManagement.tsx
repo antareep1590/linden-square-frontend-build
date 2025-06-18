@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { User, Building, Mail, Phone, Calendar as CalendarDays, Package, Plus, Eye, Edit } from "lucide-react";
+import { User, Building, Mail, Phone, Calendar as CalendarDays, Package, Plus, Eye, Edit, Palette } from "lucide-react";
 import AddClientModal from "@/components/admin/AddClientModal";
 import { toast } from "sonner";
 
@@ -34,6 +34,9 @@ interface Client {
   joinDate: Date;
   totalOrders: number;
   lastOrderDate?: Date;
+  recipientCount: number;
+  portalTheme: string;
+  logoUrl?: string;
 }
 
 const mockClients: Client[] = [
@@ -46,7 +49,10 @@ const mockClients: Client[] = [
     status: "active",
     joinDate: new Date("2023-01-15"),
     totalOrders: 12,
-    lastOrderDate: new Date("2023-11-01")
+    lastOrderDate: new Date("2023-11-01"),
+    recipientCount: 45,
+    portalTheme: "Professional Blue",
+    logoUrl: "https://via.placeholder.com/100x50/4285F4/FFFFFF?text=ACME"
   },
   {
     id: "CLI-002",
@@ -57,7 +63,10 @@ const mockClients: Client[] = [
     status: "active",
     joinDate: new Date("2023-03-20"),
     totalOrders: 8,
-    lastOrderDate: new Date("2023-10-28")
+    lastOrderDate: new Date("2023-10-28"),
+    recipientCount: 28,
+    portalTheme: "Modern Dark",
+    logoUrl: "https://via.placeholder.com/100x50/000000/FFFFFF?text=TECH"
   },
   {
     id: "CLI-003",
@@ -67,7 +76,9 @@ const mockClients: Client[] = [
     phone: "+1 (555) 555-5555",
     status: "pending",
     joinDate: new Date("2023-11-05"),
-    totalOrders: 0
+    totalOrders: 0,
+    recipientCount: 0,
+    portalTheme: "Clean Light"
   }
 ];
 
@@ -294,6 +305,7 @@ const AdminClientManagement = () => {
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead># of Recipients</TableHead>
               <TableHead>Total Orders</TableHead>
               <TableHead>Date Joined</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -308,6 +320,7 @@ const AdminClientManagement = () => {
                 <TableCell>{client.email}</TableCell>
                 <TableCell>{client.phone}</TableCell>
                 <TableCell>{getStatusBadge(client.status)}</TableCell>
+                <TableCell>{client.recipientCount}</TableCell>
                 <TableCell>{client.totalOrders}</TableCell>
                 <TableCell>{formatDate(client.joinDate)}</TableCell>
                 <TableCell>
@@ -365,6 +378,13 @@ const AdminClientManagement = () => {
                       <p className="font-medium">{selectedClient.email}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <Palette className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Portal Theme</p>
+                      <p className="font-medium">{selectedClient.portalTheme}</p>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
@@ -388,8 +408,37 @@ const AdminClientManagement = () => {
                       <p className="font-medium">{selectedClient.totalOrders}</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500"># of Recipients</p>
+                      <p className="font-medium">{selectedClient.recipientCount}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* Company Logo Section */}
+              <div className="pt-4 border-t">
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500">Company Logo</p>
+                  {selectedClient.logoUrl ? (
+                    <div className="flex items-center justify-center p-4 border rounded-lg bg-gray-50">
+                      <img 
+                        src={selectedClient.logoUrl} 
+                        alt={`${selectedClient.companyName} logo`}
+                        className="max-h-12 object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center p-8 border rounded-lg bg-gray-50 text-gray-400">
+                      <Building className="h-8 w-8 mr-2" />
+                      <span>No logo uploaded</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
               <div className="pt-4 border-t">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-500">Status</span>

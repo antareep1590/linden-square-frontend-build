@@ -63,13 +63,11 @@ interface BoxSize {
   cost: number;
 }
 
-interface AddOnItem {
+interface PortalTheme {
   id: string;
   name: string;
-  type: string;
-  price: number;
-  options: string[];
-  image?: string;
+  colorPreview: string;
+  isActive: boolean;
 }
 
 const mockCarriers: Carrier[] = [
@@ -85,18 +83,19 @@ const mockBoxSizes: BoxSize[] = [
   { id: '3', name: 'Large Box', dimensions: '12" x 8" x 6"', weight: '3 lbs', cost: 5.00 },
 ];
 
-const mockAddOns: AddOnItem[] = [
-  { id: '1', name: 'Gift Wrapping', type: 'Service', price: 5.00, options: ['Premium Paper', 'Standard Paper', 'Eco-friendly'] },
-  { id: '2', name: 'Personalized Card', type: 'Item', price: 3.50, options: ['Birthday', 'Thank You', 'Congratulations', 'Custom Message'] },
-  { id: '3', name: 'Premium Ribbon', type: 'Accessory', price: 2.00, options: ['Gold', 'Silver', 'Red', 'Blue', 'Green'] },
+const mockPortalThemes: PortalTheme[] = [
+  { id: '1', name: 'Professional Blue', colorPreview: '#4285F4', isActive: true },
+  { id: '2', name: 'Natural Green', colorPreview: '#34A853', isActive: true },
+  { id: '3', name: 'Creative Purple', colorPreview: '#9C27B0', isActive: true },
+  { id: '4', name: 'Energetic Orange', colorPreview: '#FF9800', isActive: true },
+  { id: '5', name: 'Modern Dark', colorPreview: '#212121', isActive: true },
+  { id: '6', name: 'Clean Light', colorPreview: '#F5F5F5', isActive: true },
 ];
-
-const addOnTypes = ['Service', 'Item', 'Accessory', 'Enhancement'];
 
 const AdminSettings = () => {
   const [carriers, setCarriers] = useState<Carrier[]>(mockCarriers);
   const [boxSizes, setBoxSizes] = useState<BoxSize[]>(mockBoxSizes);
-  const [addOns, setAddOns] = useState<AddOnItem[]>(mockAddOns);
+  const [portalThemes, setPortalThemes] = useState<PortalTheme[]>(mockPortalThemes);
   
   // Add Carrier Modal State
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
@@ -105,11 +104,6 @@ const AdminSettings = () => {
   // Edit Box Size Modal State
   const [isEditBoxOpen, setIsEditBoxOpen] = useState(false);
   const [editingBox, setEditingBox] = useState<BoxSize | null>(null);
-  
-  // Add Add-On Modal State
-  const [isAddAddOnOpen, setIsAddAddOnOpen] = useState(false);
-  const [newAddOn, setNewAddOn] = useState({ name: '', type: '', price: '', options: [] as string[], image: '' });
-  const [newOptionInput, setNewOptionInput] = useState('');
 
   // Carrier Functions
   const handleAddCarrier = () => {
@@ -153,49 +147,12 @@ const AdminSettings = () => {
     toast.success("Box size updated successfully");
   };
 
-  // Add-On Functions
-  const handleAddOption = () => {
-    if (newOptionInput.trim() && !newAddOn.options.includes(newOptionInput.trim())) {
-      setNewAddOn({
-        ...newAddOn,
-        options: [...newAddOn.options, newOptionInput.trim()]
-      });
-      setNewOptionInput('');
-    }
-  };
-
-  const handleRemoveOption = (optionToRemove: string) => {
-    setNewAddOn({
-      ...newAddOn,
-      options: newAddOn.options.filter(option => option !== optionToRemove)
-    });
-  };
-
-  const handleAddAddOn = () => {
-    if (!newAddOn.name || !newAddOn.type || !newAddOn.price) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    const addOn: AddOnItem = {
-      id: (addOns.length + 1).toString(),
-      name: newAddOn.name,
-      type: newAddOn.type,
-      price: parseFloat(newAddOn.price),
-      options: newAddOn.options,
-      image: newAddOn.image || undefined
-    };
-
-    setAddOns([...addOns, addOn]);
-    setNewAddOn({ name: '', type: '', price: '', options: [], image: '' });
-    setNewOptionInput('');
-    setIsAddAddOnOpen(false);
-    toast.success("Add-on item added successfully");
-  };
-
-  const handleDeleteAddOn = (id: string) => {
-    setAddOns(addOns.filter(addOn => addOn.id !== id));
-    toast.success("Add-on item deleted successfully");
+  // Theme Functions
+  const toggleThemeStatus = (id: string) => {
+    setPortalThemes(portalThemes.map(theme => 
+      theme.id === id ? { ...theme, isActive: !theme.isActive } : theme
+    ));
+    toast.success("Theme status updated");
   };
 
   return (
@@ -209,7 +166,7 @@ const AdminSettings = () => {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="shipping">Shipping</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="addons">Add-Ons</TabsTrigger>
+          <TabsTrigger value="themes">Theme Setting</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -461,178 +418,47 @@ const AdminSettings = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="addons">
+        <TabsContent value="themes">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Add-On Items</CardTitle>
-                  <CardDescription>
-                    Manage additional items and services
-                  </CardDescription>
-                </div>
-                <Dialog open={isAddAddOnOpen} onOpenChange={setIsAddAddOnOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add New Add-On
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Add New Add-On Item</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="addon-name">Item Name</Label>
-                        <Input
-                          id="addon-name"
-                          placeholder="Enter item name"
-                          value={newAddOn.name}
-                          onChange={(e) => setNewAddOn({ ...newAddOn, name: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="addon-type">Type</Label>
-                        <select
-                          id="addon-type"
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                          value={newAddOn.type}
-                          onChange={(e) => setNewAddOn({ ...newAddOn, type: e.target.value })}
-                        >
-                          <option value="">Select type</option>
-                          {addOnTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="addon-options">Options</Label>
-                        <div className="space-y-3">
-                          <div className="flex gap-2">
-                            <Input
-                              id="addon-options"
-                              placeholder="Enter an option"
-                              value={newOptionInput}
-                              onChange={(e) => setNewOptionInput(e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleAddOption();
-                                }
-                              }}
-                            />
-                            <Button 
-                              type="button" 
-                              onClick={handleAddOption}
-                              disabled={!newOptionInput.trim()}
-                            >
-                              Add
-                            </Button>
-                          </div>
-                          {newAddOn.options.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              {newAddOn.options.map((option, index) => (
-                                <Badge key={index} variant="secondary" className="flex items-center gap-2">
-                                  {option}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveOption(option)}
-                                    className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="addon-price">Price ($)</Label>
-                        <Input
-                          id="addon-price"
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={newAddOn.price}
-                          onChange={(e) => setNewAddOn({ ...newAddOn, price: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="addon-image">Image (Optional)</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="addon-image"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                setNewAddOn({ ...newAddOn, image: file.name });
-                              }
-                            }}
-                          />
-                          <Button type="button" variant="outline" size="sm">
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsAddAddOnOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleAddAddOn}>Add Add-On</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <CardTitle>Portal Theme Settings</CardTitle>
+              <CardDescription>
+                Manage portal themes available to clients
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {addOns.map((addOn) => (
-                  <div key={addOn.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <p className="font-medium">{addOn.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline">{addOn.type}</Badge>
-                          <span className="text-sm text-gray-500">${addOn.price.toFixed(2)}</span>
-                        </div>
-                        {addOn.options.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {addOn.options.slice(0, 3).map((option, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {option}
-                              </Badge>
-                            ))}
-                            {addOn.options.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{addOn.options.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
+                {portalThemes.map((theme) => (
+                  <div key={theme.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="w-8 h-8 rounded-full border-2 border-gray-200"
+                        style={{ backgroundColor: theme.colorPreview }}
+                      />
+                      <div>
+                        <p className="font-medium">{theme.name}</p>
+                        <p className="text-sm text-gray-500">Color: {theme.colorPreview}</p>
                       </div>
+                      <Badge variant={theme.isActive ? "default" : "secondary"}>
+                        {theme.isActive ? "Available" : "Disabled"}
+                      </Badge>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Switch
+                        checked={theme.isActive}
+                        onCheckedChange={() => toggleThemeStatus(theme.id)}
+                      />
                       <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteAddOn(addOn.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
+            <CardFooter>
+              <Button>Save Theme Settings</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

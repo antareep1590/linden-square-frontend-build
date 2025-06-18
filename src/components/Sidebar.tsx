@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,6 @@ import { cn } from '@/lib/utils';
 import LindenSquareLogo from './LindenSquareLogo';
 import { 
   LayoutDashboard, 
-  Gift, 
   Pen, 
   Package, 
   Truck, 
@@ -17,13 +17,10 @@ import {
   Users,
   Settings,
   UserCog,
-  Sparkles,
   PackageOpen,
   ShoppingCart,
   Mail,
-  MapPin,
   Palette,
-  CheckCircle
 } from 'lucide-react';
 
 type MenuItem = {
@@ -58,12 +55,11 @@ const clientMenuItems: MenuItem[] = [
   { name: 'Invoices & Payments', path: '/invoices', icon: <FileText size={20} /> },
 ];
 
-// Updated admin menu items with reordering and unique icons
+// Updated admin menu items with Gift Catalog removed
 const adminMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Team', path: '/admin/users', icon: <UserCog size={20} /> },
   { name: 'Client Management', path: '/admin/client-management', icon: <Users size={20} /> },
-  { name: 'Gift Catalog', path: '/admin/gift-catalog', icon: <Gift size={20} /> },
   { name: 'Preset Gift Box Setup', path: '/admin/preset-setup', icon: <PackageOpen size={20} /> },
   { name: 'Packaging & Delivery', path: '/admin/packaging-delivery', icon: <Package size={20} /> },
   { name: 'Track Orders', path: '/admin/track-orders', icon: <Truck size={20} /> },

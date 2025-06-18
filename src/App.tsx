@@ -43,7 +43,6 @@ import SelectRecipientsEGift from '@/pages/SelectRecipientsEGift';
 // Admin pages  
 import AdminDashboard from '@/pages/admin/Dashboard';
 import AdminClientManagement from '@/pages/admin/ClientManagement';
-import AdminGiftCatalog from '@/pages/admin/GiftCatalog';
 import PresetGiftBoxSetup from '@/pages/admin/PresetGiftBoxSetup';
 import AdminPackagingDelivery from '@/pages/admin/PackagingDelivery';
 import AdminTrackOrders from '@/pages/admin/TrackOrders';
@@ -109,7 +108,6 @@ function App() {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/client-management" element={<AdminClientManagement />} />
-                <Route path="/admin/gift-catalog" element={<AdminGiftCatalog />} />
                 <Route path="/admin/preset-setup" element={<PresetGiftBoxSetup />} />
                 <Route path="/admin/packaging-delivery" element={<AdminPackagingDelivery />} />
                 <Route path="/admin/track-orders" element={<AdminTrackOrders />} />
