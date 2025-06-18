@@ -1,3 +1,10 @@
 
-// This file is no longer needed - LandingPage is now the home route
-export {};
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+
+const Index: React.FC = () => {
+  // Redirect to login page as the default behavior
+  return <Navigate to="/login" replace />;
+};
+
+export default Index;
