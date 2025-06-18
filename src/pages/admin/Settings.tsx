@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -37,16 +36,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { 
-  Settings as SettingsIcon, 
-  Building, 
-  Mail, 
-  Bell, 
-  Shield,
-  Palette,
-  Globe,
-  Save
-} from "lucide-react";
 
 interface Carrier {
   id: string;
@@ -105,6 +94,12 @@ const AdminSettings = () => {
   const [isEditBoxOpen, setIsEditBoxOpen] = useState(false);
   const [editingBox, setEditingBox] = useState<BoxSize | null>(null);
 
+  // Theme Modal States
+  const [isAddThemeOpen, setIsAddThemeOpen] = useState(false);
+  const [isEditThemeOpen, setIsEditThemeOpen] = useState(false);
+  const [newTheme, setNewTheme] = useState({ name: '', colorPreview: '#4285F4', isActive: true });
+  const [editingTheme, setEditingTheme] = useState<PortalTheme | null>(null);
+
   // Carrier Functions
   const handleAddCarrier = () => {
     if (!newCarrier.name || !newCarrier.trackingUrl) {
@@ -148,6 +143,55 @@ const AdminSettings = () => {
   };
 
   // Theme Functions
+  const handleAddTheme = () => {
+    if (!newTheme.name) {
+      toast.error("Please enter a theme name");
+      return;
+    }
+
+    const theme: PortalTheme = {
+      id: (portalThemes.length + 1).toString(),
+      ...newTheme
+    };
+
+    setPortalThemes([...portalThemes, theme]);
+    setNewTheme({ name: '', colorPreview: '#4285F4', isActive: true });
+    setIsAddThemeOpen(false);
+    toast.success("Theme added successfully");
+  };
+
+  const handleEditTheme = (theme: PortalTheme) => {
+    setEditingTheme(theme);
+    setNewTheme({
+      name: theme.name,
+      colorPreview: theme.colorPreview,
+      isActive: theme.isActive
+    });
+    setIsEditThemeOpen(true);
+  };
+
+  const handleUpdateTheme = () => {
+    if (!editingTheme || !newTheme.name) {
+      toast.error("Please enter a theme name");
+      return;
+    }
+
+    setPortalThemes(portalThemes.map(theme => 
+      theme.id === editingTheme.id 
+        ? { ...theme, ...newTheme }
+        : theme
+    ));
+    setEditingTheme(null);
+    setNewTheme({ name: '', colorPreview: '#4285F4', isActive: true });
+    setIsEditThemeOpen(false);
+    toast.success("Theme updated successfully");
+  };
+
+  const handleDeleteTheme = (id: string) => {
+    setPortalThemes(portalThemes.filter(theme => theme.id !== id));
+    toast.success("Theme deleted successfully");
+  };
+
   const toggleThemeStatus = (id: string) => {
     setPortalThemes(portalThemes.map(theme => 
       theme.id === id ? { ...theme, isActive: !theme.isActive } : theme
@@ -421,10 +465,18 @@ const AdminSettings = () => {
         <TabsContent value="themes">
           <Card>
             <CardHeader>
-              <CardTitle>Portal Theme Settings</CardTitle>
-              <CardDescription>
-                Manage portal themes available to clients
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Portal Theme Settings</CardTitle>
+                  <CardDescription>
+                    Manage portal themes available to clients
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsAddThemeOpen(true)} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Theme
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -448,8 +500,11 @@ const AdminSettings = () => {
                         checked={theme.isActive}
                         onCheckedChange={() => toggleThemeStatus(theme.id)}
                       />
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditTheme(theme)}>
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteTheme(theme.id)}>
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
