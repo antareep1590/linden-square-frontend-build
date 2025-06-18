@@ -36,13 +36,13 @@ type SubMenuItem = {
   isViewOnly?: boolean;
 };
 
-// Client menu items
+// Client menu items - updated to navigate to box-listing instead of gift-box-flow
 const clientMenuItems: MenuItem[] = [
   { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Recipients', path: '/customers', icon: <Users size={20} /> },
   { 
     name: 'Order Management', 
-    path: '/gift-box-flow', 
+    path: '/box-listing', 
     icon: <ShoppingCart size={20} />,
     subItems: [
       { name: 'Choose Delivery Method', icon: <Mail size={16} />, isViewOnly: true },

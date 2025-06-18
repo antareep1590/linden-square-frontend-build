@@ -11,7 +11,6 @@ import TrackOrders from "./pages/TrackOrders";
 import Invoices from "./pages/Invoices";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import GiftBoxFlow from "./pages/GiftBoxFlow";
 import ChooseDeliveryMethod from "./pages/ChooseDeliveryMethod";
 import RecipientSelection from "./pages/RecipientSelection";
 import CustomizationPage from "./pages/CustomizationPage";
@@ -59,7 +58,7 @@ function App() {
               <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
               <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
               <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-              <Route path="/gift-box-flow" element={<DashboardLayout><GiftBoxFlow /></DashboardLayout>} />
+              {/* Removed /gift-box-flow route - Order Management now goes directly to /box-listing */}
               <Route path="/choose-delivery-method" element={<DashboardLayout><ChooseDeliveryMethod /></DashboardLayout>} />
               <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />
               <Route path="/customization" element={<DashboardLayout><CustomizationPage /></DashboardLayout>} />
