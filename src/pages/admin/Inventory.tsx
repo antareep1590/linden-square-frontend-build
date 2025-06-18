@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
@@ -19,13 +18,13 @@ import { Badge } from "@/components/ui/badge";
 import AddInventoryItemModal from "@/components/admin/AddInventoryItemModal";
 import AddGiftBoxModal from "@/components/admin/AddGiftBoxModal";
 
-// Mock data for gift items
+// Mock data for gift items with themes
 const mockInventory = [
   {
     id: "1",
     name: "Artisan Chocolates",
     sku: "AC-001",
-    category: "Food & Beverage",
+    theme: "Food & Beverages",
     quantity: 120,
     reorderThreshold: 50,
     unitCost: 15.99,
@@ -35,7 +34,7 @@ const mockInventory = [
     id: "2",
     name: "Coffee Mug",
     sku: "CM-002",
-    category: "Drinkware",
+    theme: "Food & Beverages",
     quantity: 35,
     reorderThreshold: 40,
     unitCost: 12.50,
@@ -43,9 +42,9 @@ const mockInventory = [
   },
   {
     id: "3",
-    name: "Scented Candle",
-    sku: "SC-003",
-    category: "Home & Living",
+    name: "Essential Oil Diffuser",
+    sku: "EOD-003",
+    theme: "Wellness",
     quantity: 18,
     reorderThreshold: 25,
     unitCost: 22.00,
@@ -53,19 +52,19 @@ const mockInventory = [
   },
   {
     id: "4",
-    name: "Custom Notepad",
-    sku: "CN-004",
-    category: "Stationery",
+    name: "Wireless Earbuds",
+    sku: "WE-004",
+    theme: "Technology",
     quantity: 80,
     reorderThreshold: 30,
-    unitCost: 8.75,
+    unitCost: 45.75,
     lastRefilledDate: new Date("2023-10-10")
   },
   {
     id: "5",
-    name: "Leather Journal",
-    sku: "LJ-005",
-    category: "Stationery",
+    name: "Yoga Mat",
+    sku: "YM-005",
+    theme: "Wellness",
     quantity: 22,
     reorderThreshold: 20,
     unitCost: 35.00,
@@ -73,7 +72,7 @@ const mockInventory = [
   }
 ];
 
-// Mock data for gift boxes
+// Mock data for gift boxes with themes
 const mockGiftBoxes = [
   {
     id: "GB-001",
@@ -83,6 +82,7 @@ const mockGiftBoxes = [
     reorderThreshold: 10,
     unitCost: 125.99,
     size: "Large",
+    theme: "Technology",
     lastRefilledDate: new Date("2023-10-20")
   },
   {
@@ -93,6 +93,7 @@ const mockGiftBoxes = [
     reorderThreshold: 15,
     unitCost: 89.99,
     size: "Medium",
+    theme: "Food & Beverages",
     lastRefilledDate: new Date("2023-11-01")
   },
   {
@@ -103,6 +104,7 @@ const mockGiftBoxes = [
     reorderThreshold: 20,
     unitCost: 45.99,
     size: "Small",
+    theme: "Wellness",
     lastRefilledDate: new Date("2023-10-15")
   }
 ];
@@ -111,7 +113,7 @@ interface InventoryItem {
   id: string;
   name: string;
   sku: string;
-  category: string;
+  theme: string;
   quantity: number;
   reorderThreshold: number;
   unitCost: number;
@@ -126,24 +128,21 @@ interface GiftBox {
   reorderThreshold: number;
   unitCost: number;
   size: string;
+  theme: string;
   lastRefilledDate: Date;
 }
 
-const categories = [
-  "Food & Beverage",
-  "Drinkware",
-  "Home & Living",
-  "Stationery",
+const themes = [
+  "Wellness",
   "Technology",
-  "Apparel",
-  "Health & Beauty"
+  "Food & Beverages"
 ];
 
 const AdminInventory = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory);
   const [giftBoxes, setGiftBoxes] = useState<GiftBox[]>(mockGiftBoxes);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [themeFilter, setThemeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [quantityFilter, setQuantityFilter] = useState("all");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -164,7 +163,7 @@ const AdminInventory = () => {
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    const matchesTheme = themeFilter === "all" || item.theme === themeFilter;
     
     let matchesStatus = true;
     if (statusFilter === "low") {
@@ -182,7 +181,7 @@ const AdminInventory = () => {
       matchesQuantity = item.quantity >= 100;
     }
     
-    return matchesSearch && matchesCategory && matchesStatus && matchesQuantity;
+    return matchesSearch && matchesTheme && matchesStatus && matchesQuantity;
   });
 
   // Filter gift boxes
@@ -225,7 +224,7 @@ const AdminInventory = () => {
 
   const resetFilters = () => {
     setSearchTerm("");
-    setCategoryFilter("all");
+    setThemeFilter("all");
     setStatusFilter("all");
     setQuantityFilter("all");
     setBoxStatusFilter("all");
@@ -312,15 +311,15 @@ const AdminInventory = () => {
             {activeTab === "gift-products" && (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Category</Label>
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <Label className="text-sm font-medium">Theme</Label>
+                  <Select value={themeFilter} onValueChange={setThemeFilter}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
+                      <SelectValue placeholder="All Themes" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      <SelectItem value="all">All Themes</SelectItem>
+                      {themes.map(theme => (
+                        <SelectItem key={theme} value={theme}>{theme}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -431,7 +430,7 @@ const AdminInventory = () => {
                 <TableRow>
                   <TableHead>Product Name</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Theme</TableHead>
                   <TableHead className="text-right">Quantity Left</TableHead>
                   <TableHead className="text-right">Reorder Threshold</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
@@ -454,7 +453,7 @@ const AdminInventory = () => {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{item.sku}</TableCell>
-                      <TableCell>{item.category}</TableCell>
+                      <TableCell>{item.theme}</TableCell>
                       <TableCell className="text-right font-medium">{item.quantity}</TableCell>
                       <TableCell className="text-right">{item.reorderThreshold}</TableCell>
                       <TableCell className="text-right">{formatCurrency(item.unitCost)}</TableCell>
@@ -501,6 +500,7 @@ const AdminInventory = () => {
                   <TableHead className="text-right">Reorder Threshold</TableHead>
                   <TableHead className="text-right">Unit Cost</TableHead>
                   <TableHead>Box Size</TableHead>
+                  <TableHead>Theme</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Last Refill Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -525,6 +525,7 @@ const AdminInventory = () => {
                         <TableCell>
                           <Badge variant="outline">{box.size}</Badge>
                         </TableCell>
+                        <TableCell>{box.theme}</TableCell>
                         <TableCell>
                           <Badge className={`${stockStatus.color} text-white border-0`}>
                             {stockStatus.label}
@@ -546,7 +547,7 @@ const AdminInventory = () => {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       No gift boxes found
                     </TableCell>
                   </TableRow>

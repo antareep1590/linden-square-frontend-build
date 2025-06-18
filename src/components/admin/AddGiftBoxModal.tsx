@@ -27,6 +27,7 @@ interface GiftBox {
   reorderThreshold: number;
   unitCost: number;
   size: string;
+  theme: string;
   lastRefilledDate: Date;
 }
 
@@ -45,6 +46,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
     reorderThreshold: '',
     unitCost: '',
     size: 'Medium',
+    theme: '',
   });
 
   React.useEffect(() => {
@@ -56,6 +58,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
         reorderThreshold: editingBox.reorderThreshold.toString(),
         unitCost: editingBox.unitCost.toString(),
         size: editingBox.size,
+        theme: editingBox.theme || '',
       });
     } else {
       setFormData({
@@ -65,6 +68,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
         reorderThreshold: '',
         unitCost: '',
         size: 'Medium',
+        theme: '',
       });
     }
   }, [editingBox, isOpen]);
@@ -72,7 +76,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.boxName || !formData.sku || !formData.qtyInHand || !formData.reorderThreshold || !formData.unitCost) {
+    if (!formData.boxName || !formData.sku || !formData.qtyInHand || !formData.reorderThreshold || !formData.unitCost || !formData.theme) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -85,6 +89,7 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
       reorderThreshold: parseInt(formData.reorderThreshold),
       unitCost: parseFloat(formData.unitCost),
       size: formData.size,
+      theme: formData.theme,
       lastRefilledDate: editingBox?.lastRefilledDate || new Date(),
     };
 
@@ -159,18 +164,31 @@ const AddGiftBoxModal = ({ isOpen, onClose, onBoxAdded, editingBox }: AddGiftBox
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="size">Size *</Label>
-            <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Small">Small</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Large">Large</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="size">Size *</Label>
+              <Select value={formData.size} onValueChange={(value) => setFormData({ ...formData, size: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Small">Small</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Large">Large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="theme">Theme *</Label>
+              <Input
+                id="theme"
+                value={formData.theme}
+                onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                placeholder="Enter theme name"
+                required
+              />
+            </div>
           </div>
           
           <DialogFooter>

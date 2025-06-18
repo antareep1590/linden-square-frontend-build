@@ -23,21 +23,17 @@ interface InventoryItem {
   id: string;
   name: string;
   sku: string;
-  category: string;
+  theme: string;
   quantity: number;
   reorderThreshold: number;
   unitCost: number;
   lastRefilledDate: Date;
 }
 
-const categories = [
-  "Food & Beverage",
-  "Drinkware",
-  "Home & Living",
-  "Stationery",
-  "Technology",
-  "Apparel",
-  "Health & Beauty"
+const themes = [
+  "Wellness",
+  "Technology", 
+  "Food & Beverages"
 ];
 
 interface AddInventoryItemModalProps {
@@ -51,7 +47,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: '',
+    theme: '',
     quantity: '',
     reorderThreshold: '',
     unitCost: '',
@@ -63,7 +59,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
       setFormData({
         name: editingItem.name,
         sku: editingItem.sku,
-        category: editingItem.category,
+        theme: editingItem.theme,
         quantity: editingItem.quantity.toString(),
         reorderThreshold: editingItem.reorderThreshold.toString(),
         unitCost: editingItem.unitCost.toString(),
@@ -73,7 +69,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
       setFormData({
         name: '',
         sku: '',
-        category: '',
+        theme: '',
         quantity: '',
         reorderThreshold: '',
         unitCost: '',
@@ -85,7 +81,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.sku || !formData.category || !formData.quantity || !formData.reorderThreshold || !formData.unitCost) {
+    if (!formData.name || !formData.sku || !formData.theme || !formData.quantity || !formData.reorderThreshold || !formData.unitCost) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -94,7 +90,7 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
       id: editingItem?.id || `ITEM-${Date.now()}`,
       name: formData.name,
       sku: formData.sku,
-      category: formData.category,
+      theme: formData.theme,
       quantity: parseInt(formData.quantity),
       reorderThreshold: parseInt(formData.reorderThreshold),
       unitCost: parseFloat(formData.unitCost),
@@ -137,14 +133,14 @@ const AddInventoryItemModal = ({ isOpen, onClose, onItemAdded, editingItem }: Ad
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <Label htmlFor="theme">Theme *</Label>
+            <Select value={formData.theme} onValueChange={(value) => setFormData({ ...formData, theme: value })}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="Select a theme" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                {themes.map(theme => (
+                  <SelectItem key={theme} value={theme}>{theme}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

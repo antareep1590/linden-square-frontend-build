@@ -10,21 +10,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Plus, Package, Trash2, Edit } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
-// Mock gift catalog
+// Mock gift catalog with themes
 const mockGiftCatalog = [
-  { id: 1, name: 'Premium Coffee Set', price: 24.99, category: 'Food & Drink' },
-  { id: 2, name: 'Gourmet Chocolate Box', price: 19.99, category: 'Food & Drink' },
-  { id: 3, name: 'Scented Candle', price: 15.99, category: 'Home' },
-  { id: 4, name: 'Artisan Tea Collection', price: 22.99, category: 'Food & Drink' },
-  { id: 5, name: 'Premium Notebook', price: 18.99, category: 'Stationery' },
-  { id: 6, name: 'Luxury Bath Set', price: 34.99, category: 'Personal Care' },
+  { id: 1, name: 'Premium Coffee Set', price: 24.99, theme: 'Food & Beverages' },
+  { id: 2, name: 'Gourmet Chocolate Box', price: 19.99, theme: 'Food & Beverages' },
+  { id: 3, name: 'Essential Oil Diffuser', price: 45.99, theme: 'Wellness' },
+  { id: 4, name: 'Artisan Tea Collection', price: 22.99, theme: 'Food & Beverages' },
+  { id: 5, name: 'Wireless Earbuds', price: 89.99, theme: 'Technology' },
+  { id: 6, name: 'Yoga Mat Set', price: 34.99, theme: 'Wellness' },
+  { id: 7, name: 'Smart Watch', price: 199.99, theme: 'Technology' },
+  { id: 8, name: 'Meditation Kit', price: 29.99, theme: 'Wellness' },
 ];
 
-// Mock gift boxes from inventory
+// Mock gift boxes from inventory with themes
 const mockInventoryGiftBoxes = [
-  { id: "GB-001", boxName: "Premium Executive Box", size: "Large", unitCost: 125.99 },
-  { id: "GB-002", boxName: "Holiday Celebration", size: "Medium", unitCost: 89.99 },
-  { id: "GB-003", boxName: "Welcome Package", size: "Small", unitCost: 45.99 },
+  { id: "GB-001", boxName: "Premium Executive Box", size: "Large", unitCost: 125.99, theme: "Technology" },
+  { id: "GB-002", boxName: "Holiday Celebration", size: "Medium", unitCost: 89.99, theme: "Food & Beverages" },
+  { id: "GB-003", boxName: "Welcome Package", size: "Small", unitCost: 45.99, theme: "Wellness" },
 ];
 
 interface PresetBox {
@@ -75,6 +77,7 @@ const PresetGiftBoxSetup = () => {
         name: boxName,
         size: selectedBox.size,
         basePrice: selectedBox.unitCost,
+        theme: selectedBox.theme,
       });
     }
   };
@@ -87,6 +90,7 @@ const PresetGiftBoxSetup = () => {
         name: boxName,
         size: selectedBox.size,
         basePrice: selectedBox.unitCost,
+        theme: selectedBox.theme,
       });
     }
   };
@@ -187,6 +191,19 @@ const PresetGiftBoxSetup = () => {
   const calculateBoxTotal = (box: PresetBox) => {
     const giftsTotal = box.gifts.reduce((sum, gift) => sum + (gift.price * gift.quantity), 0);
     return box.basePrice + giftsTotal;
+  };
+
+  // Get the current box for filtering gifts
+  const getCurrentBox = () => {
+    return presetBoxes.find(box => box.id === currentBoxId);
+  };
+
+  // Filter gifts by theme
+  const getFilteredGifts = () => {
+    const currentBox = getCurrentBox();
+    if (!currentBox) return mockGiftCatalog;
+    
+    return mockGiftCatalog.filter(gift => gift.theme === currentBox.theme);
   };
 
   return (
@@ -342,8 +359,9 @@ const PresetGiftBoxSetup = () => {
               <Input
                 id="theme"
                 value={newBox.theme}
-                onChange={(e) => setNewBox({ ...newBox, theme: e.target.value })}
-                placeholder="e.g., Welcome, Birthday, Corporate"
+                readOnly
+                placeholder="Auto-filled based on selected box"
+                className="bg-gray-100"
               />
             </div>
             <div>
@@ -419,8 +437,9 @@ const PresetGiftBoxSetup = () => {
               <Input
                 id="editTheme"
                 value={editBox.theme}
-                onChange={(e) => setEditBox({ ...editBox, theme: e.target.value })}
-                placeholder="e.g., Welcome, Birthday, Corporate"
+                readOnly
+                placeholder="Auto-filled based on selected box"
+                className="bg-gray-100"
               />
             </div>
             <div>
@@ -465,13 +484,18 @@ const PresetGiftBoxSetup = () => {
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Add Gifts to Box</DialogTitle>
+            {getCurrentBox() && (
+              <p className="text-sm text-gray-500">
+                Showing gifts for theme: <strong>{getCurrentBox()?.theme}</strong>
+              </p>
+            )}
           </DialogHeader>
           <div className="max-h-96 overflow-y-auto space-y-2">
-            {mockGiftCatalog.map((gift) => (
+            {getFilteredGifts().map((gift) => (
               <div key={gift.id} className="flex justify-between items-center p-3 border rounded-lg">
                 <div>
                   <h4 className="font-medium">{gift.name}</h4>
-                  <p className="text-sm text-gray-600">{gift.category} • ${gift.price}</p>
+                  <p className="text-sm text-gray-600">{gift.theme} • ${gift.price}</p>
                 </div>
                 <Button
                   size="sm"
@@ -483,6 +507,11 @@ const PresetGiftBoxSetup = () => {
                 </Button>
               </div>
             ))}
+            {getFilteredGifts().length === 0 && (
+              <p className="text-center py-8 text-gray-500">
+                No gifts available for this theme
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button onClick={() => setShowGiftSelector(false)}>

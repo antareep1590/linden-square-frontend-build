@@ -515,6 +515,108 @@ const AdminSettings = () => {
               <Button>Save Theme Settings</Button>
             </CardFooter>
           </Card>
+
+          {/* Add Theme Modal */}
+          <Dialog open={isAddThemeOpen} onOpenChange={setIsAddThemeOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Theme</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="theme-name">Theme Name</Label>
+                  <Input
+                    id="theme-name"
+                    placeholder="Enter theme name"
+                    value={newTheme.name}
+                    onChange={(e) => setNewTheme({ ...newTheme, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="theme-color">Color Preview</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="theme-color"
+                      type="color"
+                      value={newTheme.colorPreview}
+                      onChange={(e) => setNewTheme({ ...newTheme, colorPreview: e.target.value })}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      placeholder="#4285F4"
+                      value={newTheme.colorPreview}
+                      onChange={(e) => setNewTheme({ ...newTheme, colorPreview: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="theme-active"
+                    checked={newTheme.isActive}
+                    onCheckedChange={(checked) => setNewTheme({ ...newTheme, isActive: checked })}
+                  />
+                  <Label htmlFor="theme-active">Available to Clients</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddThemeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddTheme}>Add Theme</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Theme Modal */}
+          <Dialog open={isEditThemeOpen} onOpenChange={setIsEditThemeOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Theme</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-theme-name">Theme Name</Label>
+                  <Input
+                    id="edit-theme-name"
+                    placeholder="Enter theme name"
+                    value={newTheme.name}
+                    onChange={(e) => setNewTheme({ ...newTheme, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-theme-color">Color Preview</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="edit-theme-color"
+                      type="color"
+                      value={newTheme.colorPreview}
+                      onChange={(e) => setNewTheme({ ...newTheme, colorPreview: e.target.value })}
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      placeholder="#4285F4"
+                      value={newTheme.colorPreview}
+                      onChange={(e) => setNewTheme({ ...newTheme, colorPreview: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-theme-active"
+                    checked={newTheme.isActive}
+                    onCheckedChange={(checked) => setNewTheme({ ...newTheme, isActive: checked })}
+                  />
+                  <Label htmlFor="edit-theme-active">Available to Clients</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditThemeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateTheme}>Update Theme</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>
