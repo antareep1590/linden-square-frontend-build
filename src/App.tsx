@@ -30,7 +30,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminClientManagement from "./pages/admin/ClientManagement";
 import AdminPresetSetup from "./pages/admin/PresetGiftBoxSetup";
-import AdminShippingDelivery from "./pages/admin/ShippingDelivery";
+import AdminPackagingDelivery from "./pages/admin/PackagingDelivery";
 import AdminTrackOrders from "./pages/admin/TrackOrders";
 import AdminInventory from "./pages/admin/Inventory";
 import AdminInvoices from "./pages/admin/Invoices";
@@ -73,21 +73,16 @@ function App() {
               <Route path="/customize-egift" element={<DashboardLayout><CustomizeEGift /></DashboardLayout>} />
 
               {/* Admin Dashboard Routes */}
-              <Route path="/admin/dashboard" element={<AdminDashboardLayout />} />
-              <Route path="/admin/users" element={<AdminDashboardLayout />} />
-              <Route path="/admin/clients" element={<AdminDashboardLayout />} />
-              <Route path="/admin/gift-catalog" element={<AdminDashboardLayout />} />
-              <Route path="/admin/preset-gift-boxes" element={<AdminDashboardLayout />} />
-              <Route path="/admin/customization-settings" element={<AdminDashboardLayout />} />
-              <Route path="/admin/personalization-settings" element={<AdminDashboardLayout />} />
-              <Route path="/admin/inventory" element={<AdminDashboardLayout />} />
-              <Route path="/admin/customers" element={<AdminDashboardLayout />} />
-              <Route path="/admin/track-orders" element={<AdminDashboardLayout />} />
-              <Route path="/admin/shipping-delivery" element={<AdminDashboardLayout />} />
-              <Route path="/admin/delivery-management" element={<AdminDashboardLayout />} />
-              <Route path="/admin/invoices" element={<AdminDashboardLayout />} />
-              <Route path="/admin/settings" element={<AdminDashboardLayout />} />
-              <Route path="/admin/profile" element={<AdminDashboardLayout />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
+              <Route path="/admin/users" element={<AdminDashboardLayout><AdminUsers /></AdminDashboardLayout>} />
+              <Route path="/admin/client-management" element={<AdminDashboardLayout><AdminClientManagement /></AdminDashboardLayout>} />
+              <Route path="/admin/preset-setup" element={<AdminDashboardLayout><AdminPresetSetup /></AdminDashboardLayout>} />
+              <Route path="/admin/packaging-delivery" element={<AdminDashboardLayout><AdminPackagingDelivery /></AdminDashboardLayout>} />
+              <Route path="/admin/track-orders" element={<AdminDashboardLayout><AdminTrackOrders /></AdminDashboardLayout>} />
+              <Route path="/admin/inventory" element={<AdminDashboardLayout><AdminInventory /></AdminDashboardLayout>} />
+              <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminDashboardLayout>} />
+              <Route path="/admin/customization-settings" element={<AdminDashboardLayout><AdminCustomizationSettings /></AdminDashboardLayout>} />
+              <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminDashboardLayout>} />
 
               {/* Catch all route */}
               <Route path="*" element={<NotFound />} />
