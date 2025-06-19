@@ -215,8 +215,11 @@ const AdminShippingDelivery = () => {
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [deliveryMethodFilter, setDeliveryMethodFilter] = useState("all");
-  const [pickupWindowDateRange, setPickupWindowDateRange] = useState<DateRange | undefined>();
-  const [confirmedSlotDateRange, setConfirmedSlotDateRange] = useState<DateRange | undefined>();
+  const [orderDateRange, setOrderDateRange] = useState<DateRange | undefined>();
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState("all");
+  const [carrierFilter, setCarrierFilter] = useState("all");
+  const [requestedPickupDateRange, setRequestedPickupDateRange] = useState<DateRange | undefined>();
+  const [confirmedPickupDateRange, setConfirmedPickupDateRange] = useState<DateRange | undefined>();
   
   const [selectedGiftItems, setSelectedGiftItems] = useState<{ name: string; quantity: number }[] | null>(null);
   const [isGiftItemsModalOpen, setIsGiftItemsModalOpen] = useState(false);
@@ -224,7 +227,7 @@ const AdminShippingDelivery = () => {
   // Carrier Assignment Modal
   const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
   const [selectedOrderForCarrier, setSelectedOrderForCarrier] = useState<ShippingOrder | null>(null);
-  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("123 Warehouse St, San Francisco, CA 94107");
   
   // Pick-up Schedule Modal
   const [isPickupScheduleModalOpen, setIsPickupScheduleModalOpen] = useState(false);
@@ -281,78 +284,34 @@ const AdminShippingDelivery = () => {
     );
   };
 
-  const handleCarrierAssignment = (orderId: string, carrier: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, carrier, pickupAddress, shipmentStatus: 'carrier-assigned' as const }
-        : order
-    ));
-    setIsCarrierModalOpen(false);
-    setPickupAddress("");
-  };
-
-  const handleSchedulePickup = (orderId: string) => {
-    const pickupWindow = `${pickupDate} ${pickupStartTime} - ${pickupEndTime}`;
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            requestedPickUpWindow: pickupWindow,
-            shipmentStatus: 'pickup-window-requested' as const
-          }
-        : order
-    ));
-    setIsPickupScheduleModalOpen(false);
-    setPickupDate("");
-    setPickupStartTime("");
-    setPickupEndTime("");
-  };
-
-  const handleConfirmPickup = (orderId: string) => {
-    const confirmedSlot = `${confirmPickupDate} ${confirmPickupStartTime} - ${confirmPickupEndTime}`;
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { 
-            ...order, 
-            confirmedPickUpSlot: confirmedSlot,
-            shipmentStatus: 'pickup-scheduled' as const
-          }
-        : order
-    ));
-    setIsConfirmPickupModalOpen(false);
-    setConfirmPickupDate("");
-    setConfirmPickupStartTime("");
-    setConfirmPickupEndTime("");
-  };
-
-  const handleMarkAsPickedUp = () => {
-    setOrders(orders.map(order => 
-      selectedOrders.has(order.id) 
-        ? { ...order, shipmentStatus: 'picked-up' as const }
-        : order
-    ));
-    setSelectedOrders(new Set());
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
     setDeliveryMethodFilter("all");
-    setPickupWindowDateRange(undefined);
-    setConfirmedSlotDateRange(undefined);
+    setOrderDateRange(undefined);
+    setShipmentStatusFilter("all");
+    setCarrierFilter("all");
+    setRequestedPickupDateRange(undefined);
+    setConfirmedPickupDateRange(undefined);
   };
 
   const filteredOrders = orders.filter(order => {
-    // Search filter (recipient name and address)
+    // Search query filter
     const searchFields = [order.recipientName, order.recipientAddress].join(' ').toLowerCase();
     const matchesSearch = !searchQuery || searchFields.includes(searchQuery.toLowerCase());
     
     // Delivery method filter
     const matchesDeliveryMethod = deliveryMethodFilter === "all" || order.deliveryMethod === deliveryMethodFilter;
     
+    // Shipment status filter
+    const matchesStatus = shipmentStatusFilter === "all" || order.shipmentStatus === shipmentStatusFilter;
+    
+    // Carrier filter
+    const matchesCarrier = carrierFilter === "all" || order.carrier === carrierFilter;
+    
     // Date range filters would be implemented here based on actual date parsing
     // For now, keeping it simple
     
-    return matchesSearch && matchesDeliveryMethod;
+    return matchesSearch && matchesDeliveryMethod && matchesStatus && matchesCarrier;
   });
 
   const toggleOrderSelection = (orderId: string) => {
@@ -370,108 +329,6 @@ const AdminShippingDelivery = () => {
     setIsGiftItemsModalOpen(true);
   };
 
-  const getTotalGiftItems = (giftItems: { name: string; quantity: number }[]) => {
-    return giftItems.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getActionButtons = (order: ShippingOrder) => {
-    switch (order.shipmentStatus) {
-      case 'pending-assignment':
-        return (
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              onClick={() => {
-                setSelectedOrderForCarrier(order);
-                setIsCarrierModalOpen(true);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-8"
-            >
-              Assign Carrier
-            </Button>
-            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
-              Schedule Pick-Up
-            </Button>
-          </div>
-        );
-      
-      case 'carrier-assigned':
-        return (
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                setSelectedOrderForCarrier(order);
-                setPickupAddress(order.pickupAddress || "");
-                setIsCarrierModalOpen(true);
-              }}
-              className="text-xs px-3 py-1 h-8"
-            >
-              Change Carrier
-            </Button>
-            <Button 
-              size="sm"
-              onClick={() => {
-                setSelectedOrderForPickup(order);
-                setIsPickupScheduleModalOpen(true);
-              }}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-3 py-1 h-8"
-            >
-              Schedule Pick-Up
-            </Button>
-          </div>
-        );
-      
-      case 'pickup-window-requested':
-        return (
-          <div className="flex gap-2">
-            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
-              Change Carrier
-            </Button>
-            <Button 
-              size="sm"
-              onClick={() => {
-                setSelectedOrderForConfirm(order);
-                setIsConfirmPickupModalOpen(true);
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
-            >
-              Confirm Pick-Up Slot
-            </Button>
-          </div>
-        );
-      
-      case 'pickup-scheduled':
-        return (
-          <div className="flex gap-2">
-            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
-              Change Carrier
-            </Button>
-            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs px-2 py-1">
-              Ready for Pick-Up
-            </Badge>
-          </div>
-        );
-      
-      case 'picked-up':
-        return (
-          <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs px-2 py-1">
-            Picked Up
-          </Badge>
-        );
-      
-      default:
-        return null;
-    }
-  };
-
-  const canMarkAsPickedUp = selectedOrders.size > 0 && 
-    Array.from(selectedOrders).every(orderId => {
-      const order = orders.find(o => o.id === orderId);
-      return order?.shipmentStatus === 'pickup-scheduled';
-    });
-
   return (
     <div className="space-y-6">
       <div>
@@ -479,7 +336,7 @@ const AdminShippingDelivery = () => {
         <p className="text-gray-600">Fulfilment console for order preparation and shipment</p>
       </div>
 
-      {/* Filters */}
+      {/* Enhanced Filters */}
       <div className="bg-gray-50 p-6 rounded-lg space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Filters</h3>
@@ -489,7 +346,7 @@ const AdminShippingDelivery = () => {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Search */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Search Recipient</Label>
@@ -502,6 +359,16 @@ const AdminShippingDelivery = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Order Date Range */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Order Date</Label>
+            <DatePickerWithRange
+              date={orderDateRange}
+              onDateChange={setOrderDateRange}
+              placeholder="Select date range"
+            />
           </div>
 
           {/* Delivery Method */}
@@ -520,12 +387,46 @@ const AdminShippingDelivery = () => {
             </Select>
           </div>
 
+          {/* Shipment Status */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Shipment Status</Label>
+            <Select value={shipmentStatusFilter} onValueChange={setShipmentStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending-assignment">Pending Assignment</SelectItem>
+                <SelectItem value="carrier-assigned">Carrier Assigned</SelectItem>
+                <SelectItem value="pickup-window-requested">Pick-Up Window Requested</SelectItem>
+                <SelectItem value="pickup-scheduled">Pick-Up Scheduled</SelectItem>
+                <SelectItem value="picked-up">Picked Up</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Carrier Filter */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Carrier</Label>
+            <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All carriers" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Carriers</SelectItem>
+                {carriers.map(carrier => (
+                  <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Requested Pick-Up Window */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Requested Pick-Up Window</Label>
             <DatePickerWithRange
-              date={pickupWindowDateRange}
-              onDateChange={setPickupWindowDateRange}
+              date={requestedPickupDateRange}
+              onDateChange={setRequestedPickupDateRange}
               placeholder="Select date range"
             />
           </div>
@@ -534,8 +435,8 @@ const AdminShippingDelivery = () => {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Confirmed Pick-Up Slot</Label>
             <DatePickerWithRange
-              date={confirmedSlotDateRange}
-              onDateChange={setConfirmedSlotDateRange}
+              date={confirmedPickupDateRange}
+              onDateChange={setConfirmedPickupDateRange}
               placeholder="Select date range"
             />
           </div>
@@ -549,11 +450,9 @@ const AdminShippingDelivery = () => {
             <span className="text-sm text-gray-600">
               {selectedOrders.size} orders selected
             </span>
-            {canMarkAsPickedUp && (
-              <Button onClick={handleMarkAsPickedUp} className="bg-purple-600 hover:bg-purple-700 text-white">
-                Mark as Picked Up
-              </Button>
-            )}
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+              Mark as Picked Up
+            </Button>
           </div>
         )}
       </div>
@@ -608,7 +507,7 @@ const AdminShippingDelivery = () => {
                     className="h-8"
                   >
                     <Badge variant="secondary" className="mr-2">
-                      {getTotalGiftItems(order.giftItems)}
+                      {order.giftItems.reduce((total, item) => total + item.quantity, 0)}
                     </Badge>
                     Items
                   </Button>
@@ -633,7 +532,84 @@ const AdminShippingDelivery = () => {
                   <div className="text-sm font-medium">{order.carrier || '-'}</div>
                 </TableCell>
                 <TableCell>
-                  {getActionButtons(order)}
+                  <div className="flex gap-2">
+                    {order.shipmentStatus === 'pending-assignment' && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedOrderForCarrier(order);
+                            setPickupAddress(order.pickupAddress || "123 Warehouse St, San Francisco, CA 94107");
+                            setIsCarrierModalOpen(true);
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-8"
+                        >
+                          Assign Carrier
+                        </Button>
+                        <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
+                          Schedule Pick-Up
+                        </Button>
+                      </>
+                    )}
+                    {order.shipmentStatus === 'carrier-assigned' && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedOrderForCarrier(order);
+                            setPickupAddress(order.pickupAddress || "123 Warehouse St, San Francisco, CA 94107");
+                            setIsCarrierModalOpen(true);
+                          }}
+                          className="text-xs px-3 py-1 h-8"
+                        >
+                          Change Carrier
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedOrderForPickup(order);
+                            setIsPickupScheduleModalOpen(true);
+                          }}
+                          className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-3 py-1 h-8"
+                        >
+                          Schedule Pick-Up
+                        </Button>
+                      </>
+                    )}
+                    {order.shipmentStatus === 'pickup-window-requested' && (
+                      <>
+                        <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
+                          Change Carrier
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedOrderForConfirm(order);
+                            setIsConfirmPickupModalOpen(true);
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
+                        >
+                          Confirm Pick-Up Slot
+                        </Button>
+                      </>
+                    )}
+                    {order.shipmentStatus === 'pickup-scheduled' && (
+                      <>
+                        <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
+                          Change Carrier
+                        </Button>
+                        <Badge className="bg-green-100 text-green-800 border-green-300 text-xs px-2 py-1">
+                          Ready for Pick-Up
+                        </Badge>
+                      </>
+                    )}
+                    {order.shipmentStatus === 'picked-up' && (
+                      <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs px-2 py-1">
+                        Picked Up
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -665,7 +641,7 @@ const AdminShippingDelivery = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Carrier Assignment Modal */}
+      {/* Carrier Assignment Modal with pre-filled pickup address */}
       <Dialog open={isCarrierModalOpen} onOpenChange={setIsCarrierModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -714,7 +690,7 @@ const AdminShippingDelivery = () => {
                 </div>
               </div>
 
-              {/* Carrier Options */}
+              {/* Carrier Options - only show if pickup address is entered */}
               {pickupAddress && (
                 <div>
                   <h3 className="font-semibold mb-3">Available Carriers</h3>
@@ -731,7 +707,14 @@ const AdminShippingDelivery = () => {
                             {pricing && <span className="text-sm text-gray-600">${pricing.toFixed(2)}</span>}
                             <Button 
                               size="sm"
-                              onClick={() => handleCarrierAssignment(selectedOrderForCarrier.id, carrier)}
+                              onClick={() => {
+                                setOrders(orders.map(order => 
+                                  order.id === selectedOrderForCarrier.id 
+                                    ? { ...order, carrier, pickupAddress, shipmentStatus: 'carrier-assigned' }
+                                    : order
+                                ));
+                                setIsCarrierModalOpen(false);
+                              }}
                               className="bg-blue-600 hover:bg-blue-700"
                             >
                               Select
@@ -792,7 +775,24 @@ const AdminShippingDelivery = () => {
                 Cancel
               </Button>
               <Button 
-                onClick={() => selectedOrderForPickup && handleSchedulePickup(selectedOrderForPickup.id)}
+                onClick={() => {
+                  if (selectedOrderForPickup) {
+                    const pickupWindow = `${pickupDate} ${pickupStartTime} - ${pickupEndTime}`;
+                    setOrders(orders.map(order => 
+                      order.id === selectedOrderForPickup.id 
+                        ? { 
+                            ...order, 
+                            requestedPickUpWindow: pickupWindow,
+                            shipmentStatus: 'pickup-window-requested'
+                          }
+                        : order
+                    ));
+                    setIsPickupScheduleModalOpen(false);
+                    setPickupDate("");
+                    setPickupStartTime("");
+                    setPickupEndTime("");
+                  }
+                }}
                 disabled={!pickupDate || !pickupStartTime || !pickupEndTime}
                 className="bg-yellow-600 hover:bg-yellow-700"
               >
@@ -847,7 +847,24 @@ const AdminShippingDelivery = () => {
                 Cancel
               </Button>
               <Button 
-                onClick={() => selectedOrderForConfirm && handleConfirmPickup(selectedOrderForConfirm.id)}
+                onClick={() => {
+                  if (selectedOrderForConfirm) {
+                    const confirmedSlot = `${confirmPickupDate} ${confirmPickupStartTime} - ${confirmPickupEndTime}`;
+                    setOrders(orders.map(order => 
+                      order.id === selectedOrderForConfirm.id 
+                        ? { 
+                            ...order, 
+                            confirmedPickUpSlot: confirmedSlot,
+                            shipmentStatus: 'pickup-scheduled'
+                          }
+                        : order
+                    ));
+                    setIsConfirmPickupModalOpen(false);
+                    setConfirmPickupDate("");
+                    setConfirmPickupStartTime("");
+                    setConfirmPickupEndTime("");
+                  }
+                }}
                 disabled={!confirmPickupDate || !confirmPickupStartTime || !confirmPickupEndTime}
                 className="bg-green-600 hover:bg-green-700"
               >

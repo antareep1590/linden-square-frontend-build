@@ -42,6 +42,7 @@ interface Carrier {
   name: string;
   trackingUrl: string;
   deliveryType: string;
+  boxSize: string;
   isActive: boolean;
 }
 
@@ -49,7 +50,7 @@ interface DeliveryType {
   id: string;
   name: string;
   duration: string;
-  price: number;
+  pricing: { [key: string]: number }; // Box size to price mapping
   isActive: boolean;
 }
 
@@ -74,24 +75,50 @@ const deliveryTypeOptions = [
   { value: 'slow', label: 'Slow Delivery (3-5 business days)' }
 ];
 
+const boxSizeOptions = [
+  { value: 'small', label: 'Small', dimensions: '8x6x4 in' },
+  { value: 'medium', label: 'Medium', dimensions: '12x10x5 in' },
+  { value: 'large', label: 'Large', dimensions: '16x14x8 in' }
+];
+
 const mockCarriers: Carrier[] = [
-  { id: '1', name: 'FedEx', trackingUrl: 'https://www.fedex.com/tracking', deliveryType: 'express', isActive: true },
-  { id: '2', name: 'UPS', trackingUrl: 'https://www.ups.com/tracking', deliveryType: 'normal', isActive: true },
-  { id: '3', name: 'USPS', trackingUrl: 'https://tools.usps.com/go/TrackConfirmAction', deliveryType: 'slow', isActive: true },
-  { id: '4', name: 'DHL', trackingUrl: 'https://www.dhl.com/tracking', deliveryType: 'express', isActive: false },
+  { id: '1', name: 'FedEx', trackingUrl: 'https://www.fedex.com/tracking', deliveryType: 'express', boxSize: 'medium', isActive: true },
+  { id: '2', name: 'UPS', trackingUrl: 'https://www.ups.com/tracking', deliveryType: 'normal', boxSize: 'large', isActive: true },
+  { id: '3', name: 'USPS', trackingUrl: 'https://tools.usps.com/go/TrackConfirmAction', deliveryType: 'slow', boxSize: 'small', isActive: true },
+  { id: '4', name: 'DHL', trackingUrl: 'https://www.dhl.com/tracking', deliveryType: 'express', boxSize: 'medium', isActive: false },
 ];
 
 const mockDeliveryTypes: DeliveryType[] = [
-  { id: 'express', name: 'Express Delivery', duration: '1-2 business days', price: 15.99, isActive: true },
-  { id: 'normal', name: 'Normal Delivery', duration: '2-3 business days', price: 9.99, isActive: true },
-  { id: 'slow', name: 'Slow Delivery', duration: '3-5 business days', price: 5.99, isActive: true }
+  { 
+    id: 'express', 
+    name: 'Express Delivery', 
+    duration: '1-2 business days', 
+    pricing: { small: 12.00, medium: 15.00, large: 18.00 },
+    isActive: true 
+  },
+  { 
+    id: 'normal', 
+    name: 'Normal Delivery', 
+    duration: '2-3 business days', 
+    pricing: { small: 8.00, medium: 11.00, large: 14.00 },
+    isActive: true 
+  },
+  { 
+    id: 'slow', 
+    name: 'Slow Delivery', 
+    duration: '3-5 business days', 
+    pricing: { small: 5.00, medium: 8.00, large: 11.00 },
+    isActive: true 
+  }
 ];
 
 const mockBoxSizes: BoxSize[] = [
-  { id: '1', name: 'Small Box', dimensions: '6" x 4" x 2"', weight: '1 lb', cost: 2.50 },
-  { id: '2', name: 'Medium Box', dimensions: '8" x 6" x 4"', weight: '2 lbs', cost: 3.75 },
-  { id: '3', name: 'Large Box', dimensions: '12" x 8" x 6"', weight: '3 lbs', cost: 5.00 },
+  { id: '1', name: 'Small Box', dimensions: '8x6x4 in', weight: '1 lb', cost: 2.50 },
+  { id: '2', name: 'Medium Box', dimensions: '12x10x5 in', weight: '2 lbs', cost: 3.75 },
+  { id: '3', name: 'Large Box', dimensions: '16x14x8 in', weight: '3 lbs', cost: 5.00 },
 ];
+
+// ... keep existing mockPortalThemes the same ...
 
 const mockPortalThemes: PortalTheme[] = [
   { id: '1', name: 'Professional Blue', colorPreview: '#4285F4', isActive: true },
@@ -110,7 +137,7 @@ const AdminSettings = () => {
   
   // Add Carrier Modal State
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
-  const [newCarrier, setNewCarrier] = useState({ name: '', trackingUrl: '', deliveryType: '', isActive: true });
+  const [newCarrier, setNewCarrier] = useState({ name: '', trackingUrl: '', deliveryType: '', boxSize: '', isActive: true });
   
   // Edit Carrier Modal State
   const [isEditCarrierOpen, setIsEditCarrierOpen] = useState(false);
@@ -126,9 +153,13 @@ const AdminSettings = () => {
   const [newTheme, setNewTheme] = useState({ name: '', colorPreview: '#4285F4', isActive: true });
   const [editingTheme, setEditingTheme] = useState<PortalTheme | null>(null);
 
+  // Delivery Type Pricing Modal
+  const [isEditDeliveryPricingOpen, setIsEditDeliveryPricingOpen] = useState(false);
+  const [editingDeliveryType, setEditingDeliveryType] = useState<DeliveryType | null>(null);
+
   // Carrier Functions
   const handleAddCarrier = () => {
-    if (!newCarrier.name || !newCarrier.trackingUrl || !newCarrier.deliveryType) {
+    if (!newCarrier.name || !newCarrier.trackingUrl || !newCarrier.deliveryType || !newCarrier.boxSize) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -139,7 +170,7 @@ const AdminSettings = () => {
     };
 
     setCarriers([...carriers, carrier]);
-    setNewCarrier({ name: '', trackingUrl: '', deliveryType: '', isActive: true });
+    setNewCarrier({ name: '', trackingUrl: '', deliveryType: '', boxSize: '', isActive: true });
     setIsAddCarrierOpen(false);
     toast.success("Carrier added successfully");
   };
@@ -150,7 +181,7 @@ const AdminSettings = () => {
   };
 
   const handleUpdateCarrier = () => {
-    if (!editingCarrier || !editingCarrier.name || !editingCarrier.trackingUrl || !editingCarrier.deliveryType) {
+    if (!editingCarrier || !editingCarrier.name || !editingCarrier.trackingUrl || !editingCarrier.deliveryType || !editingCarrier.boxSize) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -175,12 +206,26 @@ const AdminSettings = () => {
     return deliveryType ? deliveryType.label : type;
   };
 
+  const getBoxSizeLabel = (size: string) => {
+    const boxSize = boxSizeOptions.find(bs => bs.value === size);
+    return boxSize ? `${boxSize.label} (${boxSize.dimensions})` : size;
+  };
+
   // Delivery Type Functions
-  const handleUpdateDeliveryTypePrice = (id: string, newPrice: number) => {
+  const handleEditDeliveryPricing = (deliveryType: DeliveryType) => {
+    setEditingDeliveryType(deliveryType);
+    setIsEditDeliveryPricingOpen(true);
+  };
+
+  const handleUpdateDeliveryPricing = () => {
+    if (!editingDeliveryType) return;
+
     setDeliveryTypes(deliveryTypes.map(dt => 
-      dt.id === id ? { ...dt, price: newPrice } : dt
+      dt.id === editingDeliveryType.id ? editingDeliveryType : dt
     ));
-    toast.success("Delivery type price updated");
+    setIsEditDeliveryPricingOpen(false);
+    setEditingDeliveryType(null);
+    toast.success("Delivery type pricing updated successfully");
   };
 
   const toggleDeliveryTypeStatus = (id: string) => {
@@ -320,7 +365,7 @@ const AdminSettings = () => {
                   <div>
                     <CardTitle>Shipping Carriers</CardTitle>
                     <CardDescription>
-                      Manage available shipping carriers with delivery types
+                      Manage available shipping carriers with delivery types and box sizes
                     </CardDescription>
                   </div>
                   <Dialog open={isAddCarrierOpen} onOpenChange={setIsAddCarrierOpen}>
@@ -368,6 +413,21 @@ const AdminSettings = () => {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="box-size">Box Size</Label>
+                          <Select value={newCarrier.boxSize} onValueChange={(value) => setNewCarrier({ ...newCarrier, boxSize: value })}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select box size" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {boxSizeOptions.map((size) => (
+                                <SelectItem key={size.value} value={size.value}>
+                                  {size.label} ({size.dimensions})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="flex items-center space-x-2">
                           <Switch
                             id="carrier-active"
@@ -403,6 +463,7 @@ const AdminSettings = () => {
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600 mb-1">{getDeliveryTypeLabel(carrier.deliveryType)}</p>
+                          <p className="text-sm text-gray-600 mb-1">Box Size: {getBoxSizeLabel(carrier.boxSize)}</p>
                           <p className="text-xs text-gray-500">{carrier.trackingUrl}</p>
                         </div>
                       </div>
@@ -460,6 +521,21 @@ const AdminSettings = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-box-size">Box Size</Label>
+                      <Select value={editingCarrier.boxSize} onValueChange={(value) => setEditingCarrier({ ...editingCarrier, boxSize: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {boxSizeOptions.map((size) => (
+                            <SelectItem key={size.value} value={size.value}>
+                              {size.label} ({size.dimensions})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="edit-carrier-active"
@@ -487,7 +563,7 @@ const AdminSettings = () => {
                   Delivery Types
                 </CardTitle>
                 <CardDescription>
-                  Manage delivery type pricing and availability
+                  Manage delivery type pricing by box size and availability
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -505,25 +581,25 @@ const AdminSettings = () => {
                               {deliveryType.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </div>
-                          <p className="text-sm text-gray-600">({deliveryType.duration})</p>
+                          <p className="text-sm text-gray-600 mb-2">({deliveryType.duration})</p>
+                          <div className="space-y-1">
+                            {Object.entries(deliveryType.pricing).map(([size, price]) => (
+                              <div key={size} className="text-sm text-gray-600">
+                                • {getBoxSizeLabel(size)}: ${price.toFixed(2)}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <Label htmlFor={`price-${deliveryType.id}`} className="text-sm">Price:</Label>
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm">$</span>
-                            <Input
-                              id={`price-${deliveryType.id}`}
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={deliveryType.price}
-                              onChange={(e) => handleUpdateDeliveryTypePrice(deliveryType.id, parseFloat(e.target.value) || 0)}
-                              className="w-20 h-8"
-                            />
-                          </div>
-                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditDeliveryPricing(deliveryType)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit Pricing
+                        </Button>
                         <Switch
                           checked={deliveryType.isActive}
                           onCheckedChange={() => toggleDeliveryTypeStatus(deliveryType.id)}
@@ -534,6 +610,57 @@ const AdminSettings = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Edit Delivery Type Pricing Modal */}
+            <Dialog open={isEditDeliveryPricingOpen} onOpenChange={setIsEditDeliveryPricingOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Delivery Type Pricing</DialogTitle>
+                </DialogHeader>
+                {editingDeliveryType && (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <h3 className="font-medium">{editingDeliveryType.name}</h3>
+                      <p className="text-sm text-gray-600">{editingDeliveryType.duration}</p>
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-medium">Box Size Pricing</h4>
+                      {boxSizeOptions.map((boxSize) => (
+                        <div key={boxSize.value} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <p className="font-medium">{boxSize.label}</p>
+                            <p className="text-sm text-gray-500">{boxSize.dimensions}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">$</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={editingDeliveryType.pricing[boxSize.value] || 0}
+                              onChange={(e) => setEditingDeliveryType({
+                                ...editingDeliveryType,
+                                pricing: {
+                                  ...editingDeliveryType.pricing,
+                                  [boxSize.value]: parseFloat(e.target.value) || 0
+                                }
+                              })}
+                              className="w-20 h-8"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsEditDeliveryPricingOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdateDeliveryPricing}>Update Pricing</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Box Sizes Section */}
             <Card>
