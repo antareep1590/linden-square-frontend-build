@@ -12,11 +12,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
+import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InvoiceDetailsModal from "@/components/invoices/InvoiceDetailsModal";
 
-// Mock data for invoices
+// Mock data for invoices with billing terms
 const invoices = [
   {
     id: "INV-2023-001",
@@ -25,7 +25,8 @@ const invoices = [
     date: "2023-11-01",
     giftBoxName: "Premium Gift Box Set",
     giftItems: ["Luxury Candle Set", "Premium Coffee", "Gourmet Chocolates"],
-    status: "paid"
+    status: "paid",
+    billingTerms: "one-time"
   },
   {
     id: "INV-2023-002",
@@ -34,7 +35,8 @@ const invoices = [
     date: "2023-10-28",
     giftBoxName: "Custom Corporate Package",
     giftItems: ["Custom Notebooks", "Coffee Mugs", "Tech Accessories"],
-    status: "unpaid"
+    status: "unpaid",
+    billingTerms: "recurring"
   },
   {
     id: "INV-2023-003",
@@ -43,7 +45,8 @@ const invoices = [
     date: "2023-10-20",
     giftBoxName: "Executive Gift Package",
     giftItems: ["Wine Bottle", "Cheese Selection", "Premium Leather Journal"],
-    status: "paid"
+    status: "paid",
+    billingTerms: "milestone"
   },
   {
     id: "INV-2023-004",
@@ -52,7 +55,8 @@ const invoices = [
     date: "2023-11-02",
     giftBoxName: "Welcome Kit",
     giftItems: ["Company Swag", "Welcome Guide", "Gift Card"],
-    status: "unpaid"
+    status: "unpaid",
+    billingTerms: "one-time"
   },
   {
     id: "INV-2023-005",
@@ -61,7 +65,8 @@ const invoices = [
     date: "2023-10-15",
     giftBoxName: "Holiday Collection",
     giftItems: ["Holiday Treats", "Festive Candles", "Seasonal Gifts", "Premium Chocolates"],
-    status: "overdue"
+    status: "overdue",
+    billingTerms: "recurring"
   }
 ];
 
@@ -70,6 +75,7 @@ const AdminInvoices = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInvoice, setSelectedInvoice] = useState<typeof invoices[0] | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [editingBillingTerms, setEditingBillingTerms] = useState<string | null>(null);
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,6 +97,25 @@ const AdminInvoices = () => {
   const handleSendReminder = (invoiceId: string) => {
     console.log(`Sending reminder for invoice ${invoiceId}`);
     // In a real app, this would send an email reminder
+  };
+
+  const handleBillingTermsChange = (invoiceId: string, newTerms: string) => {
+    console.log(`Updating billing terms for invoice ${invoiceId} to ${newTerms}`);
+    // In a real app, this would update the invoice in the database
+    setEditingBillingTerms(null);
+  };
+
+  const getBillingTermsLabel = (terms: string) => {
+    switch (terms) {
+      case 'one-time':
+        return 'One-Time Payment';
+      case 'recurring':
+        return 'Recurring Billing';
+      case 'milestone':
+        return 'Milestone-Based Payment';
+      default:
+        return 'One-Time Payment';
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -211,6 +236,7 @@ const AdminInvoices = () => {
               <TableHead>Client</TableHead>
               <TableHead>Gift Box Name</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Custom Billing Terms</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -244,6 +270,36 @@ const AdminInvoices = () => {
                   </TooltipProvider>
                 </TableCell>
                 <TableCell className="font-medium">${invoice.amount.toFixed(2)}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {editingBillingTerms === invoice.id ? (
+                      <Select
+                        defaultValue={invoice.billingTerms}
+                        onValueChange={(value) => handleBillingTermsChange(invoice.id, value)}
+                      >
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="one-time">One-Time Payment</SelectItem>
+                          <SelectItem value="recurring">Recurring Billing</SelectItem>
+                          <SelectItem value="milestone">Milestone-Based Payment</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <>
+                        <span className="text-sm">{getBillingTermsLabel(invoice.billingTerms)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingBillingTerms(invoice.id)}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
                 <TableCell>
                   <Badge className={
