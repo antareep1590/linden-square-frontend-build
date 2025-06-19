@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText, Edit } from "lucide-react";
+import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InvoiceDetailsModal from "@/components/invoices/InvoiceDetailsModal";
 
@@ -75,7 +75,6 @@ const AdminInvoices = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInvoice, setSelectedInvoice] = useState<typeof invoices[0] | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [editingBillingTerms, setEditingBillingTerms] = useState<string | null>(null);
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,7 +101,6 @@ const AdminInvoices = () => {
   const handleBillingTermsChange = (invoiceId: string, newTerms: string) => {
     console.log(`Updating billing terms for invoice ${invoiceId} to ${newTerms}`);
     // In a real app, this would update the invoice in the database
-    setEditingBillingTerms(null);
   };
 
   const getBillingTermsLabel = (terms: string) => {
@@ -271,34 +269,19 @@ const AdminInvoices = () => {
                 </TableCell>
                 <TableCell className="font-medium">${invoice.amount.toFixed(2)}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    {editingBillingTerms === invoice.id ? (
-                      <Select
-                        defaultValue={invoice.billingTerms}
-                        onValueChange={(value) => handleBillingTermsChange(invoice.id, value)}
-                      >
-                        <SelectTrigger className="w-48">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="one-time">One-Time Payment</SelectItem>
-                          <SelectItem value="recurring">Recurring Billing</SelectItem>
-                          <SelectItem value="milestone">Milestone-Based Payment</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <>
-                        <span className="text-sm">{getBillingTermsLabel(invoice.billingTerms)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingBillingTerms(invoice.id)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  <Select
+                    defaultValue={invoice.billingTerms}
+                    onValueChange={(value) => handleBillingTermsChange(invoice.id, value)}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="one-time">One-Time Payment</SelectItem>
+                      <SelectItem value="recurring">Recurring Billing</SelectItem>
+                      <SelectItem value="milestone">Milestone-Based Payment</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
                 <TableCell>
