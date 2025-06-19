@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Home,
@@ -10,7 +11,7 @@ import {
   FileText,
   Boxes,
   Palette,
-  Font,
+  Type,
   ListChecks,
   BarChart,
   TrendingUp,
@@ -125,7 +126,7 @@ const AdminDashboardLayout = () => {
     {
       id: 'personalization-settings',
       label: 'Personalization Settings',
-      icon: Font,
+      icon: Type,
     },
     {
       id: 'inventory',
