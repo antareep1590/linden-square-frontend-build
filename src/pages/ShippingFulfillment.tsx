@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,24 +80,27 @@ const ShippingFulfillment = () => {
     }
   ]);
 
-  // Mock delivery types data
+  // Mock delivery types data with pricing
   const deliveryTypes = [
     {
       id: 'express',
       name: 'Express Delivery',
       duration: '1-2 business days',
+      price: 15.99,
       logo: '/placeholder.svg'
     },
     {
       id: 'normal',
       name: 'Normal Delivery',
       duration: '2-3 business days',
+      price: 9.99,
       logo: '/placeholder.svg'
     },
     {
       id: 'slow',
       name: 'Slow Delivery',
       duration: '3-5 business days',
+      price: 5.99,
       logo: '/placeholder.svg'
     }
   ];
@@ -205,9 +207,12 @@ const ShippingFulfillment = () => {
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium">{deliveryType.name}</h4>
-                        <div className="flex items-center gap-1 text-xs mt-2">
+                        <div className="flex items-center gap-1 text-xs mt-2 mb-2">
                           <Clock className="h-3 w-3" />
-                          <span>{deliveryType.duration}</span>
+                          <span>({deliveryType.duration})</span>
+                        </div>
+                        <div className="text-lg font-bold text-linden-blue">
+                          ${deliveryType.price}
                         </div>
                       </div>
                     </div>

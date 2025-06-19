@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -29,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Edit, Trash2, Upload, X } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, Truck, Package } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -43,6 +42,13 @@ interface Carrier {
   name: string;
   trackingUrl: string;
   deliveryType: string;
+  isActive: boolean;
+}
+
+interface DeliveryType {
+  id: string;
+  name: string;
+  duration: string;
   price: number;
   isActive: boolean;
 }
@@ -62,18 +68,23 @@ interface PortalTheme {
   isActive: boolean;
 }
 
-const deliveryTypes = [
-  { value: 'express', label: 'Express (2-3 business days)' },
-  { value: 'standard', label: 'Standard (3-5 business days)' },
-  { value: 'overnight', label: 'Overnight (1 business day)' },
-  { value: 'ground', label: 'Ground (5-7 business days)' },
+const deliveryTypeOptions = [
+  { value: 'express', label: 'Express Delivery (1-2 business days)' },
+  { value: 'normal', label: 'Normal Delivery (2-3 business days)' },
+  { value: 'slow', label: 'Slow Delivery (3-5 business days)' }
 ];
 
 const mockCarriers: Carrier[] = [
-  { id: '1', name: 'FedEx', trackingUrl: 'https://www.fedex.com/tracking', deliveryType: 'express', price: 10, isActive: true },
-  { id: '2', name: 'UPS', trackingUrl: 'https://www.ups.com/tracking', deliveryType: 'standard', price: 5, isActive: true },
-  { id: '3', name: 'USPS', trackingUrl: 'https://tools.usps.com/go/TrackConfirmAction', deliveryType: 'ground', price: 3, isActive: true },
-  { id: '4', name: 'DHL', trackingUrl: 'https://www.dhl.com/tracking', deliveryType: 'express', price: 12, isActive: false },
+  { id: '1', name: 'FedEx', trackingUrl: 'https://www.fedex.com/tracking', deliveryType: 'express', isActive: true },
+  { id: '2', name: 'UPS', trackingUrl: 'https://www.ups.com/tracking', deliveryType: 'normal', isActive: true },
+  { id: '3', name: 'USPS', trackingUrl: 'https://tools.usps.com/go/TrackConfirmAction', deliveryType: 'slow', isActive: true },
+  { id: '4', name: 'DHL', trackingUrl: 'https://www.dhl.com/tracking', deliveryType: 'express', isActive: false },
+];
+
+const mockDeliveryTypes: DeliveryType[] = [
+  { id: 'express', name: 'Express Delivery', duration: '1-2 business days', price: 15.99, isActive: true },
+  { id: 'normal', name: 'Normal Delivery', duration: '2-3 business days', price: 9.99, isActive: true },
+  { id: 'slow', name: 'Slow Delivery', duration: '3-5 business days', price: 5.99, isActive: true }
 ];
 
 const mockBoxSizes: BoxSize[] = [
@@ -93,12 +104,13 @@ const mockPortalThemes: PortalTheme[] = [
 
 const AdminSettings = () => {
   const [carriers, setCarriers] = useState<Carrier[]>(mockCarriers);
+  const [deliveryTypes, setDeliveryTypes] = useState<DeliveryType[]>(mockDeliveryTypes);
   const [boxSizes, setBoxSizes] = useState<BoxSize[]>(mockBoxSizes);
   const [portalThemes, setPortalThemes] = useState<PortalTheme[]>(mockPortalThemes);
   
   // Add Carrier Modal State
   const [isAddCarrierOpen, setIsAddCarrierOpen] = useState(false);
-  const [newCarrier, setNewCarrier] = useState({ name: '', trackingUrl: '', deliveryType: '', price: 0, isActive: true });
+  const [newCarrier, setNewCarrier] = useState({ name: '', trackingUrl: '', deliveryType: '', isActive: true });
   
   // Edit Carrier Modal State
   const [isEditCarrierOpen, setIsEditCarrierOpen] = useState(false);
@@ -116,7 +128,7 @@ const AdminSettings = () => {
 
   // Carrier Functions
   const handleAddCarrier = () => {
-    if (!newCarrier.name || !newCarrier.trackingUrl || !newCarrier.deliveryType || newCarrier.price <= 0) {
+    if (!newCarrier.name || !newCarrier.trackingUrl || !newCarrier.deliveryType) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -127,7 +139,7 @@ const AdminSettings = () => {
     };
 
     setCarriers([...carriers, carrier]);
-    setNewCarrier({ name: '', trackingUrl: '', deliveryType: '', price: 0, isActive: true });
+    setNewCarrier({ name: '', trackingUrl: '', deliveryType: '', isActive: true });
     setIsAddCarrierOpen(false);
     toast.success("Carrier added successfully");
   };
@@ -138,7 +150,7 @@ const AdminSettings = () => {
   };
 
   const handleUpdateCarrier = () => {
-    if (!editingCarrier || !editingCarrier.name || !editingCarrier.trackingUrl || !editingCarrier.deliveryType || editingCarrier.price <= 0) {
+    if (!editingCarrier || !editingCarrier.name || !editingCarrier.trackingUrl || !editingCarrier.deliveryType) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -159,8 +171,23 @@ const AdminSettings = () => {
   };
 
   const getDeliveryTypeLabel = (type: string) => {
-    const deliveryType = deliveryTypes.find(dt => dt.value === type);
+    const deliveryType = deliveryTypeOptions.find(dt => dt.value === type);
     return deliveryType ? deliveryType.label : type;
+  };
+
+  // Delivery Type Functions
+  const handleUpdateDeliveryTypePrice = (id: string, newPrice: number) => {
+    setDeliveryTypes(deliveryTypes.map(dt => 
+      dt.id === id ? { ...dt, price: newPrice } : dt
+    ));
+    toast.success("Delivery type price updated");
+  };
+
+  const toggleDeliveryTypeStatus = (id: string) => {
+    setDeliveryTypes(deliveryTypes.map(dt => 
+      dt.id === id ? { ...dt, isActive: !dt.isActive } : dt
+    ));
+    toast.success("Delivery type status updated");
   };
 
   // Box Size Functions
@@ -293,7 +320,7 @@ const AdminSettings = () => {
                   <div>
                     <CardTitle>Shipping Carriers</CardTitle>
                     <CardDescription>
-                      Manage available shipping carriers with delivery types and pricing
+                      Manage available shipping carriers with delivery types
                     </CardDescription>
                   </div>
                   <Dialog open={isAddCarrierOpen} onOpenChange={setIsAddCarrierOpen}>
@@ -333,25 +360,13 @@ const AdminSettings = () => {
                               <SelectValue placeholder="Select delivery type" />
                             </SelectTrigger>
                             <SelectContent>
-                              {deliveryTypes.map((type) => (
+                              {deliveryTypeOptions.map((type) => (
                                 <SelectItem key={type.value} value={type.value}>
                                   {type.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="carrier-price">Price ($)</Label>
-                          <Input
-                            id="carrier-price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            value={newCarrier.price}
-                            onChange={(e) => setNewCarrier({ ...newCarrier, price: parseFloat(e.target.value) || 0 })}
-                          />
                         </div>
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -377,6 +392,9 @@ const AdminSettings = () => {
                   {carriers.map((carrier) => (
                     <div key={carrier.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Truck className="h-6 w-6 text-gray-600" />
+                        </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1">
                             <p className="font-medium text-lg">{carrier.name}</p>
@@ -385,7 +403,6 @@ const AdminSettings = () => {
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600 mb-1">{getDeliveryTypeLabel(carrier.deliveryType)}</p>
-                          <p className="text-sm font-semibold text-green-600">Price: ${carrier.price}</p>
                           <p className="text-xs text-gray-500">{carrier.trackingUrl}</p>
                         </div>
                       </div>
@@ -435,24 +452,13 @@ const AdminSettings = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {deliveryTypes.map((type) => (
+                          {deliveryTypeOptions.map((type) => (
                             <SelectItem key={type.value} value={type.value}>
                               {type.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-carrier-price">Price ($)</Label>
-                      <Input
-                        id="edit-carrier-price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editingCarrier.price}
-                        onChange={(e) => setEditingCarrier({ ...editingCarrier, price: parseFloat(e.target.value) || 0 })}
-                      />
                     </div>
                     <div className="flex items-center space-x-2">
                       <Switch
@@ -472,6 +478,62 @@ const AdminSettings = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Delivery Types Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Delivery Types
+                </CardTitle>
+                <CardDescription>
+                  Manage delivery type pricing and availability
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {deliveryTypes.map((deliveryType) => (
+                    <div key={deliveryType.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Package className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold text-lg">{deliveryType.name}</h3>
+                            <Badge variant={deliveryType.isActive ? "default" : "secondary"}>
+                              {deliveryType.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">({deliveryType.duration})</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor={`price-${deliveryType.id}`} className="text-sm">Price:</Label>
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm">$</span>
+                            <Input
+                              id={`price-${deliveryType.id}`}
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={deliveryType.price}
+                              onChange={(e) => handleUpdateDeliveryTypePrice(deliveryType.id, parseFloat(e.target.value) || 0)}
+                              className="w-20 h-8"
+                            />
+                          </div>
+                        </div>
+                        <Switch
+                          checked={deliveryType.isActive}
+                          onCheckedChange={() => toggleDeliveryTypeStatus(deliveryType.id)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Box Sizes Section */}
             <Card>
