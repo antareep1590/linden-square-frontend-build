@@ -35,7 +35,7 @@ interface Order {
   trackingLink: string;
   status: string;
   estimatedDelivery: string;
-  deliveryOwner?: string;
+  deliveryType: string;
   giftItems: Array<{
     name: string;
     quantity: number;
@@ -63,7 +63,7 @@ const mockOrders: Order[] = [
     carrier: "FedEx",
     trackingNumber: "12345678901",
     trackingLink: "https://fedex.com/track/12345678901",
-    deliveryOwner: "John Smith",
+    deliveryType: "Express Delivery (1–2 business days)",
     giftItems: [
       { name: "Luxury Candle Set", quantity: 25 },
       { name: "Premium Coffee", quantity: 25 },
@@ -100,7 +100,7 @@ const mockOrders: Order[] = [
     carrier: "UPS",
     trackingNumber: "98765432109",
     trackingLink: "https://ups.com/track/98765432109",
-    deliveryOwner: "Sarah Wilson",
+    deliveryType: "Normal Delivery (2–3 business days)",
     giftItems: [
       { name: "Wine Bottle", quantity: 50 },
       { name: "Cheese Selection", quantity: 50 }
@@ -121,16 +121,43 @@ const mockOrders: Order[] = [
         estimatedDelivery: "2023-11-10"
       },
     ]
+  },
+  {
+    id: "ORD-2023-003",
+    clientName: "StartupX",
+    giftBoxName: "Welcome Package",
+    recipientCount: 15,
+    orderDate: new Date("2023-10-25"),
+    shipDate: new Date("2023-10-26"),
+    status: "processing",
+    estimatedDelivery: "2023-11-12",
+    carrier: "DHL",
+    trackingNumber: "55566677788",
+    trackingLink: "https://dhl.com/track/55566677788",
+    deliveryType: "Slow Delivery (3–5 business days)",
+    giftItems: [
+      { name: "Company Swag", quantity: 15 },
+      { name: "Welcome Guide", quantity: 15 }
+    ],
+    recipients: [
+      { 
+        name: "Mike Wilson", 
+        email: "mike@startupx.com", 
+        address: "789 Broadway, Los Angeles, CA", 
+        status: "processing",
+        estimatedDelivery: "2023-11-12"
+      },
+    ]
   }
 ];
 
-const deliveryOwners = ["John Smith", "Sarah Wilson", "Mike Johnson", "Lisa Davis"];
+const deliveryTypes = ["Express Delivery (1–2 business days)", "Normal Delivery (2–3 business days)", "Slow Delivery (3–5 business days)"];
 
 const AdminTrackOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clientFilter, setClientFilter] = useState("all");
-  const [carrierFilter, setCarrierFilter] = useState("all");
+  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -142,12 +169,11 @@ const AdminTrackOrders = () => {
                          order.giftBoxName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
     const matchesClient = clientFilter === "all" || order.clientName === clientFilter;
-    const matchesCarrier = carrierFilter === "all" || order.carrier === carrierFilter;
-    return matchesSearch && matchesStatus && matchesClient && matchesCarrier;
+    const matchesDeliveryType = deliveryTypeFilter === "all" || order.deliveryType === deliveryTypeFilter;
+    return matchesSearch && matchesStatus && matchesClient && matchesDeliveryType;
   });
 
   const uniqueClients = Array.from(new Set(orders.map(order => order.clientName)));
-  const uniqueCarriers = Array.from(new Set(orders.map(order => order.carrier)));
 
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -187,12 +213,6 @@ const AdminTrackOrders = () => {
         {status === "in-transit" ? "In Transit" : status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
-  };
-
-  const handleDeliveryOwnerUpdate = (orderId: string, newOwner: string) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, deliveryOwner: newOwner } : order
-    ));
   };
 
   const getTotalGiftItems = (giftItems: Array<{name: string; quantity: number}>) => {
@@ -253,15 +273,15 @@ const AdminTrackOrders = () => {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Carrier</Label>
-            <Select value={carrierFilter} onValueChange={setCarrierFilter}>
+            <Label className="text-sm font-medium">Delivery Type</Label>
+            <Select value={deliveryTypeFilter} onValueChange={setDeliveryTypeFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Filter by carrier" />
+                <SelectValue placeholder="Filter by delivery type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Carriers</SelectItem>
-                {uniqueCarriers.map(carrier => (
-                  <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
+                <SelectItem value="all">All Delivery Types</SelectItem>
+                {deliveryTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -282,9 +302,8 @@ const AdminTrackOrders = () => {
               <TableHead>Gift Items</TableHead>
               <TableHead>Order Date</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Delivery Type</TableHead>
               <TableHead>Est. Delivery</TableHead>
-              <TableHead>Tracking</TableHead>
-              <TableHead>Delivery Owner</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -340,29 +359,10 @@ const AdminTrackOrders = () => {
                   </TableCell>
                   <TableCell>{formatDate(order.orderDate)}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell>
+                    <div className="text-sm font-medium">{order.deliveryType}</div>
+                  </TableCell>
                   <TableCell>{formatDate(order.estimatedDelivery)}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <div className="font-medium">{order.carrier}</div>
-                      <div className="text-gray-500">{order.trackingNumber}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Select 
-                      value={order.deliveryOwner || "unassigned"} 
-                      onValueChange={(value) => handleDeliveryOwnerUpdate(order.id, value === "unassigned" ? "" : value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Assign" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">Unassigned</SelectItem>
-                        {deliveryOwners.map(owner => (
-                          <SelectItem key={owner} value={owner}>{owner}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
                       <TooltipProvider>
@@ -385,49 +385,28 @@ const AdminTrackOrders = () => {
                   </TableCell>
                 </TableRow>
                 
-                {/* Recipient Details Rows */}
-                {expandedOrders.has(order.id) && order.recipients?.map((recipient, index) => (
-                  <TableRow key={`${order.id}-${index}`} className="bg-gray-50/50 border-l-4 border-l-blue-200">
-                    <TableCell></TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 pl-4">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm font-medium">{recipient.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">{recipient.email}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600 max-w-xs truncate">
-                        <MapPin className="h-3 w-3 inline mr-1" />
-                        {recipient.address}
-                      </div>
-                    </TableCell>
-                    <TableCell></TableCell>
-                    <TableCell></TableCell>
-                    <TableCell>
-                      {recipient.deliveryDate && (
-                        <div className="text-sm text-gray-600">
-                          {formatDate(recipient.deliveryDate)}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(recipient.status)}</TableCell>
-                    <TableCell>
+                {/* Recipient Details Rows - shown in expandable section but details moved to modal */}
+                {expandedOrders.has(order.id) && (
+                  <TableRow className="bg-blue-50/50">
+                    <TableCell colSpan={11} className="p-4">
                       <div className="text-sm text-gray-600">
-                        {formatDate(recipient.estimatedDelivery)}
-                      </div>
-                    </TableCell>
-                    <TableCell></TableCell>
-                    <TableCell></TableCell>
-                    <TableCell>
-                      <div className="text-xs text-gray-500">
-                        Individual delivery
+                        <p className="font-medium mb-2">Recipients ({order.recipients.length}):</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {order.recipients.map((recipient, index) => (
+                            <div key={index} className="flex items-center gap-2 p-2 bg-white rounded border">
+                              <User className="h-4 w-4 text-gray-500" />
+                              <span>{recipient.name}</span>
+                              {getStatusBadge(recipient.status)}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-xs text-gray-500">
+                          View detailed tracking information for each recipient in the Order Details modal.
+                        </p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </React.Fragment>
             ))}
           </TableBody>

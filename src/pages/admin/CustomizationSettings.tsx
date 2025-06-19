@@ -20,13 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -55,7 +48,6 @@ interface PhysicalCustomizationSettings {
   giftTags: {
     enabled: boolean;
     price: number;
-    tagType: 'Preset';
     presetMessages: PresetMessage[];
   };
   messageCards: {
@@ -65,9 +57,9 @@ interface PhysicalCustomizationSettings {
 }
 
 const mockMessageGraphics: MessageGraphic[] = [
-  { id: '1', title: 'Happy Birthday' },
-  { id: '2', title: 'Welcome' },
-  { id: '3', title: 'Congratulations' },
+  { id: '1', title: 'Happy Birthday', thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=100&h=100&fit=crop&crop=center' },
+  { id: '2', title: 'Welcome', thumbnail: 'https://images.unsplash.com/photo-1464207687429-7505649dae38?w=100&h=100&fit=crop&crop=center' },
+  { id: '3', title: 'Congratulations', thumbnail: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=100&h=100&fit=crop&crop=center' },
 ];
 
 const AdminCustomizationSettings = () => {
@@ -83,8 +75,7 @@ const AdminCustomizationSettings = () => {
     brandedNotecards: { enabled: true, price: 2.50 },
     giftTags: { 
       enabled: true, 
-      price: 1.25, 
-      tagType: 'Preset',
+      price: 1.25,
       presetMessages: [
         { id: '1', message: "You're Amazing!" },
         { id: '2', message: "Congrats!" },
@@ -103,6 +94,7 @@ const AdminCustomizationSettings = () => {
     const newGraphic: MessageGraphic = {
       id: (messageGraphics.length + 1).toString(),
       title: newGraphicTitle,
+      thumbnail: `https://images.unsplash.com/photo-${Date.now() % 1000000000}?w=100&h=100&fit=crop&crop=center`
     };
 
     setMessageGraphics([...messageGraphics, newGraphic]);
@@ -221,8 +213,21 @@ const AdminCustomizationSettings = () => {
                   <TableRow key={graphic.id}>
                     <TableCell className="font-medium">{graphic.title}</TableCell>
                     <TableCell>
-                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center">
-                        <Image className="h-4 w-4 text-gray-400" />
+                      <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+                        {graphic.thumbnail ? (
+                          <img 
+                            src={graphic.thumbnail} 
+                            alt={graphic.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.setAttribute('style', 'display: flex');
+                            }}
+                          />
+                        ) : null}
+                        <div className="w-full h-full flex items-center justify-center" style={{ display: graphic.thumbnail ? 'none' : 'flex' }}>
+                          <Image className="h-6 w-6 text-gray-400" />
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -301,30 +306,18 @@ const AdminCustomizationSettings = () => {
             </div>
             {physicalSettings.giftTags.enabled && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="giftTag-price">Price ($)</Label>
-                    <Input
-                      id="giftTag-price"
-                      type="number"
-                      step="0.01"
-                      value={physicalSettings.giftTags.price}
-                      onChange={(e) => 
-                        updatePhysicalSetting('giftTags', 'price', parseFloat(e.target.value))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tag-type">Tag Type</Label>
-                    <Select value={physicalSettings.giftTags.tagType} disabled>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Preset">Preset</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="giftTag-price">Price ($)</Label>
+                  <Input
+                    id="giftTag-price"
+                    type="number"
+                    step="0.01"
+                    value={physicalSettings.giftTags.price}
+                    onChange={(e) => 
+                      updatePhysicalSetting('giftTags', 'price', parseFloat(e.target.value))
+                    }
+                    className="w-32"
+                  />
                 </div>
 
                 <div className="space-y-2">
