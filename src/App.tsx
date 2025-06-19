@@ -36,6 +36,7 @@ import AdminInventory from "./pages/admin/Inventory";
 import AdminInvoices from "./pages/admin/Invoices";
 import AdminCustomizationSettings from "./pages/admin/CustomizationSettings";
 import AdminSettings from "./pages/admin/Settings";
+import AdminMyProfile from "./pages/admin/MyProfile";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminDashboardLayout from "./layouts/AdminDashboardLayout";
@@ -83,6 +84,7 @@ function App() {
               <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminDashboardLayout>} />
               <Route path="/admin/customization-settings" element={<AdminDashboardLayout><AdminCustomizationSettings /></AdminDashboardLayout>} />
               <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminDashboardLayout>} />
+              <Route path="/admin/profile" element={<AdminDashboardLayout><AdminMyProfile /></AdminDashboardLayout>} />
 
               {/* Catch all route */}
               <Route path="*" element={<NotFound />} />
