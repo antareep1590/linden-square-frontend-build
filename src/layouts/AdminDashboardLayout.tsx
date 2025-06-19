@@ -1,140 +1,229 @@
-import React, { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { 
-  Home, 
-  Users, 
-  Gift, 
-  Settings, 
-  Package, 
-  Truck, 
-  FileText, 
-  BarChart3, 
-  ChevronLeft, 
-  ChevronRight, 
-  LogOut,
+import React, { useState, useEffect } from 'react';
+import {
+  Home,
+  Users,
+  Package,
+  Settings,
   User,
-  UserCog,
+  ShoppingBag,
+  Truck,
+  FileText,
+  Boxes,
+  Palette,
+  Font,
+  ListChecks,
+  BarChart,
+  TrendingUp,
   Archive,
-  PackageOpen,
-  Palette
+  LogOut,
 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import LindenSquareLogo from '@/components/LindenSquareLogo';
+} from "@/components/ui/dropdown-menu"
 
-interface AdminDashboardLayoutProps {
-  children?: React.ReactNode;
-}
+import AdminDashboard from '@/pages/admin/Dashboard';
+import AdminClientManagement from '@/pages/admin/ClientManagement';
+import AdminGiftCatalog from '@/pages/admin/GiftCatalog';
+import AdminPresetGiftBoxSetup from '@/pages/admin/PresetGiftBoxSetup';
+import AdminCustomizationSettings from '@/pages/admin/CustomizationSettings';
+import AdminPersonalizationSettings from '@/pages/admin/PersonalizationSettings';
+import AdminInventory from '@/pages/admin/Inventory';
+import AdminCustomers from '@/pages/admin/Customers';
+import AdminUsers from '@/pages/admin/Users';
+import AdminTrackOrders from '@/pages/admin/TrackOrders';
+import AdminShippingDelivery from '@/pages/admin/ShippingDelivery';
+import AdminDeliveryManagement from '@/pages/admin/DeliveryManagement';
+import AdminInvoices from '@/pages/admin/Invoices';
+import AdminSettings from '@/pages/admin/Settings';
+import AdminMyProfile from '@/pages/admin/MyProfile';
 
-const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children }) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const location = useLocation();
+const AdminDashboardLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.pathname.split('/').pop() || 'dashboard');
 
-  const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
-    { name: 'Team', href: '/admin/users', icon: UserCog },
-    { name: 'Client Management', href: '/admin/client-management', icon: Users },
-    { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: PackageOpen },
-    { name: 'Packaging & Delivery', href: '/admin/packaging-delivery', icon: Package },
-    { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
-    { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
-    { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },
-    { name: 'Customization Settings', href: '/admin/customization-settings', icon: Palette },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+  useEffect(() => {
+    setActiveTab(location.pathname.split('/').pop() || 'dashboard');
+  }, [location.pathname]);
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId);
+    navigate(`/admin/${tabId}`);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <AdminDashboard />;
+      case 'clients':
+        return <AdminClientManagement />;
+      case 'gift-catalog':
+        return <AdminGiftCatalog />;
+      case 'preset-gift-boxes':
+        return <AdminPresetGiftBoxSetup />;
+      case 'customization-settings':
+        return <AdminCustomizationSettings />;
+      case 'personalization-settings':
+        return <AdminPersonalizationSettings />;
+      case 'inventory':
+        return <AdminInventory />;
+      case 'customers':
+        return <AdminCustomers />;
+      case 'users':
+        return <AdminUsers />;
+      case 'track-orders':
+        return <AdminTrackOrders />;
+      case 'shipping-delivery':
+        return <AdminShippingDelivery />;
+      case 'delivery-management':
+        return <AdminDeliveryManagement />;
+      case 'invoices':
+        return <AdminInvoices />;
+      case 'settings':
+        return <AdminSettings />;
+      case 'profile':
+        return <AdminMyProfile />;
+      default:
+        return <AdminDashboard />;
+    }
+  };
+
+  const sidebarItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: Home,
+    },
+    {
+      id: 'clients',
+      label: 'Clients',
+      icon: Users,
+    },
+    {
+      id: 'gift-catalog',
+      label: 'Gift Catalog',
+      icon: Package,
+    },
+    {
+      id: 'preset-gift-boxes',
+      label: 'Preset Gift Boxes',
+      icon: Boxes,
+    },
+    {
+      id: 'customization-settings',
+      label: 'Customization Settings',
+      icon: Palette,
+    },
+    {
+      id: 'personalization-settings',
+      label: 'Personalization Settings',
+      icon: Font,
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      icon: Archive,
+    },
+    {
+      id: 'customers',
+      label: 'Customers',
+      icon: Users,
+    },
+    {
+      id: 'users',
+      label: 'Users',
+      icon: Users,
+    },
+    {
+      id: 'track-orders',
+      label: 'Track Orders',
+      icon: ShoppingBag,
+    },
+    {
+      id: 'shipping-delivery',
+      label: 'Shipping & Delivery',
+      icon: Truck,
+    },
+    {
+      id: 'delivery-management',
+      label: 'Delivery Management',
+      icon: Truck,
+    },
+    {
+      id: 'invoices',
+      label: 'Invoices',
+      icon: FileText,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+    },
   ];
 
-  const handleLogout = () => {
-    navigate('/login');
-  };
-
-  const handleMyProfile = () => {
-    navigate('/admin/my-profile');
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`bg-white shadow-sm border-r transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'} flex-shrink-0`}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 border-b">
-            <div className="flex items-center justify-between">
-              {!sidebarCollapsed && <LindenSquareLogo size="small" />}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="ml-auto"
-              >
-                {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-              </Button>
+      <div className="w-64 border-r border-gray-200 flex-shrink-0">
+        <div className="h-16 flex items-center justify-center border-b border-gray-200">
+          <span className="text-lg font-semibold">Admin Dashboard</span>
+        </div>
+        <div className="p-4">
+          {sidebarItems.map((item) => (
+            <div
+              key={item.id}
+              className={`flex items-center p-2 rounded-md hover:bg-gray-100 cursor-pointer ${activeTab === item.id ? 'bg-gray-100 font-semibold' : ''}`}
+              onClick={() => handleTabClick(item.id)}
+            >
+              <item.icon className="w-4 h-4 mr-2" />
+              <span>{item.label}</span>
             </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive 
-                      ? 'bg-linden-blue text-white' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="font-medium">{item.name}</span>}
-                </Link>
-              );
-            })}
-          </nav>
+          ))}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="bg-white border-b px-6 py-4">
-          <div className="flex items-center justify-end">
-            {/* User Menu */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="h-16 flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center">
+            <h2 className="text-xl font-semibold capitalize">{activeTab}</h2>
+          </div>
+          <div>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="" />
-                    <AvatarFallback>AU</AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:block">Admin User</span>
-                </Button>
+              <DropdownMenuTrigger>
+                <Avatar>
+                  <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handleMyProfile}>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleTabClick('profile')}>
                   <User className="mr-2 h-4 w-4" />
-                  My Profile
+                  <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/')}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </header>
+        </div>
 
-        {/* Page Content */}
-        <main className="flex-1 p-6">
-          {children || <Outlet />}
-        </main>
+        {/* Content */}
+        <div className="flex-1 p-4 overflow-auto">
+          {renderContent()}
+        </div>
       </div>
     </div>
   );
