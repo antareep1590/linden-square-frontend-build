@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -84,7 +83,7 @@ function App() {
               <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminDashboardLayout>} />
               <Route path="/admin/customization-settings" element={<AdminDashboardLayout><AdminCustomizationSettings /></AdminDashboardLayout>} />
               <Route path="/admin/settings" element={<AdminDashboardLayout><AdminSettings /></AdminDashboardLayout>} />
-              <Route path="/admin/profile" element={<AdminDashboardLayout><AdminMyProfile /></AdminDashboardLayout>} />
+              <Route path="/admin/my-profile" element={<AdminDashboardLayout><AdminMyProfile /></AdminDashboardLayout>} />
 
               {/* Catch all route */}
               <Route path="*" element={<NotFound />} />
