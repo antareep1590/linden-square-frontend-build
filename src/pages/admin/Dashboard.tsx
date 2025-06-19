@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Package, 
   Users, 
@@ -19,324 +20,392 @@ import {
   Eye,
   FileText,
   Gift,
-  Clock
+  Clock,
+  MapPin,
+  Calendar,
+  CheckCircle,
+  PackageCheck,
+  Timer,
+  Activity,
+  ArrowUpRight,
+  Settings
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
+  const [timeFilter, setTimeFilter] = useState('today');
+
+  // Mock data aligned with current system
+  const summaryStats = {
+    totalOrders: 42,
+    pendingShipments: 18,
+    activeClients: 15,
+    pendingPayments: 7,
+    totalRevenue: 28450.00,
+    completedDeliveries: 156
+  };
+
+  const recentOrders = [
+    {
+      id: 'ORD-2024-156',
+      client: 'TechCorp Solutions',
+      recipients: 12,
+      status: 'Pending Assignment',
+      deliveryType: 'Express Delivery',
+      boxSize: 'Medium',
+      orderDate: '2024-01-15',
+      amount: 1450.00
+    },
+    {
+      id: 'ORD-2024-157',
+      client: 'Marketing Inc',
+      recipients: 8,
+      status: 'Carrier Assigned',
+      deliveryType: 'Normal Delivery',
+      boxSize: 'Small',
+      orderDate: '2024-01-15',
+      amount: 680.00
+    },
+    {
+      id: 'ORD-2024-158',
+      client: 'Global Enterprises',
+      recipients: 25,
+      status: 'Pick-Up Scheduled',
+      deliveryType: 'Express Delivery',
+      boxSize: 'Large',
+      orderDate: '2024-01-14',
+      amount: 3200.00
+    }
+  ];
+
+  const upcomingPickups = [
+    {
+      id: 'PU-001',
+      carrier: 'FedEx Express',
+      scheduledTime: '2024-01-16 10:00 AM',
+      orders: 3,
+      status: 'Confirmed'
+    },
+    {
+      id: 'PU-002',
+      carrier: 'UPS Ground',
+      scheduledTime: '2024-01-16 2:00 PM',
+      orders: 2,
+      status: 'Window Requested'
+    }
+  ];
+
+  const recentActivity = [
+    {
+      id: 1,
+      action: 'Carrier assigned to ORD-2024-156',
+      user: 'Admin',
+      time: '10 minutes ago',
+      type: 'assignment'
+    },
+    {
+      id: 2,
+      action: 'Pick-up scheduled for 3 orders',
+      user: 'System',
+      time: '25 minutes ago',
+      type: 'scheduling'
+    },
+    {
+      id: 3,
+      action: 'Payment received from TechCorp',
+      user: 'System',
+      time: '1 hour ago',
+      type: 'payment'
+    },
+    {
+      id: 4,
+      action: 'New customization settings saved',
+      user: 'Admin',
+      time: '2 hours ago',
+      type: 'settings'
+    }
+  ];
+
+  const lowInventoryItems = [
+    { name: 'Premium Coffee Set', stock: 5, threshold: 10 },
+    { name: 'Executive Notebook', stock: 3, threshold: 15 },
+    { name: 'Wellness Package', stock: 7, threshold: 12 }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Pending Assignment': return 'bg-red-100 text-red-800';
+      case 'Carrier Assigned': return 'bg-yellow-100 text-yellow-800';
+      case 'Pick-Up Scheduled': return 'bg-blue-100 text-blue-800';
+      case 'Picked Up': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'assignment': return <Truck className="h-4 w-4 text-blue-600" />;
+      case 'scheduling': return <Calendar className="h-4 w-4 text-green-600" />;
+      case 'payment': return <DollarSign className="h-4 w-4 text-emerald-600" />;
+      case 'settings': return <Settings className="h-4 w-4 text-purple-600" />;
+      default: return <Activity className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <p className="text-gray-600">Overview of your operations and key metrics</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
-      {/* Quick Stats Section */}
+      {/* Quick Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">148</div>
-            <p className="text-xs text-muted-foreground">+8 new this month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">254</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <div className="text-2xl font-bold">{summaryStats.totalOrders}</div>
+            <p className="text-xs text-muted-foreground flex items-center">
+              <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+              +12% from yesterday
+            </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding Invoices</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pending Shipments</CardTitle>
+            <Truck className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,400</div>
-            <p className="text-xs text-muted-foreground">7 pending payments</p>
+            <div className="text-2xl font-bold text-orange-600">{summaryStats.pendingShipments}</div>
+            <p className="text-xs text-muted-foreground">Requires attention</p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Inventory Alerts</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+            <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-500">7</div>
-            <p className="text-xs text-muted-foreground">Requires immediate attention</p>
+            <div className="text-2xl font-bold">{summaryStats.activeClients}</div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity Panel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-blue-100 rounded-full">
-                  <Package className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Order INV-3423 created by ABC Corp</p>
-                  <p className="text-xs text-gray-500">3 gift boxes • 2 hours ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-100 rounded-full">
-                  <Gift className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Gift Box Holiday Hamper added to catalog</p>
-                  <p className="text-xs text-gray-500">5 hours ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-purple-100 rounded-full">
-                  <Truck className="h-4 w-4 text-purple-600" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Packaging assigned to John Doe for Order INV-3410</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-yellow-100 rounded-full">
-                  <DollarSign className="h-4 w-4 text-yellow-600" />
-                </div>
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium">Payment of $5,400 received from XYZ Pvt Ltd</p>
-                  <p className="text-xs text-gray-500">2 days ago</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Latest Orders */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Latest Orders
-              </CardTitle>
-              <Button variant="outline" size="sm">View All</Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">ORD-2023-001</p>
-                  <p className="text-sm text-gray-500">Acme Corp • 25 boxes</p>
-                </div>
-                <div className="text-right">
-                  <Badge className="bg-green-500 text-white">Delivered</Badge>
-                  <Button variant="ghost" size="sm" className="mt-1">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">ORD-2023-002</p>
-                  <p className="text-sm text-gray-500">Tech Innovations • 50 boxes</p>
-                </div>
-                <div className="text-right">
-                  <Badge className="bg-blue-500 text-white">In Transit</Badge>
-                  <Button variant="ghost" size="sm" className="mt-1">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">ORD-2023-003</p>
-                  <p className="text-sm text-gray-500">Global Consulting • 40 boxes</p>
-                </div>
-                <div className="text-right">
-                  <Badge className="bg-amber-500 text-white">Processing</Badge>
-                  <Button variant="ghost" size="sm" className="mt-1">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold">${summaryStats.totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {summaryStats.pendingPayments} pending payments
+            </p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Packaging & Delivery Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              Packaging & Delivery
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm">Ready to Pack</span>
-                <Badge variant="outline">12</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Packed</span>
-                <Badge variant="outline">8</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">In Transit</span>
-                <Badge variant="outline">25</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Delivered</span>
-                <Badge variant="outline">156</Badge>
-              </div>
-              <Button className="w-full mt-4" variant="outline">
-                Go to Packaging Console
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Invoices Overview */}
-        <Card>
+        {/* Recent Orders */}
+        <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Recent Invoices
+                <Package className="h-5 w-5" />
+                Recent Orders
               </CardTitle>
-              <Button variant="outline" size="sm">View All</Button>
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4 mr-2" />
+                View All
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">INV-001</p>
-                  <p className="text-sm text-gray-500">Acme Corp</p>
+            <div className="space-y-4">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Gift className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{order.id}</p>
+                        <p className="text-sm text-gray-600">{order.client}</p>
+                      </div>
+                    </div>
+                    <Badge className={getStatusColor(order.status)}>
+                      {order.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Recipients</p>
+                      <p className="font-medium">{order.recipients}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Delivery Type</p>
+                      <p className="font-medium">{order.deliveryType}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Box Size</p>
+                      <p className="font-medium">{order.boxSize}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Amount</p>
+                      <p className="font-medium">${order.amount.toLocaleString()}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium">$2,500</p>
-                  <Badge className="bg-green-500 text-white">Paid</Badge>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">INV-002</p>
-                  <p className="text-sm text-gray-500">Tech Innovations</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">$4,200</p>
-                  <Badge className="bg-amber-500 text-white">Due</Badge>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">INV-003</p>
-                  <p className="text-sm text-gray-500">Global Consulting</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">$3,100</p>
-                  <Badge className="bg-blue-500 text-white">Partial</Badge>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Inventory Snapshot */}
+        {/* Upcoming Pickups */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Inventory Snapshot
+              <Calendar className="h-5 w-5" />
+              Upcoming Pickups
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-sm mb-2 text-red-600">Low Stock Alerts</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Premium Candles</span>
-                    <Badge variant="destructive">5 left</Badge>
+              {upcomingPickups.map((pickup) => (
+                <div key={pickup.id} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-sm">{pickup.carrier}</p>
+                    <Badge variant={pickup.status === 'Confirmed' ? 'default' : 'secondary'}>
+                      {pickup.status}
+                    </Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Wine Bottles</span>
-                    <Badge variant="destructive">3 left</Badge>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Clock className="h-4 w-4" />
+                    <span>{pickup.scheduledTime}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Holiday Box</span>
-                    <Badge variant="destructive">2 left</Badge>
-                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{pickup.orders} orders</p>
                 </div>
-              </div>
+              ))}
               
-              <div>
-                <h4 className="font-medium text-sm mb-2">Recently Added</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Executive Box</span>
-                    <Badge variant="outline">25 units</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Holiday Special</span>
-                    <Badge variant="outline">40 units</Badge>
-                  </div>
-                </div>
-              </div>
+              <Button className="w-full" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Schedule Pickup
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Action Shortcuts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.action}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span>by {activity.user}</span>
+                      <span>•</span>
+                      <span>{activity.time}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Inventory Alerts */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-red-500" />
+                Low Inventory Alerts
+              </CardTitle>
+              <Button variant="ghost" size="sm">
+                <ArrowUpRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {lowInventoryItems.map((item, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-600">Threshold: {item.threshold} units</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-red-600">{item.stock}</p>
+                    <p className="text-xs text-gray-500">remaining</p>
+                  </div>
+                </div>
+              ))}
+              
+              <Button className="w-full mt-4" variant="outline">
+                <Package className="h-4 w-4 mr-2" />
+                Manage Inventory
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
       <Card>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button className="h-20 flex flex-col gap-2">
-              <Plus className="h-6 w-6" />
-              Add New Gift Item
-            </Button>
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
-              <Package className="h-6 w-6" />
-              Create Preset Box
-            </Button>
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
-              <Package className="h-6 w-6" />
-              Manage Inventory
-            </Button>
-            <Button variant="outline" className="h-20 flex flex-col gap-2">
+            <Button className="h-20 flex flex-col gap-2" variant="outline">
               <Truck className="h-6 w-6" />
-              Packaging Console
+              Assign Carrier
+            </Button>
+            <Button className="h-20 flex flex-col gap-2" variant="outline">
+              <Calendar className="h-6 w-6" />
+              Schedule Pickup
+            </Button>
+            <Button className="h-20 flex flex-col gap-2" variant="outline">
+              <Settings className="h-6 w-6" />
+              Customization Settings
+            </Button>
+            <Button className="h-20 flex flex-col gap-2" variant="outline">
+              <FileText className="h-6 w-6" />
+              Generate Report
             </Button>
           </div>
         </CardContent>
