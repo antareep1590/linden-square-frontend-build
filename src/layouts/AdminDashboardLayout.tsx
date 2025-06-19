@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ const AdminDashboardLayout: React.FC<AdminDashboardLayoutProps> = ({ children })
     { name: 'Team', href: '/admin/users', icon: UserCog },
     { name: 'Client Management', href: '/admin/client-management', icon: Users },
     { name: 'Preset Gift Box Setup', href: '/admin/preset-setup', icon: PackageOpen },
-    { name: 'Packaging & Delivery', href: '/admin/packaging-delivery', icon: Package },
+    { name: 'Shipping & Delivery', href: '/admin/packaging-delivery', icon: Package },
     { name: 'Track Orders', href: '/admin/track-orders', icon: Truck },
     { name: 'Inventory Management', href: '/admin/inventory', icon: Archive },
     { name: 'Invoices & Payments', href: '/admin/invoices', icon: FileText },

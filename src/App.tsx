@@ -30,7 +30,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminUsers from "./pages/admin/Users";
 import AdminClientManagement from "./pages/admin/ClientManagement";
 import AdminPresetSetup from "./pages/admin/PresetGiftBoxSetup";
-import AdminPackagingDelivery from "./pages/admin/PackagingDelivery";
+import AdminShippingDelivery from "./pages/admin/PackagingDelivery";
 import AdminTrackOrders from "./pages/admin/TrackOrders";
 import AdminInventory from "./pages/admin/Inventory";
 import AdminInvoices from "./pages/admin/Invoices";
@@ -77,7 +77,7 @@ function App() {
               <Route path="/admin/users" element={<AdminDashboardLayout><AdminUsers /></AdminDashboardLayout>} />
               <Route path="/admin/client-management" element={<AdminDashboardLayout><AdminClientManagement /></AdminDashboardLayout>} />
               <Route path="/admin/preset-setup" element={<AdminDashboardLayout><AdminPresetSetup /></AdminDashboardLayout>} />
-              <Route path="/admin/packaging-delivery" element={<AdminDashboardLayout><AdminPackagingDelivery /></AdminDashboardLayout>} />
+              <Route path="/admin/packaging-delivery" element={<AdminDashboardLayout><AdminShippingDelivery /></AdminDashboardLayout>} />
               <Route path="/admin/track-orders" element={<AdminDashboardLayout><AdminTrackOrders /></AdminDashboardLayout>} />
               <Route path="/admin/inventory" element={<AdminDashboardLayout><AdminInventory /></AdminDashboardLayout>} />
               <Route path="/admin/invoices" element={<AdminDashboardLayout><AdminInvoices /></AdminDashboardLayout>} />
