@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { Package, Truck, Clock, CheckCircle, MapPin, User, Gift, Calendar, Search, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { deliveryStatusService } from "@/services/deliveryStatusService";
 
 interface ShippingOrder {
   id: string;
@@ -294,6 +296,21 @@ const AdminShippingDelivery = () => {
     setConfirmedPickupDateRange(undefined);
   };
 
+  // Add useEffect to subscribe to delivery status updates
+  useEffect(() => {
+    const unsubscribe = deliveryStatusService.subscribe((update) => {
+      setOrders(currentOrders => 
+        currentOrders.map(order => 
+          order.id === update.orderId 
+            ? { ...order, shipmentStatus: update.status as ShippingOrder['shipmentStatus'] }
+            : order
+        )
+      );
+    });
+
+    return unsubscribe;
+  }, []);
+
   const filteredOrders = orders.filter(order => {
     // Search query filter
     const searchFields = [order.recipientName, order.recipientAddress].join(' ').toLowerCase();
@@ -322,6 +339,49 @@ const AdminShippingDelivery = () => {
       newSelected.add(orderId);
     }
     setSelectedOrders(newSelected);
+  };
+
+  const handleBulkMarkAsPickedUp = () => {
+    const selectedOrderIds = Array.from(selectedOrders);
+    const updatedOrders = orders.map(order => {
+      if (selectedOrderIds.includes(order.id) && order.shipmentStatus === 'pickup-scheduled') {
+        // Update via delivery status service
+        deliveryStatusService.updateStatus(order.id, 'picked-up', 'Admin User');
+        return { ...order, shipmentStatus: 'picked-up' as const };
+      }
+      return order;
+    });
+    
+    setOrders(updatedOrders);
+    setSelectedOrders(new Set());
+    
+    const pickedUpCount = selectedOrderIds.filter(id => 
+      orders.find(order => order.id === id)?.shipmentStatus === 'pickup-scheduled'
+    ).length;
+    
+    if (pickedUpCount > 0) {
+      toast.success(`${pickedUpCount} order(s) marked as picked up`);
+    } else {
+      toast.error("No orders were eligible to be marked as picked up");
+    }
+  };
+
+  const handleSingleOrderPickedUp = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order && order.shipmentStatus === 'pickup-scheduled') {
+      // Update via delivery status service
+      deliveryStatusService.updateStatus(orderId, 'picked-up', 'Admin User');
+      
+      setOrders(orders.map(o => 
+        o.id === orderId 
+          ? { ...o, shipmentStatus: 'picked-up' as const }
+          : o
+      ));
+      
+      toast.success(`Order ${orderId} marked as picked up`);
+    } else {
+      toast.error("Order is not ready for pickup");
+    }
   };
 
   const openGiftItemsModal = (giftItems: { name: string; quantity: number }[]) => {
@@ -450,7 +510,10 @@ const AdminShippingDelivery = () => {
             <span className="text-sm text-gray-600">
               {selectedOrders.size} orders selected
             </span>
-            <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+            <Button 
+              onClick={handleBulkMarkAsPickedUp}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
               Mark as Picked Up
             </Button>
           </div>
@@ -599,9 +662,13 @@ const AdminShippingDelivery = () => {
                         <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
                           Change Carrier
                         </Button>
-                        <Badge className="bg-green-100 text-green-800 border-green-300 text-xs px-2 py-1">
-                          Ready for Pick-Up
-                        </Badge>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleSingleOrderPickedUp(order.id)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1 h-8"
+                        >
+                          Mark as Picked Up
+                        </Button>
                       </>
                     )}
                     {order.shipmentStatus === 'picked-up' && (
