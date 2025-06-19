@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Package, Truck, Clock, CheckCircle, MapPin, User, Gift, Calendar } from "lucide-react";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
+import { Package, Truck, Clock, CheckCircle, MapPin, User, Gift, Calendar, Search, X } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
 interface ShippingOrder {
   id: string;
@@ -29,6 +31,7 @@ interface ShippingOrder {
   carrier?: string;
   packer?: string;
   orderDate: Date;
+  pickupAddress?: string;
   carrierPricing?: { [key: string]: number };
 }
 
@@ -74,13 +77,131 @@ const mockShippingOrders: ShippingOrder[] = [
     recipientName: "Bob Johnson",
     recipientAddress: "789 Pine St, Chicago, IL 60601",
     deliveryMethod: 'slow',
-    shipmentStatus: 'picked-up',
+    shipmentStatus: 'pickup-scheduled',
     carrier: "UPS",
     packer: "Sarah Wilson",
     requestedPickUpWindow: "Dec 15, 2023 2:00 PM - 4:00 PM",
-    confirmedPickUpSlot: "Dec 15, 2023 3:30 PM",
+    confirmedPickUpSlot: "Dec 15, 2023 3:30 PM - 4:30 PM",
     orderDate: new Date("2023-10-20"),
     carrierPricing: { "UPS": 12.99, "USPS": 10.50 }
+  },
+  {
+    id: "ORD-004",
+    giftBoxName: "Executive Package",
+    giftItems: [
+      { name: "Premium Notebook", quantity: 1 },
+      { name: "Artisan Pen", quantity: 1 }
+    ],
+    recipientName: "Sarah Wilson",
+    recipientAddress: "321 Broadway, New York, NY 10001",
+    deliveryMethod: 'express',
+    shipmentStatus: 'pickup-window-requested',
+    carrier: "DHL",
+    packer: "Mike Johnson",
+    requestedPickUpWindow: "Dec 20, 2023 10:00 AM - 12:00 PM",
+    orderDate: new Date("2023-10-15"),
+    carrierPricing: { "DHL": 28.99, "FedEx": 26.50 }
+  },
+  {
+    id: "ORD-005",
+    giftBoxName: "Welcome Kit",
+    giftItems: [
+      { name: "Company Mug", quantity: 1 },
+      { name: "Welcome Guide", quantity: 1 }
+    ],
+    recipientName: "David Chen",
+    recipientAddress: "555 Tech Ave, Austin, TX 78701",
+    deliveryMethod: 'normal',
+    shipmentStatus: 'picked-up',
+    carrier: "USPS",
+    packer: "Lisa Davis",
+    requestedPickUpWindow: "Dec 10, 2023 9:00 AM - 11:00 AM",
+    confirmedPickUpSlot: "Dec 10, 2023 9:30 AM - 10:30 AM",
+    orderDate: new Date("2023-10-05"),
+    carrierPricing: { "USPS": 11.99, "UPS": 13.50 }
+  },
+  {
+    id: "ORD-006",
+    giftBoxName: "Client Thank You",
+    giftItems: [
+      { name: "Gourmet Tea", quantity: 1 },
+      { name: "Thank You Card", quantity: 1 }
+    ],
+    recipientName: "Emily Rodriguez",
+    recipientAddress: "777 Market St, Seattle, WA 98101",
+    deliveryMethod: 'slow',
+    shipmentStatus: 'carrier-assigned',
+    carrier: "UPS",
+    packer: "John Smith",
+    orderDate: new Date("2023-10-25"),
+    carrierPricing: { "UPS": 14.99, "USPS": 12.50 }
+  },
+  {
+    id: "ORD-007",
+    giftBoxName: "Anniversary Gift",
+    giftItems: [
+      { name: "Celebration Bottle", quantity: 1 },
+      { name: "Anniversary Card", quantity: 1 }
+    ],
+    recipientName: "Michael Thompson",
+    recipientAddress: "888 Oak Street, Portland, OR 97201",
+    deliveryMethod: 'express',
+    shipmentStatus: 'pending-assignment',
+    orderDate: new Date("2023-11-05"),
+    carrierPricing: { "FedEx": 27.99, "UPS": 25.50 }
+  },
+  {
+    id: "ORD-008",
+    giftBoxName: "Team Appreciation",
+    giftItems: [
+      { name: "Team Snacks", quantity: 3 },
+      { name: "Thank You Note", quantity: 1 }
+    ],
+    recipientName: "Lisa Park",
+    recipientAddress: "999 Innovation Dr, San Jose, CA 95110",
+    deliveryMethod: 'normal',
+    shipmentStatus: 'pickup-scheduled',
+    carrier: "FedEx",
+    packer: "Sarah Wilson",
+    requestedPickUpWindow: "Dec 18, 2023 1:00 PM - 3:00 PM",
+    confirmedPickUpSlot: "Dec 18, 2023 2:00 PM - 3:00 PM",
+    orderDate: new Date("2023-10-30"),
+    carrierPricing: { "FedEx": 16.99, "UPS": 15.50 }
+  },
+  {
+    id: "ORD-009",
+    giftBoxName: "Holiday Bonus",
+    giftItems: [
+      { name: "Holiday Treats", quantity: 2 },
+      { name: "Bonus Card", quantity: 1 }
+    ],
+    recipientName: "James Anderson",
+    recipientAddress: "111 Finance Blvd, Denver, CO 80202",
+    deliveryMethod: 'slow',
+    shipmentStatus: 'pickup-window-requested',
+    carrier: "USPS",
+    packer: "Mike Johnson",
+    requestedPickUpWindow: "Dec 22, 2023 3:00 PM - 5:00 PM",
+    orderDate: new Date("2023-10-18"),
+    carrierPricing: { "USPS": 13.99, "UPS": 15.50 }
+  },
+  {
+    id: "ORD-010",
+    giftBoxName: "New Year Package",
+    giftItems: [
+      { name: "Calendar", quantity: 1 },
+      { name: "New Year Card", quantity: 1 }
+    ],
+    recipientName: "Amanda Foster",
+    recipientAddress: "222 Business Park, Miami, FL 33101",
+    deliveryMethod: 'express',
+    shipmentStatus: 'picked-up',
+    carrier: "DHL",
+    packer: "Lisa Davis",
+    requestedPickUpWindow: "Dec 28, 2023 11:00 AM - 1:00 PM",
+    confirmedPickUpSlot: "Dec 28, 2023 11:30 AM - 12:30 PM",
+    orderDate: new Date("2023-10-12"),
+    carrierPricing: { "DHL": 29.99, "FedEx": 27.50 }
   }
 ];
 
@@ -90,26 +211,34 @@ const packers = ["John Smith", "Sarah Wilson", "Mike Johnson", "Lisa Davis"];
 const AdminShippingDelivery = () => {
   const [orders, setOrders] = useState<ShippingOrder[]>(mockShippingOrders);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [carrierFilter, setCarrierFilter] = useState("all");
-  const [packerFilter, setPackerFilter] = useState("all");
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deliveryMethodFilter, setDeliveryMethodFilter] = useState("all");
+  const [pickupWindowDateRange, setPickupWindowDateRange] = useState<DateRange | undefined>();
+  const [confirmedSlotDateRange, setConfirmedSlotDateRange] = useState<DateRange | undefined>();
+  
   const [selectedGiftItems, setSelectedGiftItems] = useState<{ name: string; quantity: number }[] | null>(null);
   const [isGiftItemsModalOpen, setIsGiftItemsModalOpen] = useState(false);
   
   // Carrier Assignment Modal
   const [isCarrierModalOpen, setIsCarrierModalOpen] = useState(false);
   const [selectedOrderForCarrier, setSelectedOrderForCarrier] = useState<ShippingOrder | null>(null);
+  const [pickupAddress, setPickupAddress] = useState("");
   
   // Pick-up Schedule Modal
   const [isPickupScheduleModalOpen, setIsPickupScheduleModalOpen] = useState(false);
   const [selectedOrderForPickup, setSelectedOrderForPickup] = useState<ShippingOrder | null>(null);
+  const [pickupDate, setPickupDate] = useState("");
   const [pickupStartTime, setPickupStartTime] = useState("");
   const [pickupEndTime, setPickupEndTime] = useState("");
   
   // Confirm Pick-up Slot Modal
   const [isConfirmPickupModalOpen, setIsConfirmPickupModalOpen] = useState(false);
   const [selectedOrderForConfirm, setSelectedOrderForConfirm] = useState<ShippingOrder | null>(null);
-  const [confirmedPickupTime, setConfirmedPickupTime] = useState("");
+  const [confirmPickupDate, setConfirmPickupDate] = useState("");
+  const [confirmPickupStartTime, setConfirmPickupStartTime] = useState("");
+  const [confirmPickupEndTime, setConfirmPickupEndTime] = useState("");
 
   const getDeliveryMethodLabel = (method: string) => {
     const methodConfig = {
@@ -122,16 +251,31 @@ const AdminShippingDelivery = () => {
 
   const getShipmentStatusBadge = (status: string) => {
     const statusConfig = {
-      "pending-assignment": { color: "bg-gray-500", label: "Pending Assignment" },
-      "carrier-assigned": { color: "bg-blue-500", label: "Carrier Assigned" },
-      "pickup-window-requested": { color: "bg-yellow-500", label: "Pick-Up Window Requested" },
-      "pickup-scheduled": { color: "bg-green-500", label: "Pick-Up Scheduled" },
-      "picked-up": { color: "bg-purple-500", label: "Picked Up" }
+      "pending-assignment": { 
+        color: "bg-gray-100 text-gray-800 border-gray-300", 
+        label: "Pending Assignment" 
+      },
+      "carrier-assigned": { 
+        color: "bg-blue-100 text-blue-800 border-blue-300", 
+        label: "Carrier Assigned" 
+      },
+      "pickup-window-requested": { 
+        color: "bg-yellow-100 text-yellow-800 border-yellow-300", 
+        label: "Pick-Up Window Requested" 
+      },
+      "pickup-scheduled": { 
+        color: "bg-green-100 text-green-800 border-green-300", 
+        label: "Pick-Up Scheduled" 
+      },
+      "picked-up": { 
+        color: "bg-purple-100 text-purple-800 border-purple-300", 
+        label: "Picked Up" 
+      }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig];
     return (
-      <Badge className={`${config.color} text-white border-0`}>
+      <Badge className={`${config.color} border text-xs font-medium px-2 py-1 rounded-full`}>
         {config.label}
       </Badge>
     );
@@ -140,14 +284,15 @@ const AdminShippingDelivery = () => {
   const handleCarrierAssignment = (orderId: string, carrier: string) => {
     setOrders(orders.map(order => 
       order.id === orderId 
-        ? { ...order, carrier, shipmentStatus: 'carrier-assigned' as const }
+        ? { ...order, carrier, pickupAddress, shipmentStatus: 'carrier-assigned' as const }
         : order
     ));
     setIsCarrierModalOpen(false);
+    setPickupAddress("");
   };
 
   const handleSchedulePickup = (orderId: string) => {
-    const pickupWindow = `${pickupStartTime} - ${pickupEndTime}`;
+    const pickupWindow = `${pickupDate} ${pickupStartTime} - ${pickupEndTime}`;
     setOrders(orders.map(order => 
       order.id === orderId 
         ? { 
@@ -158,22 +303,26 @@ const AdminShippingDelivery = () => {
         : order
     ));
     setIsPickupScheduleModalOpen(false);
+    setPickupDate("");
     setPickupStartTime("");
     setPickupEndTime("");
   };
 
   const handleConfirmPickup = (orderId: string) => {
+    const confirmedSlot = `${confirmPickupDate} ${confirmPickupStartTime} - ${confirmPickupEndTime}`;
     setOrders(orders.map(order => 
       order.id === orderId 
         ? { 
             ...order, 
-            confirmedPickUpSlot: confirmedPickupTime,
+            confirmedPickUpSlot: confirmedSlot,
             shipmentStatus: 'pickup-scheduled' as const
           }
         : order
     ));
     setIsConfirmPickupModalOpen(false);
-    setConfirmedPickupTime("");
+    setConfirmPickupDate("");
+    setConfirmPickupStartTime("");
+    setConfirmPickupEndTime("");
   };
 
   const handleMarkAsPickedUp = () => {
@@ -185,11 +334,25 @@ const AdminShippingDelivery = () => {
     setSelectedOrders(new Set());
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setDeliveryMethodFilter("all");
+    setPickupWindowDateRange(undefined);
+    setConfirmedSlotDateRange(undefined);
+  };
+
   const filteredOrders = orders.filter(order => {
-    const matchesStatus = statusFilter === "all" || order.shipmentStatus === statusFilter;
-    const matchesCarrier = carrierFilter === "all" || order.carrier === carrierFilter;
-    const matchesPacker = packerFilter === "all" || order.packer === packerFilter;
-    return matchesStatus && matchesCarrier && matchesPacker;
+    // Search filter (recipient name and address)
+    const searchFields = [order.recipientName, order.recipientAddress].join(' ').toLowerCase();
+    const matchesSearch = !searchQuery || searchFields.includes(searchQuery.toLowerCase());
+    
+    // Delivery method filter
+    const matchesDeliveryMethod = deliveryMethodFilter === "all" || order.deliveryMethod === deliveryMethodFilter;
+    
+    // Date range filters would be implemented here based on actual date parsing
+    // For now, keeping it simple
+    
+    return matchesSearch && matchesDeliveryMethod;
   });
 
   const toggleOrderSelection = (orderId: string) => {
@@ -222,11 +385,11 @@ const AdminShippingDelivery = () => {
                 setSelectedOrderForCarrier(order);
                 setIsCarrierModalOpen(true);
               }}
-              className="bg-blue-500 hover:bg-blue-600"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-8"
             >
               Assign Carrier
             </Button>
-            <Button size="sm" disabled variant="outline">
+            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
               Schedule Pick-Up
             </Button>
           </div>
@@ -240,8 +403,10 @@ const AdminShippingDelivery = () => {
               variant="outline"
               onClick={() => {
                 setSelectedOrderForCarrier(order);
+                setPickupAddress(order.pickupAddress || "");
                 setIsCarrierModalOpen(true);
               }}
+              className="text-xs px-3 py-1 h-8"
             >
               Change Carrier
             </Button>
@@ -251,7 +416,7 @@ const AdminShippingDelivery = () => {
                 setSelectedOrderForPickup(order);
                 setIsPickupScheduleModalOpen(true);
               }}
-              className="bg-yellow-500 hover:bg-yellow-600"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-3 py-1 h-8"
             >
               Schedule Pick-Up
             </Button>
@@ -261,7 +426,7 @@ const AdminShippingDelivery = () => {
       case 'pickup-window-requested':
         return (
           <div className="flex gap-2">
-            <Button size="sm" disabled variant="outline">
+            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
               Change Carrier
             </Button>
             <Button 
@@ -270,7 +435,7 @@ const AdminShippingDelivery = () => {
                 setSelectedOrderForConfirm(order);
                 setIsConfirmPickupModalOpen(true);
               }}
-              className="bg-green-500 hover:bg-green-600"
+              className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-8"
             >
               Confirm Pick-Up Slot
             </Button>
@@ -280,10 +445,10 @@ const AdminShippingDelivery = () => {
       case 'pickup-scheduled':
         return (
           <div className="flex gap-2">
-            <Button size="sm" disabled variant="outline">
+            <Button size="sm" disabled variant="outline" className="text-xs px-3 py-1 h-8">
               Change Carrier
             </Button>
-            <Badge className="bg-green-500 text-white">
+            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs px-2 py-1">
               Ready for Pick-Up
             </Badge>
           </div>
@@ -291,7 +456,7 @@ const AdminShippingDelivery = () => {
       
       case 'picked-up':
         return (
-          <Badge className="bg-purple-500 text-white">
+          <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs px-2 py-1">
             Picked Up
           </Badge>
         );
@@ -315,58 +480,64 @@ const AdminShippingDelivery = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-muted/20 p-4 rounded-lg space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-gray-50 p-6 rounded-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Filters</h3>
+          <Button variant="outline" onClick={clearFilters} className="flex items-center gap-2">
+            <X className="h-4 w-4" />
+            Clear Filters
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Shipment Status</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Label className="text-sm font-medium">Search Recipient</Label>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input 
+                placeholder="Name or address..." 
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Delivery Method */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Delivery Method</Label>
+            <Select value={deliveryMethodFilter} onValueChange={setDeliveryMethodFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder="All methods" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending-assignment">Pending Assignment</SelectItem>
-                <SelectItem value="carrier-assigned">Carrier Assigned</SelectItem>
-                <SelectItem value="pickup-window-requested">Pick-Up Window Requested</SelectItem>
-                <SelectItem value="pickup-scheduled">Pick-Up Scheduled</SelectItem>
-                <SelectItem value="picked-up">Picked Up</SelectItem>
+                <SelectItem value="all">All Methods</SelectItem>
+                <SelectItem value="express">Express</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="slow">Slow</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
+          {/* Requested Pick-Up Window */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Carrier</Label>
-            <Select value={carrierFilter} onValueChange={setCarrierFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by carrier" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Carriers</SelectItem>
-                {carriers.map(carrier => (
-                  <SelectItem key={carrier} value={carrier}>{carrier}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-sm font-medium">Requested Pick-Up Window</Label>
+            <DatePickerWithRange
+              date={pickupWindowDateRange}
+              onDateChange={setPickupWindowDateRange}
+              placeholder="Select date range"
+            />
           </div>
 
+          {/* Confirmed Pick-Up Slot */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Packer</Label>
-            <Select value={packerFilter} onValueChange={setPackerFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by packer" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Packers</SelectItem>
-                {packers.map(packer => (
-                  <SelectItem key={packer} value={packer}>{packer}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Order Date</Label>
-            <Input type="date" placeholder="Filter by date" />
+            <Label className="text-sm font-medium">Confirmed Pick-Up Slot</Label>
+            <DatePickerWithRange
+              date={confirmedSlotDateRange}
+              onDateChange={setConfirmedSlotDateRange}
+              placeholder="Select date range"
+            />
           </div>
         </div>
       </div>
@@ -379,7 +550,7 @@ const AdminShippingDelivery = () => {
               {selectedOrders.size} orders selected
             </span>
             {canMarkAsPickedUp && (
-              <Button onClick={handleMarkAsPickedUp} className="bg-purple-500 hover:bg-purple-600">
+              <Button onClick={handleMarkAsPickedUp} className="bg-purple-600 hover:bg-purple-700 text-white">
                 Mark as Picked Up
               </Button>
             )}
@@ -394,7 +565,7 @@ const AdminShippingDelivery = () => {
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox
-                  checked={selectedOrders.size === filteredOrders.length}
+                  checked={selectedOrders.size === filteredOrders.length && filteredOrders.length > 0}
                   onCheckedChange={(checked) => {
                     if (checked) {
                       setSelectedOrders(new Set(filteredOrders.map(o => o.id)));
@@ -405,6 +576,7 @@ const AdminShippingDelivery = () => {
                 />
               </TableHead>
               <TableHead>Order ID</TableHead>
+              <TableHead>Order Date</TableHead>
               <TableHead>Gift Box Name</TableHead>
               <TableHead>Gift Items</TableHead>
               <TableHead>Recipient</TableHead>
@@ -417,7 +589,7 @@ const AdminShippingDelivery = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOrders.map((order) => (
+            {filteredOrders.slice(0, 10).map((order) => (
               <TableRow key={order.id}>
                 <TableCell>
                   <Checkbox
@@ -426,6 +598,7 @@ const AdminShippingDelivery = () => {
                   />
                 </TableCell>
                 <TableCell className="font-medium">{order.id}</TableCell>
+                <TableCell>{format(order.orderDate, 'MMM d, yyyy')}</TableCell>
                 <TableCell>{order.giftBoxName}</TableCell>
                 <TableCell>
                   <Button
@@ -468,6 +641,10 @@ const AdminShippingDelivery = () => {
         </Table>
       </div>
 
+      <div className="text-sm text-gray-500">
+        Showing {Math.min(10, filteredOrders.length)} of {filteredOrders.length} orders
+      </div>
+
       {/* Gift Items Modal */}
       <Dialog open={isGiftItemsModalOpen} onOpenChange={setIsGiftItemsModalOpen}>
         <DialogContent>
@@ -492,7 +669,9 @@ const AdminShippingDelivery = () => {
       <Dialog open={isCarrierModalOpen} onOpenChange={setIsCarrierModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Assign Carrier</DialogTitle>
+            <DialogTitle>
+              {selectedOrderForCarrier?.carrier ? 'Change Carrier' : 'Assign Carrier'}
+            </DialogTitle>
           </DialogHeader>
           {selectedOrderForCarrier && (
             <div className="space-y-6">
@@ -512,38 +691,58 @@ const AdminShippingDelivery = () => {
                   <div>
                     <span className="font-medium">Delivery Method:</span> {getDeliveryMethodLabel(selectedOrderForCarrier.deliveryMethod)}
                   </div>
-                  <div className="col-span-2">
-                    <span className="font-medium">Address:</span> {selectedOrderForCarrier.recipientAddress}
-                  </div>
+                </div>
+              </div>
+
+              {/* Address Fields */}
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-medium">Pickup Address</Label>
+                  <Input 
+                    value={pickupAddress}
+                    onChange={(e) => setPickupAddress(e.target.value)}
+                    placeholder="Enter pickup address..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-medium">Delivery Address</Label>
+                  <Input 
+                    value={selectedOrderForCarrier.recipientAddress}
+                    disabled
+                    className="bg-gray-100"
+                  />
                 </div>
               </div>
 
               {/* Carrier Options */}
-              <div>
-                <h3 className="font-semibold mb-3">Available Carriers</h3>
-                <div className="space-y-2">
-                  {carriers.map(carrier => {
-                    const pricing = selectedOrderForCarrier.carrierPricing?.[carrier];
-                    return (
-                      <div key={carrier} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <Truck className="h-4 w-4" />
-                          <span className="font-medium">{carrier}</span>
+              {pickupAddress && (
+                <div>
+                  <h3 className="font-semibold mb-3">Available Carriers</h3>
+                  <div className="space-y-2">
+                    {carriers.map(carrier => {
+                      const pricing = selectedOrderForCarrier.carrierPricing?.[carrier];
+                      return (
+                        <div key={carrier} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            <Truck className="h-4 w-4" />
+                            <span className="font-medium">{carrier}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {pricing && <span className="text-sm text-gray-600">${pricing.toFixed(2)}</span>}
+                            <Button 
+                              size="sm"
+                              onClick={() => handleCarrierAssignment(selectedOrderForCarrier.id, carrier)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Select
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {pricing && <span className="text-sm text-gray-600">${pricing.toFixed(2)}</span>}
-                          <Button 
-                            size="sm"
-                            onClick={() => handleCarrierAssignment(selectedOrderForCarrier.id, carrier)}
-                          >
-                            Select
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -556,29 +755,46 @@ const AdminShippingDelivery = () => {
             <DialogTitle>Schedule Pick-Up Window</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Start Time</Label>
-              <Input 
-                type="datetime-local" 
-                value={pickupStartTime}
-                onChange={(e) => setPickupStartTime(e.target.value)}
-              />
+            <div className="space-y-4">
+              <h3 className="font-medium">Pick-Up Time Slot</h3>
+              
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Input 
+                  type="date" 
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>From (Start time)</Label>
+                  <Input 
+                    type="time" 
+                    value={pickupStartTime}
+                    onChange={(e) => setPickupStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>To (End time)</Label>
+                  <Input 
+                    type="time" 
+                    value={pickupEndTime}
+                    onChange={(e) => setPickupEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>End Time</Label>
-              <Input 
-                type="datetime-local" 
-                value={pickupEndTime}
-                onChange={(e) => setPickupEndTime(e.target.value)}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
+            
+            <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsPickupScheduleModalOpen(false)}>
                 Cancel
               </Button>
               <Button 
                 onClick={() => selectedOrderForPickup && handleSchedulePickup(selectedOrderForPickup.id)}
-                disabled={!pickupStartTime || !pickupEndTime}
+                disabled={!pickupDate || !pickupStartTime || !pickupEndTime}
+                className="bg-yellow-600 hover:bg-yellow-700"
               >
                 Schedule Pick-Up
               </Button>
@@ -594,21 +810,46 @@ const AdminShippingDelivery = () => {
             <DialogTitle>Confirm Pick-Up Slot</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Confirmed Pick-Up Time</Label>
-              <Input 
-                type="datetime-local" 
-                value={confirmedPickupTime}
-                onChange={(e) => setConfirmedPickupTime(e.target.value)}
-              />
+            <div className="space-y-4">
+              <h3 className="font-medium">Pick-Up Time Slot</h3>
+              
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Input 
+                  type="date" 
+                  value={confirmPickupDate}
+                  onChange={(e) => setConfirmPickupDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>From (Start time)</Label>
+                  <Input 
+                    type="time" 
+                    value={confirmPickupStartTime}
+                    onChange={(e) => setConfirmPickupStartTime(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>To (End time)</Label>
+                  <Input 
+                    type="time" 
+                    value={confirmPickupEndTime}
+                    onChange={(e) => setConfirmPickupEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end gap-2">
+            
+            <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsConfirmPickupModalOpen(false)}>
                 Cancel
               </Button>
               <Button 
                 onClick={() => selectedOrderForConfirm && handleConfirmPickup(selectedOrderForConfirm.id)}
-                disabled={!confirmedPickupTime}
+                disabled={!confirmPickupDate || !confirmPickupStartTime || !confirmPickupEndTime}
+                className="bg-green-600 hover:bg-green-700"
               >
                 Confirm Pick-Up
               </Button>
