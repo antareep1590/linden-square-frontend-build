@@ -24,7 +24,16 @@ interface Order {
   carrier: string;
   trackingLink: string;
   status: string;
+  deliveryType?: string;
   subOrders?: SubOrder[];
+  recipients?: Array<{
+    name: string;
+    email: string;
+    address: string;
+    status: string;
+    deliveryDate?: string;
+    estimatedDelivery: string;
+  }>;
 }
 
 interface OrderDetailsModalProps {
@@ -63,7 +72,7 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
   };
 
   // Generate delivery timeline for a shipment
-  const generateDeliveryTimeline = (subOrder: SubOrder) => {
+  const generateDeliveryTimeline = (recipient: any) => {
     const baseDate = order.shipDate;
     const timeline = [
       {
@@ -81,25 +90,37 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
       {
         status: "Shipped",
         date: baseDate,
-        completed: subOrder.deliveryStatus !== 'placed',
+        completed: recipient.status !== 'placed',
         icon: <Truck className="h-4 w-4" />
       },
       {
         status: "Out for Delivery",
         date: new Date(baseDate.getTime() + 2 * 24 * 60 * 60 * 1000),
-        completed: subOrder.deliveryStatus === 'delivered',
+        completed: recipient.status === 'delivered',
         icon: <MapPin className="h-4 w-4" />
       },
       {
         status: "Delivered",
         date: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000),
-        completed: subOrder.deliveryStatus === 'delivered',
+        completed: recipient.status === 'delivered',
         icon: <CheckCircle className="h-4 w-4" />
       }
     ];
 
     return timeline;
   };
+
+  // Use subOrders if available, otherwise use recipients
+  const recipientData = order.subOrders || order.recipients?.map(recipient => ({
+    recipientName: recipient.name,
+    recipientEmail: recipient.email,
+    shippingAddress: recipient.address,
+    deliveryStatus: recipient.status,
+    estimatedDelivery: recipient.estimatedDelivery,
+    giftBoxContents: ["Premium Coffee", "Coffee Mug", "Gourmet Cookies"], // Mock data
+    trackingNumber: "N/A",
+    carrier: order.carrier
+  })) || [];
 
   // Mock delivery history for overall order
   const deliveryHistory = [
@@ -163,6 +184,12 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                   {order.carrier}
                 </div>
               </div>
+              {order.deliveryType && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Delivery Type</span>
+                  <span className="font-medium">{order.deliveryType}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Recipients</span>
                 <span>{order.recipientCount} recipients</span>
@@ -191,41 +218,41 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {order.subOrders && order.subOrders.length > 0 ? (
-                  order.subOrders.map((subOrder, index) => (
+                {recipientData && recipientData.length > 0 ? (
+                  recipientData.map((recipient, index) => (
                     <div key={index} className="border rounded-lg p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <p className="font-medium text-lg">{subOrder.recipientName}</p>
-                          <p className="text-sm text-gray-600">{subOrder.recipientEmail}</p>
+                          <p className="font-medium text-lg">{recipient.recipientName}</p>
+                          <p className="text-sm text-gray-600">{recipient.recipientEmail}</p>
                         </div>
-                        <Badge className={`${getStatusColor(subOrder.deliveryStatus)}`}>
-                          {subOrder.deliveryStatus === "in-transit" ? "In Transit" : 
-                           subOrder.deliveryStatus.charAt(0).toUpperCase() + subOrder.deliveryStatus.slice(1)}
+                        <Badge className={`${getStatusColor(recipient.deliveryStatus)}`}>
+                          {recipient.deliveryStatus === "in-transit" ? "In Transit" : 
+                           recipient.deliveryStatus.charAt(0).toUpperCase() + recipient.deliveryStatus.slice(1)}
                         </Badge>
                       </div>
                       
                       <div className="space-y-3 text-sm mb-6">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
-                          <span>{subOrder.shippingAddress}</span>
+                          <span>{recipient.shippingAddress}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Truck className="h-4 w-4 text-gray-500" />
-                          <span>{subOrder.carrier} - {subOrder.trackingNumber || 'N/A'}</span>
+                          <span>{recipient.carrier} - {recipient.trackingNumber || 'N/A'}</span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-500" />
-                          <span>Expected: {format(new Date(subOrder.estimatedDelivery), "MMM d, yyyy")}</span>
+                          <span>Expected: {format(new Date(recipient.estimatedDelivery), "MMM d, yyyy")}</span>
                         </div>
                         
-                        {subOrder.giftBoxContents && subOrder.giftBoxContents.length > 0 && (
+                        {recipient.giftBoxContents && recipient.giftBoxContents.length > 0 && (
                           <div className="mt-3">
                             <p className="font-medium text-gray-700 mb-2">Gift Box Contents:</p>
                             <div className="flex flex-wrap gap-1">
-                              {subOrder.giftBoxContents.map((item, itemIndex) => (
+                              {recipient.giftBoxContents.map((item, itemIndex) => (
                                 <Badge key={itemIndex} variant="outline" className="text-xs">
                                   {item}
                                 </Badge>
@@ -239,10 +266,10 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                       <div className="border-t pt-4">
                         <h4 className="font-medium text-gray-900 mb-4">Delivery Timeline</h4>
                         <div className="relative">
-                          {generateDeliveryTimeline(subOrder).map((step, stepIndex) => (
+                          {generateDeliveryTimeline(recipient).map((step, stepIndex) => (
                             <div key={stepIndex} className="flex items-start gap-4 pb-4 relative">
                               {/* Timeline line */}
-                              {stepIndex < generateDeliveryTimeline(subOrder).length - 1 && (
+                              {stepIndex < generateDeliveryTimeline(recipient).length - 1 && (
                                 <div className="absolute left-2 top-8 w-0.5 h-8 bg-gray-200"></div>
                               )}
                               
@@ -278,9 +305,9 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                                     </span>
                                   )}
                                 </div>
-                                {step.status === "Shipped" && subOrder.trackingNumber && (
+                                {step.status === "Shipped" && recipient.trackingNumber && recipient.trackingNumber !== "N/A" && (
                                   <p className="text-sm text-gray-600 mt-1">
-                                    Tracking: {subOrder.trackingNumber}
+                                    Tracking: {recipient.trackingNumber}
                                   </p>
                                 )}
                               </div>
