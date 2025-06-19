@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -26,16 +25,15 @@ interface Recipient {
   phone: string;
   department: string;
   address: string;
-  status: 'confirmed'; // All recipients are confirmed by default
-  shippingMode: string;
+  status: 'confirmed';
+  deliveryType: string;
   source: 'manual' | 'bulk';
   assignedGiftBox?: string;
 }
 
 const ShippingFulfillment = () => {
   const navigate = useNavigate();
-  const [bulkShippingMode, setBulkShippingMode] = useState(false);
-  const [selectedCarrier, setSelectedCarrier] = useState('');
+  const [selectedDeliveryType, setSelectedDeliveryType] = useState('');
   const [selectedRecipients, setSelectedRecipients] = useState<number[]>([]);
 
   // Mock order data - would come from context/state in real app
@@ -53,7 +51,7 @@ const ShippingFulfillment = () => {
       department: 'Marketing',
       address: '123 Main St, New York, NY 10001',
       status: 'confirmed',
-      shippingMode: 'FedEx Express',
+      deliveryType: 'Express Delivery',
       source: 'manual',
       assignedGiftBox: 'Premium Coffee Collection'
     },
@@ -65,7 +63,7 @@ const ShippingFulfillment = () => {
       department: 'Engineering',
       address: '456 Oak Ave, San Francisco, CA 94102',
       status: 'confirmed',
-      shippingMode: 'UPS Ground',
+      deliveryType: 'Normal Delivery',
       source: 'bulk',
       assignedGiftBox: 'Premium Coffee Collection'
     },
@@ -77,41 +75,31 @@ const ShippingFulfillment = () => {
       department: 'Sales',
       address: '789 Pine Rd, Chicago, IL 60601',
       status: 'confirmed',
-      shippingMode: 'USPS Priority',
+      deliveryType: 'Slow Delivery',
       source: 'manual',
       assignedGiftBox: 'Premium Coffee Collection'
     }
   ]);
 
-  // Mock shipping carriers data (without costs)
-  const carriers = [
+  // Mock delivery types data
+  const deliveryTypes = [
     {
-      id: 'fedex',
-      name: 'FedEx',
-      logo: '/placeholder.svg',
-      services: ['Standard', 'Express', 'Overnight'],
-      estimatedDays: '2-3 business days'
+      id: 'express',
+      name: 'Express Delivery',
+      duration: '1-2 business days',
+      logo: '/placeholder.svg'
     },
     {
-      id: 'ups',
-      name: 'UPS',
-      logo: '/placeholder.svg',
-      services: ['Ground', 'Express', 'Next Day'],
-      estimatedDays: '3-5 business days'
+      id: 'normal',
+      name: 'Normal Delivery',
+      duration: '2-3 business days',
+      logo: '/placeholder.svg'
     },
     {
-      id: 'dhl',
-      name: 'DHL',
-      logo: '/placeholder.svg',
-      services: ['Standard', 'Express', 'Priority'],
-      estimatedDays: '2-4 business days'
-    },
-    {
-      id: 'usps',
-      name: 'USPS',
-      logo: '/placeholder.svg',
-      services: ['Priority', 'Express', 'Ground'],
-      estimatedDays: '3-5 business days'
+      id: 'slow',
+      name: 'Slow Delivery',
+      duration: '3-5 business days',
+      logo: '/placeholder.svg'
     }
   ];
 
@@ -191,72 +179,43 @@ const ShippingFulfillment = () => {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* 1. Shipping Mode */}
+          {/* Choose Delivery Type */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Truck className="h-5 w-5" />
-                Shipping Mode
+                <Package className="h-5 w-5" />
+                Choose Delivery Type
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">Auto-assign carriers for this order</h4>
-                  <p className="text-sm text-gray-600">
-                    Automatically select the best carrier for each recipient based on location and preferences
-                  </p>
-                </div>
-                <Switch
-                  checked={bulkShippingMode}
-                  onCheckedChange={setBulkShippingMode}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 2. Choose Shipping Carrier */}
-          {!bulkShippingMode && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Choose Shipping Carrier
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {carriers.map((carrier) => (
-                    <div
-                      key={carrier.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                        selectedCarrier === carrier.id
-                          ? 'border-linden-blue bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setSelectedCarrier(carrier.id)}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Truck className="h-6 w-6 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium">{carrier.name}</h4>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {carrier.services.join(', ')}
-                          </p>
-                          <div className="flex items-center gap-1 text-xs">
-                            <Clock className="h-3 w-3" />
-                            <span>{carrier.estimatedDays}</span>
-                          </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {deliveryTypes.map((deliveryType) => (
+                  <div
+                    key={deliveryType.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      selectedDeliveryType === deliveryType.id
+                        ? 'border-linden-blue bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedDeliveryType(deliveryType.id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Truck className="h-6 w-6 text-gray-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium">{deliveryType.name}</h4>
+                        <div className="flex items-center gap-1 text-xs mt-2">
+                          <Clock className="h-3 w-3" />
+                          <span>{deliveryType.duration}</span>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Recipient Address Management */}
           <Card>
@@ -271,7 +230,7 @@ const ShippingFulfillment = () => {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  All recipients listed here are automatically confirmed. Manage shipping details and carrier assignments.
+                  All recipients listed here are automatically confirmed. Manage delivery details and type assignments.
                 </p>
                 
                 <div className="border rounded-lg overflow-hidden">
@@ -288,7 +247,7 @@ const ShippingFulfillment = () => {
                         <TableHead>Address</TableHead>
                         <TableHead>Gift Box</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Shipping</TableHead>
+                        <TableHead>Delivery Type</TableHead>
                         <TableHead>Source</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
@@ -324,7 +283,7 @@ const ShippingFulfillment = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm">{recipient.shippingMode || '-'}</span>
+                            <span className="text-sm">{recipient.deliveryType || '-'}</span>
                           </TableCell>
                           <TableCell>
                             <Badge className={`text-xs ${getSourceBadgeColor(recipient.source)}`}>
@@ -360,7 +319,7 @@ const ShippingFulfillment = () => {
                       {selectedRecipients.length} recipient(s) selected
                     </span>
                     <Button variant="outline" size="sm">
-                      Assign Carrier
+                      Assign Delivery Type
                     </Button>
                     <Button variant="outline" size="sm">
                       Export Selected
@@ -379,25 +338,18 @@ const ShippingFulfillment = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Shipping Summary
+                Delivery Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               
-              {/* Shipping Configuration */}
+              {/* Delivery Configuration */}
               <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Shipping Mode:</span>
-                  <span className="font-medium">
-                    {bulkShippingMode ? 'Auto-assign' : 'Manual selection'}
-                  </span>
-                </div>
-                
-                {!bulkShippingMode && selectedCarrier && (
+                {selectedDeliveryType && (
                   <div className="flex justify-between text-sm">
-                    <span>Selected Carrier:</span>
+                    <span>Selected Delivery Type:</span>
                     <span className="font-medium">
-                      {carriers.find(c => c.id === selectedCarrier)?.name}
+                      {deliveryTypes.find(d => d.id === selectedDeliveryType)?.name}
                     </span>
                   </div>
                 )}

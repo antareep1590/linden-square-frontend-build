@@ -23,6 +23,7 @@ import PaymentMethod from "./pages/PaymentMethod";
 import SelectRecipientsEGift from "./pages/SelectRecipientsEGift";
 import CustomizeEGift from "./pages/CustomizeEGift";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -50,6 +51,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/landing" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               
               {/* Client Dashboard Routes */}
@@ -58,7 +60,6 @@ function App() {
               <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
               <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
               <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-              {/* Removed /gift-box-flow route - Order Management now goes directly to /box-listing */}
               <Route path="/choose-delivery-method" element={<DashboardLayout><ChooseDeliveryMethod /></DashboardLayout>} />
               <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />
               <Route path="/customization" element={<DashboardLayout><CustomizationPage /></DashboardLayout>} />
