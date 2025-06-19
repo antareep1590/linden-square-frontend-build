@@ -12,17 +12,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText, Edit } from "lucide-react";
+import { Eye, Download, Mail, DollarSign, TrendingUp, TrendingDown, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InvoiceDetailsModal from "@/components/invoices/InvoiceDetailsModal";
-import { toast } from "sonner";
 
 // Mock data for invoices
 const invoices = [
@@ -33,8 +25,7 @@ const invoices = [
     date: "2023-11-01",
     giftBoxName: "Premium Gift Box Set",
     giftItems: ["Luxury Candle Set", "Premium Coffee", "Gourmet Chocolates"],
-    status: "paid",
-    billingTerms: "One-Time Payment"
+    status: "paid"
   },
   {
     id: "INV-2023-002",
@@ -43,8 +34,7 @@ const invoices = [
     date: "2023-10-28",
     giftBoxName: "Custom Corporate Package",
     giftItems: ["Custom Notebooks", "Coffee Mugs", "Tech Accessories"],
-    status: "unpaid",
-    billingTerms: "Recurring Billing"
+    status: "unpaid"
   },
   {
     id: "INV-2023-003",
@@ -53,8 +43,7 @@ const invoices = [
     date: "2023-10-20",
     giftBoxName: "Executive Gift Package",
     giftItems: ["Wine Bottle", "Cheese Selection", "Premium Leather Journal"],
-    status: "paid",
-    billingTerms: "Milestone-Based Payment"
+    status: "paid"
   },
   {
     id: "INV-2023-004",
@@ -63,8 +52,7 @@ const invoices = [
     date: "2023-11-02",
     giftBoxName: "Welcome Kit",
     giftItems: ["Company Swag", "Welcome Guide", "Gift Card"],
-    status: "unpaid",
-    billingTerms: "One-Time Payment"
+    status: "unpaid"
   },
   {
     id: "INV-2023-005",
@@ -73,8 +61,7 @@ const invoices = [
     date: "2023-10-15",
     giftBoxName: "Holiday Collection",
     giftItems: ["Holiday Treats", "Festive Candles", "Seasonal Gifts", "Premium Chocolates"],
-    status: "overdue",
-    billingTerms: "Recurring Billing"
+    status: "overdue"
   }
 ];
 
@@ -83,12 +70,8 @@ const AdminInvoices = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInvoice, setSelectedInvoice] = useState<typeof invoices[0] | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [editBillingTermsOpen, setEditBillingTermsOpen] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<typeof invoices[0] | null>(null);
-  const [newBillingTerms, setNewBillingTerms] = useState("");
-  const [invoiceList, setInvoiceList] = useState(invoices);
 
-  const filteredInvoices = invoiceList.filter(invoice => {
+  const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          invoice.client.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
@@ -98,27 +81,6 @@ const AdminInvoices = () => {
   const handleViewInvoice = (invoice: typeof invoices[0]) => {
     setSelectedInvoice(invoice);
     setIsDetailsModalOpen(true);
-  };
-
-  const handleEditBillingTerms = (invoice: typeof invoices[0]) => {
-    setEditingInvoice(invoice);
-    setNewBillingTerms(invoice.billingTerms);
-    setEditBillingTermsOpen(true);
-  };
-
-  const handleUpdateBillingTerms = () => {
-    if (!editingInvoice) return;
-
-    setInvoiceList(invoiceList.map(invoice => 
-      invoice.id === editingInvoice.id 
-        ? { ...invoice, billingTerms: newBillingTerms }
-        : invoice
-    ));
-    
-    setEditBillingTermsOpen(false);
-    setEditingInvoice(null);
-    setNewBillingTerms("");
-    toast.success('Billing terms updated successfully');
   };
 
   const handleDownloadInvoice = (invoiceId: string) => {
@@ -140,27 +102,14 @@ const AdminInvoices = () => {
   };
 
   // Calculate totals
-  const totalRevenue = invoiceList.reduce((sum, invoice) => sum + invoice.amount, 0);
-  const paidInvoices = invoiceList.filter(inv => inv.status === 'paid');
-  const unpaidInvoices = invoiceList.filter(inv => inv.status === 'unpaid');
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+  const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+  const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid');
   const paidAmount = paidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
   const unpaidAmount = unpaidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
 
   const formatGiftBoxWithItems = (giftBoxName: string, giftItems: string[]) => {
     return `${giftBoxName} (${giftItems.join(', ')})`;
-  };
-
-  const getBillingTermsColor = (terms: string) => {
-    switch (terms) {
-      case "One-Time Payment":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Recurring Billing":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "Milestone-Based Payment":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
   };
 
   return (
@@ -216,7 +165,7 @@ const AdminInvoices = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{invoiceList.length}</div>
+            <div className="text-2xl font-bold">{invoices.length}</div>
             <p className="text-xs text-muted-foreground">
               This month
             </p>
@@ -262,7 +211,6 @@ const AdminInvoices = () => {
               <TableHead>Client</TableHead>
               <TableHead>Gift Box Name</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Custom Billing Terms</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -296,21 +244,6 @@ const AdminInvoices = () => {
                   </TooltipProvider>
                 </TableCell>
                 <TableCell className="font-medium">${invoice.amount.toFixed(2)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getBillingTermsColor(invoice.billingTerms)}>
-                      {invoice.billingTerms}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditBillingTerms(invoice)}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </TableCell>
                 <TableCell>{formatDate(invoice.date)}</TableCell>
                 <TableCell>
                   <Badge className={
@@ -384,36 +317,6 @@ const AdminInvoices = () => {
           </TableBody>
         </Table>
       </div>
-
-      {/* Edit Billing Terms Modal */}
-      <Dialog open={editBillingTermsOpen} onOpenChange={setEditBillingTermsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Custom Billing Terms</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="billing-terms">Billing Terms</Label>
-              <Select value={newBillingTerms} onValueChange={setNewBillingTerms}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select billing terms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="One-Time Payment">One-Time Payment</SelectItem>
-                  <SelectItem value="Recurring Billing">Recurring Billing</SelectItem>
-                  <SelectItem value="Milestone-Based Payment">Milestone-Based Payment</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditBillingTermsOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateBillingTerms}>Update Terms</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <InvoiceDetailsModal
         isOpen={isDetailsModalOpen}
