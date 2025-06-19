@@ -59,7 +59,6 @@ interface BoxSize {
   name: string;
   dimensions: string;
   weight: string;
-  cost: number;
 }
 
 interface PortalTheme {
@@ -113,9 +112,9 @@ const mockDeliveryTypes: DeliveryType[] = [
 ];
 
 const mockBoxSizes: BoxSize[] = [
-  { id: '1', name: 'Small Box', dimensions: '8x6x4 in', weight: '1 lb', cost: 2.50 },
-  { id: '2', name: 'Medium Box', dimensions: '12x10x5 in', weight: '2 lbs', cost: 3.75 },
-  { id: '3', name: 'Large Box', dimensions: '16x14x8 in', weight: '3 lbs', cost: 5.00 },
+  { id: '1', name: 'Small Box', dimensions: '8x6x4 in', weight: '1 lb' },
+  { id: '2', name: 'Medium Box', dimensions: '12x10x5 in', weight: '2 lbs' },
+  { id: '3', name: 'Large Box', dimensions: '16x14x8 in', weight: '3 lbs' },
 ];
 
 // ... keep existing mockPortalThemes the same ...
@@ -677,7 +676,7 @@ const AdminSettings = () => {
                       <div>
                         <p className="font-medium">{box.name}</p>
                         <p className="text-sm text-gray-500">
-                          {box.dimensions} • {box.weight} • ${box.cost}
+                          {box.dimensions} • {box.weight}
                         </p>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => handleEditBox(box)}>
@@ -721,16 +720,6 @@ const AdminSettings = () => {
                         placeholder="e.g., 2 lbs"
                         value={editingBox.weight}
                         onChange={(e) => setEditingBox({ ...editingBox, weight: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="box-cost">Cost ($)</Label>
-                      <Input
-                        id="box-cost"
-                        type="number"
-                        step="0.01"
-                        value={editingBox.cost}
-                        onChange={(e) => setEditingBox({ ...editingBox, cost: parseFloat(e.target.value) })}
                       />
                     </div>
                   </div>
