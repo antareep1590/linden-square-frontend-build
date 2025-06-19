@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -345,8 +346,8 @@ const AdminShippingDelivery = () => {
     const selectedOrderIds = Array.from(selectedOrders);
     const updatedOrders = orders.map(order => {
       if (selectedOrderIds.includes(order.id) && order.shipmentStatus === 'pickup-scheduled') {
-        // Update via delivery status service
-        deliveryStatusService.updateStatus(order.id, 'picked-up', 'Admin User');
+        // Update via delivery status service - use "dispatched" since item is picked up and dispatched
+        deliveryStatusService.updateStatus(order.id, 'dispatched', 'Admin User');
         return { ...order, shipmentStatus: 'picked-up' as const };
       }
       return order;
@@ -369,8 +370,8 @@ const AdminShippingDelivery = () => {
   const handleSingleOrderPickedUp = (orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (order && order.shipmentStatus === 'pickup-scheduled') {
-      // Update via delivery status service
-      deliveryStatusService.updateStatus(orderId, 'picked-up', 'Admin User');
+      // Update via delivery status service - use "dispatched" since item is picked up and dispatched
+      deliveryStatusService.updateStatus(orderId, 'dispatched', 'Admin User');
       
       setOrders(orders.map(o => 
         o.id === orderId 
