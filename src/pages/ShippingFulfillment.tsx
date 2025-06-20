@@ -324,9 +324,6 @@ const ShippingFulfillment = () => {
                       {selectedRecipients.length} recipient(s) selected
                     </span>
                     <Button variant="outline" size="sm">
-                      Assign Delivery Type
-                    </Button>
-                    <Button variant="outline" size="sm">
                       Export Selected
                     </Button>
                   </div>
