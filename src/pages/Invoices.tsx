@@ -161,7 +161,7 @@ const Invoices = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Invoices</h1>
+          <h1 className="text-2xl font-bold">Invoices & Payments</h1>
           <p className="text-gray-600">Manage your billing and payment history</p>
         </div>
       </div>

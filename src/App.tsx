@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -23,6 +24,7 @@ import SelectRecipientsEGift from "./pages/SelectRecipientsEGift";
 import CustomizeEGift from "./pages/CustomizeEGift";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import ViewInvoice from "./pages/ViewInvoice";
 
 // Admin pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -59,6 +61,7 @@ function App() {
               <Route path="/customers" element={<DashboardLayout><Customers /></DashboardLayout>} />
               <Route path="/track-orders" element={<DashboardLayout><TrackOrders /></DashboardLayout>} />
               <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
+              <Route path="/view-invoice/:id" element={<DashboardLayout><ViewInvoice /></DashboardLayout>} />
               <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
               <Route path="/choose-delivery-method" element={<DashboardLayout><ChooseDeliveryMethod /></DashboardLayout>} />
               <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />

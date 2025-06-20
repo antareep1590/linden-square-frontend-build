@@ -5,10 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Edit, Trash2, Users, Gift, Mail, Phone, Building2, Upload, Download, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Users, Mail, Phone, Building2, Upload, Download, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -20,7 +19,7 @@ interface Recipient {
   email: string;
   phone?: string;
   department?: string;
-  assigned?: boolean;
+  selected?: boolean;
 }
 
 interface PreviousOrder {
@@ -56,7 +55,7 @@ const RecipientSelection = () => {
     }
   ]);
   
-  // Initialize with sample recipients - all pre-assigned to the selected gift box
+  // Initialize with sample recipients - all pre-selected
   const [recipients, setRecipients] = useState<Recipient[]>([
     {
       id: 1,
@@ -64,7 +63,7 @@ const RecipientSelection = () => {
       email: 'sarah.johnson@company.com',
       phone: '555-0123',
       department: 'Marketing',
-      assigned: true
+      selected: true
     },
     {
       id: 2,
@@ -72,7 +71,7 @@ const RecipientSelection = () => {
       email: 'michael.chen@company.com',
       phone: '555-0124',
       department: 'Engineering',
-      assigned: true
+      selected: true
     },
     {
       id: 3,
@@ -80,7 +79,7 @@ const RecipientSelection = () => {
       email: 'emily.rodriguez@company.com',
       phone: '555-0125',
       department: 'Sales',
-      assigned: true
+      selected: true
     }
   ]);
   
@@ -119,7 +118,7 @@ const RecipientSelection = () => {
       email: formData.email,
       phone: formData.phone,
       department: formData.department,
-      assigned: true // Pre-assign new recipients
+      selected: true // Pre-select new recipients
     };
 
     setRecipients([...recipients, newRecipient]);
@@ -170,29 +169,24 @@ const RecipientSelection = () => {
       email: r.email,
       phone: r.phone,
       department: r.department,
-      assigned: true // Pre-assign bulk uploaded recipients
+      selected: true // Pre-select bulk uploaded recipients
     }));
     
     setRecipients(prev => [...prev, ...newRecipients]);
     setIsBulkUploadOpen(false);
   };
 
-  const handleRecipientAssignment = (recipientId: number, assigned: boolean) => {
+  const handleRecipientSelect = (recipientId: number, selected: boolean) => {
     setRecipients(prev => 
       prev.map(r => 
-        r.id === recipientId ? { ...r, assigned } : r
+        r.id === recipientId ? { ...r, selected } : r
       )
     );
   };
 
-  const handleAssignAll = () => {
-    setRecipients(prev => prev.map(r => ({ ...r, assigned: true })));
-    toast.success('All recipients assigned to gift box');
-  };
-
-  const handleUnassignAll = () => {
-    setRecipients(prev => prev.map(r => ({ ...r, assigned: false })));
-    toast.success('All recipients unassigned from gift box');
+  const handleSelectAll = (selected: boolean) => {
+    setRecipients(prev => prev.map(r => ({ ...r, selected })));
+    toast.success(selected ? 'All recipients selected' : 'All recipients deselected');
   };
 
   const handleContinue = () => {
@@ -201,9 +195,9 @@ const RecipientSelection = () => {
       return;
     }
 
-    const assignedRecipients = recipients.filter(r => r.assigned);
-    if (assignedRecipients.length === 0) {
-      toast.error('Please assign at least one recipient to the gift box');
+    const selectedRecipients = recipients.filter(r => r.selected);
+    if (selectedRecipients.length === 0) {
+      toast.error('Please select at least one recipient');
       return;
     }
 
@@ -215,9 +209,12 @@ const RecipientSelection = () => {
     toast.success(`Downloading recipients for order ${orderId}`);
   };
 
-  const getAssignedRecipientCount = () => {
-    return recipients.filter(r => r.assigned).length;
+  const getSelectedRecipientCount = () => {
+    return recipients.filter(r => r.selected).length;
   };
+
+  const isAllSelected = recipients.length > 0 && recipients.every(r => r.selected);
+  const isSomeSelected = recipients.some(r => r.selected);
 
   return (
     <div className="space-y-6">
@@ -228,7 +225,7 @@ const RecipientSelection = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Select Recipients</h1>
-          <p className="text-gray-600">Manage recipients and assign them to your selected gift box</p>
+          <p className="text-gray-600">Manage recipients for your selected gift box</p>
         </div>
         <div className="flex items-center gap-4">
           <Button 
@@ -321,7 +318,7 @@ const RecipientSelection = () => {
           
           <Button 
             onClick={handleContinue}
-            disabled={recipients.length === 0 || getAssignedRecipientCount() === 0}
+            disabled={recipients.length === 0 || getSelectedRecipientCount() === 0}
             className="bg-linden-blue hover:bg-linden-blue/90"
           >
             Continue to Customization
@@ -382,28 +379,54 @@ const RecipientSelection = () => {
           {/* Recipients Table */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Recipients ({recipients.length})
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Recipients ({recipients.length})
+                </div>
+                {recipients.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all"
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      className="data-[state=checked]:bg-linden-blue data-[state=checked]:border-linden-blue"
+                    />
+                    <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                      Select All ({getSelectedRecipientCount()}/{recipients.length})
+                    </label>
+                  </div>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {recipients.length > 0 ? (
                 <div className="space-y-2">
                   <div className="grid grid-cols-12 gap-4 p-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                    <div className="col-span-1"></div>
                     <div className="col-span-3">Name</div>
                     <div className="col-span-3">Email</div>
                     <div className="col-span-2">Phone</div>
                     <div className="col-span-2">Department</div>
-                    <div className="col-span-2">Actions</div>
+                    <div className="col-span-1">Actions</div>
                   </div>
                   {recipients.map((recipient) => (
                     <div key={recipient.id} className="grid grid-cols-12 gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="col-span-1 flex items-center">
+                        <Checkbox
+                          id={`recipient-${recipient.id}`}
+                          checked={recipient.selected || false}
+                          onCheckedChange={(checked) => 
+                            handleRecipientSelect(recipient.id, checked as boolean)
+                          }
+                          className="data-[state=checked]:bg-linden-blue data-[state=checked]:border-linden-blue"
+                        />
+                      </div>
                       <div className="col-span-3 font-medium">{recipient.name}</div>
                       <div className="col-span-3 text-gray-600">{recipient.email}</div>
                       <div className="col-span-2 text-gray-600">{recipient.phone || '-'}</div>
                       <div className="col-span-2 text-gray-600">{recipient.department || '-'}</div>
-                      <div className="col-span-2 flex gap-2">
+                      <div className="col-span-1 flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -432,88 +455,6 @@ const RecipientSelection = () => {
               )}
             </CardContent>
           </Card>
-
-          {/* Gift Box Assignment */}
-          {selectedGiftBox && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5" />
-                  Assign Recipients to Gift Box
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={selectedGiftBox.image || '/placeholder.svg'} 
-                          alt={selectedGiftBox.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/placeholder.svg';
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{selectedGiftBox.name}</h3>
-                        <p className="text-sm text-gray-600">{selectedGiftBox.theme}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">
-                        {getAssignedRecipientCount()} of {recipients.length} assigned
-                      </Badge>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAssignAll}
-                        disabled={recipients.length === 0}
-                      >
-                        Assign All
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleUnassignAll}
-                        disabled={recipients.length === 0}
-                      >
-                        Unassign All
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {recipients.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {recipients.map((recipient) => (
-                        <div key={recipient.id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
-                          <Checkbox
-                            id={`recipient-${recipient.id}`}
-                            checked={recipient.assigned || false}
-                            onCheckedChange={(checked) => 
-                              handleRecipientAssignment(recipient.id, checked as boolean)
-                            }
-                          />
-                          <label 
-                            htmlFor={`recipient-${recipient.id}`} 
-                            className="text-sm cursor-pointer flex-1"
-                          >
-                            {recipient.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 text-center py-4">
-                      Add recipients to assign them to this gift box
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Sidebar - Summary */}
@@ -522,7 +463,7 @@ const RecipientSelection = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Assignment Summary
+                Selection Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -532,8 +473,8 @@ const RecipientSelection = () => {
                   <span className="font-medium">{recipients.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Assigned Recipients:</span>
-                  <span className="font-medium text-green-600">{getAssignedRecipientCount()}</span>
+                  <span>Selected Recipients:</span>
+                  <span className="font-medium text-linden-blue">{getSelectedRecipientCount()}</span>
                 </div>
                 {selectedGiftBox && (
                   <div className="flex justify-between">
@@ -546,14 +487,14 @@ const RecipientSelection = () => {
               <Button 
                 className="w-full bg-linden-blue hover:bg-linden-blue/90"
                 onClick={handleContinue}
-                disabled={recipients.length === 0 || getAssignedRecipientCount() === 0}
+                disabled={recipients.length === 0 || getSelectedRecipientCount() === 0}
               >
                 Continue to Customization
               </Button>
               
-              {(recipients.length === 0 || getAssignedRecipientCount() === 0) && (
+              {(recipients.length === 0 || getSelectedRecipientCount() === 0) && (
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  {recipients.length === 0 ? 'Add recipients to continue' : 'Assign recipients to continue'}
+                  {recipients.length === 0 ? 'Add recipients to continue' : 'Select recipients to continue'}
                 </p>
               )}
             </CardContent>
