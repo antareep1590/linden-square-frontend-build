@@ -11,6 +11,7 @@ import TrackOrders from "./pages/TrackOrders";
 import Invoices from "./pages/Invoices";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import ProfileStandalone from "./pages/ProfileStandalone";
 import ChooseDeliveryMethod from "./pages/ChooseDeliveryMethod";
 import RecipientSelection from "./pages/RecipientSelection";
 import CustomizationPage from "./pages/CustomizationPage";
@@ -55,6 +56,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/landing" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/profile-standalone" element={<ProfileStandalone />} />
               
               {/* Client Dashboard Routes */}
               <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
