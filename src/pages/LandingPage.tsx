@@ -98,7 +98,7 @@ const LandingPage = () => {
   ];
 
   const handleBrowsePresetBoxes = () => {
-    navigate('/box-listing');
+    navigate('/choose-gift-box');
   };
 
   const handleGetStarted = () => {
@@ -118,11 +118,11 @@ const LandingPage = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    navigate('/profile-standalone');
   };
 
   const handleGiftBoxClick = (boxId: number) => {
-    navigate(`/box-details/${boxId}`);
+    navigate('/choose-gift-box');
   };
 
   const scrollToSection = (sectionId: string) => {
