@@ -201,33 +201,6 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
     return address.length > maxLength ? `${address.substring(0, maxLength)}...` : address;
   };
 
-  // Mock delivery history for overall order
-  const deliveryHistory = [
-    {
-      status: "Order Placed",
-      date: new Date(order.shipDate.getTime() - 2 * 24 * 60 * 60 * 1000),
-      description: "Order has been received and is being processed"
-    },
-    {
-      status: "Processing",
-      date: new Date(order.shipDate.getTime() - 1 * 24 * 60 * 60 * 1000),
-      description: "Items are being prepared for shipment"
-    },
-    {
-      status: "Shipped",
-      date: order.shipDate,
-      description: `Package shipped via ${order.carrier}`
-    }
-  ];
-
-  if (order.status === "delivered") {
-    deliveryHistory.push({
-      status: "Delivered",
-      date: new Date(order.shipDate.getTime() + 3 * 24 * 60 * 60 * 1000),
-      description: "Package has been delivered successfully"
-    });
-  }
-
   const handleViewShipmentDetails = (recipient: any, index: number) => {
     setSelectedRecipientForDetails(recipient);
     setIsShipmentDetailsOpen(true);
@@ -561,31 +534,6 @@ const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({ isOpen, onClose, 
                     )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Overall Delivery History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Overall Order History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {deliveryHistory.map((event, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{event.status}</p>
-                          <span className="text-sm text-gray-500">
-                            {format(event.date, "MMM d, h:mm a")}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600">{event.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
           </div>
