@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Package, Palette, User, Users, Gift, Upload, Image } from 'lucide-react';
+import { ArrowLeft, Package, Palette, User, Users, Gift, Upload, Image, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from 'sonner';
@@ -29,16 +30,64 @@ const CustomizationPage = () => {
 
   const selectedGiftBox = selectedBoxes[0]; // Only one gift box can be selected
 
-  // Message graphic options for digital delivery
+  // Message graphic options for digital delivery with colors
   const messageGraphics = [
-    { id: 'birthday', name: 'Birthday', icon: '🎂' },
-    { id: 'thank-you', name: 'Thank You', icon: '🙏' },
-    { id: 'congratulations', name: 'Congratulations', icon: '🎉' },
-    { id: 'welcome', name: 'Welcome', icon: '👋' },
-    { id: 'holiday', name: 'Holiday', icon: '🎄' },
-    { id: 'appreciation', name: 'Appreciation', icon: '⭐' },
-    { id: 'celebration', name: 'Celebration', icon: '🥳' },
-    { id: 'achievement', name: 'Achievement', icon: '🏆' }
+    { 
+      id: 'birthday', 
+      name: 'Happy Birthday', 
+      icon: '🎂',
+      bgColor: '#FF6B6B',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'thank-you', 
+      name: 'Thank You', 
+      icon: '🙏',
+      bgColor: '#4ECDC4',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'congratulations', 
+      name: 'Congratulations', 
+      icon: '🎉',
+      bgColor: '#45B7D1',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'welcome', 
+      name: 'Welcome', 
+      icon: '👋',
+      bgColor: '#96CEB4',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'holiday', 
+      name: 'Happy Holidays', 
+      icon: '🎄',
+      bgColor: '#27564D',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'appreciation', 
+      name: 'Appreciation', 
+      icon: '⭐',
+      bgColor: '#F7DC6F',
+      textColor: '#2C3E50'
+    },
+    { 
+      id: 'celebration', 
+      name: 'Celebration', 
+      icon: '🥳',
+      bgColor: '#BB8FCE',
+      textColor: '#FFFFFF'
+    },
+    { 
+      id: 'achievement', 
+      name: 'Achievement', 
+      icon: '🏆',
+      bgColor: '#F39C12',
+      textColor: '#FFFFFF'
+    }
   ];
 
   // Preset messages for gift tags
@@ -235,30 +284,44 @@ const CustomizationPage = () => {
             <p className="text-sm text-gray-600">Choose a graphic theme for your digital gift</p>
           </div>
 
-          <Select
-            value={customization?.messageGraphic || ''}
-            onValueChange={(value) => {
-              if (isIndividual && recipientId !== undefined) {
-                handleDigitalIndividualChange(recipientId, 'messageGraphic', value);
-              } else {
-                handleDigitalOrderChange('messageGraphic', value);
-              }
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a message graphic" />
-            </SelectTrigger>
-            <SelectContent>
-              {messageGraphics.map((graphic) => (
-                <SelectItem key={graphic.id} value={graphic.id}>
-                  <span className="flex items-center gap-2">
-                    <span>{graphic.icon}</span>
-                    <span>{graphic.name}</span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {messageGraphics.map((graphic) => {
+              const isSelected = customization?.messageGraphic === graphic.id;
+              
+              return (
+                <div
+                  key={graphic.id}
+                  className={`relative rounded-lg p-4 cursor-pointer transition-all duration-200 border-2 ${
+                    isSelected 
+                      ? 'border-linden-blue ring-2 ring-linden-blue/20' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  style={{ 
+                    backgroundColor: graphic.bgColor,
+                    color: graphic.textColor
+                  }}
+                  onClick={() => {
+                    if (isIndividual && recipientId !== undefined) {
+                      handleDigitalIndividualChange(recipientId, 'messageGraphic', graphic.id);
+                    } else {
+                      handleDigitalOrderChange('messageGraphic', graphic.id);
+                    }
+                  }}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">{graphic.icon}</div>
+                    <div className="text-sm font-medium leading-tight">{graphic.name}</div>
+                  </div>
+                  
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 bg-linden-blue rounded-full p-1">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Message */}
