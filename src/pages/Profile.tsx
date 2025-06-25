@@ -21,7 +21,8 @@ const Profile = () => {
 
   const [brandingData, setBrandingData] = useState({
     companyLogo: '',
-    selectedTheme: 'blue',
+    primaryTheme: 'blue',
+    secondaryTheme: 'green',
     welcomeMessage: 'Welcome to our gifting portal!'
   });
 
@@ -192,19 +193,42 @@ const Profile = () => {
               <p className="text-xs text-gray-500">Supported formats: JPG, PNG, SVG (Max 5MB)</p>
             </div>
 
-            {/* Theme Selection */}
+            {/* Primary Theme Selection */}
             <div className="space-y-2">
-              <Label>Portal Theme</Label>
+              <Label>Primary Portal Theme</Label>
               <div className="grid grid-cols-2 gap-3">
                 {themes.map((theme) => (
                   <div
                     key={theme.value}
                     className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      brandingData.selectedTheme === theme.value
+                      brandingData.primaryTheme === theme.value
                         ? 'border-linden-blue bg-linden-blue/10'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
-                    onClick={() => handleBrandingChange('selectedTheme', theme.value)}
+                    onClick={() => handleBrandingChange('primaryTheme', theme.value)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
+                      <span className="text-sm font-medium">{theme.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Secondary Theme Selection */}
+            <div className="space-y-2">
+              <Label>Secondary Portal Theme</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {themes.map((theme) => (
+                  <div
+                    key={theme.value}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      brandingData.secondaryTheme === theme.value
+                        ? 'border-linden-gold bg-linden-gold/10'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleBrandingChange('secondaryTheme', theme.value)}
                   >
                     <div className="flex items-center gap-2">
                       <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
@@ -242,8 +266,13 @@ const Profile = () => {
                     <div className="h-2 bg-gray-200 rounded w-16"></div>
                   </div>
                 </div>
-                <div className={`p-3 rounded ${themes.find(t => t.value === brandingData.selectedTheme)?.color || 'bg-blue-500'} text-white`}>
-                  <p className="text-sm">{brandingData.welcomeMessage}</p>
+                <div className="space-y-2">
+                  <div className={`p-3 rounded ${themes.find(t => t.value === brandingData.primaryTheme)?.color || 'bg-blue-500'} text-white`}>
+                    <p className="text-sm font-medium">Primary: {brandingData.welcomeMessage}</p>
+                  </div>
+                  <div className={`p-2 rounded ${themes.find(t => t.value === brandingData.secondaryTheme)?.color || 'bg-green-500'} text-white`}>
+                    <p className="text-xs">Secondary theme preview</p>
+                  </div>
                 </div>
               </div>
             </div>

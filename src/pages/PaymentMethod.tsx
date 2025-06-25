@@ -29,12 +29,8 @@ const PaymentMethod = () => {
   });
 
   const orderTotal = location.state?.total || 150.00;
-  const cardProcessingFee = orderTotal * 0.05; // 5% for card
-  const achProcessingFee = 5.00; // $5 flat for ACH
   
-  const finalTotal = paymentMethod === 'card' 
-    ? orderTotal + cardProcessingFee 
-    : orderTotal + achProcessingFee;
+  const finalTotal = orderTotal;
 
   const handlePayment = () => {
     if (paymentMethod === 'card') {
@@ -213,10 +209,6 @@ const PaymentMethod = () => {
                 <div className="flex justify-between">
                   <span>Order Total</span>
                   <span>${orderTotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Processing Fee ({paymentMethod === 'card' ? '5%' : '$5.00'})</span>
-                  <span>${(paymentMethod === 'card' ? cardProcessingFee : achProcessingFee).toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>Final Total</span>

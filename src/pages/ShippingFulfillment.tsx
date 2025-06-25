@@ -118,12 +118,8 @@ const ShippingFulfillment = () => {
     return 0; // For now, customizations are free
   };
 
-  const calculateProcessingFee = () => {
-    return calculateGiftBoxesSubtotal() * 0.03; // 3% processing fee
-  };
-
   const calculateGrandTotal = () => {
-    return calculateGiftBoxesSubtotal() + calculateCustomizationsTotal() + calculateProcessingFee();
+    return calculateGiftBoxesSubtotal() + calculateCustomizationsTotal();
   };
 
   const handleDeleteRecipient = (id: number) => {
@@ -415,10 +411,6 @@ const ShippingFulfillment = () => {
                 <div className="flex justify-between">
                   <span>Customizations:</span>
                   <span>${calculateCustomizationsTotal().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Processing Fee (3%):</span>
-                  <span>${calculateProcessingFee().toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
