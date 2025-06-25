@@ -36,6 +36,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/components/ui/radio-group";
 
 interface Carrier {
   id: string;
@@ -65,6 +69,7 @@ interface PortalTheme {
   id: string;
   name: string;
   colorPreview: string;
+  themeType: 'primary' | 'secondary';
   isActive: boolean;
 }
 
@@ -117,15 +122,13 @@ const mockBoxSizes: BoxSize[] = [
   { id: '3', name: 'Large Box', dimensions: '16x14x8 in', weight: '3 lbs' },
 ];
 
-// ... keep existing mockPortalThemes the same ...
-
 const mockPortalThemes: PortalTheme[] = [
-  { id: '1', name: 'Professional Blue', colorPreview: '#4285F4', isActive: true },
-  { id: '2', name: 'Natural Green', colorPreview: '#34A853', isActive: true },
-  { id: '3', name: 'Creative Purple', colorPreview: '#9C27B0', isActive: true },
-  { id: '4', name: 'Energetic Orange', colorPreview: '#FF9800', isActive: true },
-  { id: '5', name: 'Modern Dark', colorPreview: '#212121', isActive: true },
-  { id: '6', name: 'Clean Light', colorPreview: '#F5F5F5', isActive: true },
+  { id: '1', name: 'Professional Blue', colorPreview: '#4285F4', themeType: 'primary', isActive: true },
+  { id: '2', name: 'Natural Green', colorPreview: '#34A853', themeType: 'primary', isActive: true },
+  { id: '3', name: 'Creative Purple', colorPreview: '#9C27B0', themeType: 'secondary', isActive: true },
+  { id: '4', name: 'Energetic Orange', colorPreview: '#FF9800', themeType: 'secondary', isActive: true },
+  { id: '5', name: 'Modern Dark', colorPreview: '#212121', themeType: 'primary', isActive: true },
+  { id: '6', name: 'Clean Light', colorPreview: '#F5F5F5', themeType: 'secondary', isActive: true },
 ];
 
 const AdminSettings = () => {
@@ -149,7 +152,7 @@ const AdminSettings = () => {
   // Theme Modal States
   const [isAddThemeOpen, setIsAddThemeOpen] = useState(false);
   const [isEditThemeOpen, setIsEditThemeOpen] = useState(false);
-  const [newTheme, setNewTheme] = useState({ name: '', colorPreview: '#4285F4', isActive: true });
+  const [newTheme, setNewTheme] = useState({ name: '', colorPreview: '#4285F4', themeType: 'primary' as 'primary' | 'secondary', isActive: true });
   const [editingTheme, setEditingTheme] = useState<PortalTheme | null>(null);
 
   // Delivery Type Pricing Modal
@@ -264,7 +267,7 @@ const AdminSettings = () => {
     };
 
     setPortalThemes([...portalThemes, theme]);
-    setNewTheme({ name: '', colorPreview: '#4285F4', isActive: true });
+    setNewTheme({ name: '', colorPreview: '#4285F4', themeType: 'primary', isActive: true });
     setIsAddThemeOpen(false);
     toast.success("Theme added successfully");
   };
@@ -274,6 +277,7 @@ const AdminSettings = () => {
     setNewTheme({
       name: theme.name,
       colorPreview: theme.colorPreview,
+      themeType: theme.themeType,
       isActive: theme.isActive
     });
     setIsEditThemeOpen(true);
@@ -291,7 +295,7 @@ const AdminSettings = () => {
         : theme
     ));
     setEditingTheme(null);
-    setNewTheme({ name: '', colorPreview: '#4285F4', isActive: true });
+    setNewTheme({ name: '', colorPreview: '#4285F4', themeType: 'primary', isActive: true });
     setIsEditThemeOpen(false);
     toast.success("Theme updated successfully");
   };
@@ -804,7 +808,12 @@ const AdminSettings = () => {
                         style={{ backgroundColor: theme.colorPreview }}
                       />
                       <div>
-                        <p className="font-medium">{theme.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{theme.name}</p>
+                          <Badge variant={theme.themeType === 'primary' ? 'default' : 'secondary'}>
+                            {theme.themeType === 'primary' ? 'Primary' : 'Secondary'}
+                          </Badge>
+                        </div>
                         <p className="text-sm text-gray-500">Color: {theme.colorPreview}</p>
                       </div>
                       <Badge variant={theme.isActive ? "default" : "secondary"}>
@@ -865,6 +874,22 @@ const AdminSettings = () => {
                     />
                   </div>
                 </div>
+                <div className="space-y-3">
+                  <Label>Theme Type</Label>
+                  <RadioGroup 
+                    value={newTheme.themeType} 
+                    onValueChange={(value: 'primary' | 'secondary') => setNewTheme({ ...newTheme, themeType: value })}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="primary" id="primary" />
+                      <Label htmlFor="primary">Primary</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="secondary" id="secondary" />
+                      <Label htmlFor="secondary">Secondary</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="theme-active"
@@ -915,6 +940,22 @@ const AdminSettings = () => {
                       onChange={(e) => setNewTheme({ ...newTheme, colorPreview: e.target.value })}
                     />
                   </div>
+                </div>
+                <div className="space-y-3">
+                  <Label>Theme Type</Label>
+                  <RadioGroup 
+                    value={newTheme.themeType} 
+                    onValueChange={(value: 'primary' | 'secondary') => setNewTheme({ ...newTheme, themeType: value })}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="primary" id="edit-primary" />
+                      <Label htmlFor="edit-primary">Primary</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="secondary" id="edit-secondary" />
+                      <Label htmlFor="edit-secondary">Secondary</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch
