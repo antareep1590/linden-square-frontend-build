@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -26,13 +25,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Image, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 interface MessageGraphic {
   id: string;
   title: string;
   thumbnail?: string;
+  imageFile?: File;
 }
 
 interface PresetMessage {
@@ -80,6 +80,7 @@ const AdminCustomizationSettings = () => {
   const [isEditGraphicOpen, setIsEditGraphicOpen] = useState(false);
   const [editingGraphic, setEditingGraphic] = useState<MessageGraphic | null>(null);
   const [newGraphicTitle, setNewGraphicTitle] = useState('');
+  const [newGraphicImage, setNewGraphicImage] = useState<File | null>(null);
   const [isAddPresetOpen, setIsAddPresetOpen] = useState(false);
   const [newPresetMessage, setNewPresetMessage] = useState('');
 
@@ -97,6 +98,27 @@ const AdminCustomizationSettings = () => {
     messageCards: { enabled: false, price: 3.00 },
   });
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Please upload a valid image file (.jpg, .png, .webp)');
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size should be less than 5MB');
+        return;
+      }
+
+      setNewGraphicImage(file);
+      toast.success('Image uploaded successfully');
+    }
+  };
+
   const handleAddGraphic = () => {
     if (!newGraphicTitle.trim()) {
       toast.error('Please enter a title');
@@ -106,11 +128,15 @@ const AdminCustomizationSettings = () => {
     const newGraphic: MessageGraphic = {
       id: (messageGraphics.length + 1).toString(),
       title: newGraphicTitle,
-      thumbnail: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=100&h=100&fit=crop&crop=center'
+      imageFile: newGraphicImage || undefined,
+      thumbnail: newGraphicImage 
+        ? URL.createObjectURL(newGraphicImage)
+        : 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=100&h=100&fit=crop&crop=center'
     };
 
     setMessageGraphics([...messageGraphics, newGraphic]);
     setNewGraphicTitle('');
+    setNewGraphicImage(null);
     setIsAddGraphicOpen(false);
     toast.success('Message graphic added successfully');
   };
@@ -118,6 +144,7 @@ const AdminCustomizationSettings = () => {
   const handleEditGraphic = (graphic: MessageGraphic) => {
     setEditingGraphic(graphic);
     setNewGraphicTitle(graphic.title);
+    setNewGraphicImage(graphic.imageFile || null);
     setIsEditGraphicOpen(true);
   };
 
@@ -126,11 +153,19 @@ const AdminCustomizationSettings = () => {
 
     setMessageGraphics(messageGraphics.map(graphic => 
       graphic.id === editingGraphic.id 
-        ? { ...graphic, title: newGraphicTitle }
+        ? { 
+            ...graphic, 
+            title: newGraphicTitle,
+            imageFile: newGraphicImage || graphic.imageFile,
+            thumbnail: newGraphicImage 
+              ? URL.createObjectURL(newGraphicImage)
+              : graphic.thumbnail
+          }
         : graphic
     ));
     setEditingGraphic(null);
     setNewGraphicTitle('');
+    setNewGraphicImage(null);
     setIsEditGraphicOpen(false);
     toast.success('Message graphic updated successfully');
   };
@@ -216,7 +251,7 @@ const AdminCustomizationSettings = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Thumbnail</TableHead>
+                  <TableHead>Graphic Image</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -408,9 +443,41 @@ const AdminCustomizationSettings = () => {
                 placeholder="Enter graphic title"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="graphic-image">Graphic Image</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="graphic-image-upload"
+                />
+                <label htmlFor="graphic-image-upload" className="cursor-pointer">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600">
+                    {newGraphicImage 
+                      ? newGraphicImage.name 
+                      : 'Click to upload image'
+                    }
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supported formats: .jpg, .png, .webp (Max 5MB)
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Recommended: 16:9 aspect ratio, minimum 800x450px
+                  </p>
+                </label>
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddGraphicOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsAddGraphicOpen(false);
+              setNewGraphicTitle('');
+              setNewGraphicImage(null);
+            }}>
               Cancel
             </Button>
             <Button onClick={handleAddGraphic}>Add Graphic</Button>
@@ -434,9 +501,52 @@ const AdminCustomizationSettings = () => {
                 placeholder="Enter graphic title"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-graphic-image">Graphic Image</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="edit-graphic-image-upload"
+                />
+                <label htmlFor="edit-graphic-image-upload" className="cursor-pointer">
+                  {newGraphicImage || editingGraphic?.thumbnail ? (
+                    <div className="mb-2">
+                      <img 
+                        src={newGraphicImage ? URL.createObjectURL(newGraphicImage) : editingGraphic?.thumbnail} 
+                        alt="Preview"
+                        className="mx-auto w-20 h-20 object-cover rounded"
+                      />
+                    </div>
+                  ) : (
+                    <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  )}
+                  <p className="text-sm text-gray-600">
+                    {newGraphicImage 
+                      ? newGraphicImage.name 
+                      : 'Click to upload new image'
+                    }
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supported formats: .jpg, .png, .webp (Max 5MB)
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Recommended: 16:9 aspect ratio, minimum 800x450px
+                  </p>
+                </label>
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditGraphicOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsEditGraphicOpen(false);
+              setEditingGraphic(null);
+              setNewGraphicTitle('');
+              setNewGraphicImage(null);
+            }}>
               Cancel
             </Button>
             <Button onClick={handleUpdateGraphic}>Update Graphic</Button>
