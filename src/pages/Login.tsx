@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,15 @@ import { ArrowLeft, Upload } from 'lucide-react';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'reset'>('login');
+
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam === 'signup') {
+      setView('signup');
+    }
+  }, [searchParams]);
 
   const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,13 +91,6 @@ const Login: React.FC = () => {
       </CardContent>
       
       <CardFooter className="flex flex-col gap-3 border-t pt-4">
-        <Button 
-          onClick={() => setView('signup')}
-          className="w-full bg-linden-gold hover:bg-linden-gold/90 text-white font-semibold"
-        >
-          Sign Up (Client)
-        </Button>
-        
         <Button 
           variant="outline" 
           onClick={handleAdminLogin}
