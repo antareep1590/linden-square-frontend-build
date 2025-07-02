@@ -23,7 +23,6 @@ import FinalSummary from "./pages/FinalSummary";
 import PaymentMethod from "./pages/PaymentMethod";
 import SelectRecipientsEGift from "./pages/SelectRecipientsEGift";
 import CustomizeEGift from "./pages/CustomizeEGift";
-import SelectGifts from "./pages/SelectGifts";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import ViewInvoice from "./pages/ViewInvoice";
@@ -77,7 +76,6 @@ function App() {
               <Route path="/payment-method" element={<DashboardLayout><PaymentMethod /></DashboardLayout>} />
               <Route path="/select-recipients-egift" element={<DashboardLayout><SelectRecipientsEGift /></DashboardLayout>} />
               <Route path="/customize-egift" element={<DashboardLayout><CustomizeEGift /></DashboardLayout>} />
-              <Route path="/select-gifts" element={<DashboardLayout><SelectGifts /></DashboardLayout>} />
 
               {/* Admin Dashboard Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
