@@ -112,8 +112,8 @@ const BoxDetails = () => {
     return Array.from(selectedGifts.values()).reduce((sum, quantity) => sum + quantity, 0);
   };
 
-  const handlePersonalize = () => {
-    navigate('/personalization', { 
+  const handleSelectGifts = () => {
+    navigate('/select-gifts', { 
       state: { 
         boxDetails,
         selectedGifts: Array.from(selectedGifts.entries()).map(([id, quantity]) => ({ id, quantity }))
@@ -207,11 +207,10 @@ const BoxDetails = () => {
           </div>
           
           <Button 
-            onClick={handlePersonalize}
+            onClick={handleSelectGifts}
             className="w-full mt-6 bg-linden-blue hover:bg-linden-blue/90"
-            disabled={getIncludedGiftsCount() === 0}
           >
-            Continue to Personalization
+            Select Gifts
           </Button>
         </CardContent>
       </Card>
