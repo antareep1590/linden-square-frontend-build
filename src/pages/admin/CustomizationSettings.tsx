@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Image, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Image, Upload, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface MessageGraphic {
@@ -103,6 +103,10 @@ const AdminCustomizationSettings = () => {
   const [isAddFeatureOpen, setIsAddFeatureOpen] = useState(false);
   const [featureType, setFeatureType] = useState<'digital' | 'physical'>('digital');
   const [newFeatureText, setNewFeatureText] = useState('');
+  
+  // New states for feature editing
+  const [editingFeature, setEditingFeature] = useState<{type: 'digital' | 'physical', id: string} | null>(null);
+  const [editFeatureText, setEditFeatureText] = useState('');
 
   const [physicalSettings, setPhysicalSettings] = useState<PhysicalCustomizationSettings>({
     brandedNotecards: { enabled: true, price: 2.50 },
@@ -313,6 +317,40 @@ const AdminCustomizationSettings = () => {
     });
   };
 
+  const handleEditFeature = (type: 'digital' | 'physical', featureId: string, currentText: string) => {
+    setEditingFeature({ type, id: featureId });
+    setEditFeatureText(currentText);
+  };
+
+  const handleSaveFeature = () => {
+    if (!editingFeature || !editFeatureText.trim()) {
+      toast.error('Please enter feature text');
+      return;
+    }
+
+    const { type, id } = editingFeature;
+    const sectionKey = type === 'digital' ? 'digitalGift' : 'physicalDelivery';
+
+    setDeliveryDisplaySettings({
+      ...deliveryDisplaySettings,
+      [sectionKey]: {
+        ...deliveryDisplaySettings[sectionKey],
+        features: deliveryDisplaySettings[sectionKey].features.map(feature =>
+          feature.id === id ? { ...feature, text: editFeatureText.trim() } : feature
+        )
+      }
+    });
+
+    setEditingFeature(null);
+    setEditFeatureText('');
+    toast.success('Feature updated successfully');
+  };
+
+  const handleCancelEditFeature = () => {
+    setEditingFeature(null);
+    setEditFeatureText('');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -437,14 +475,47 @@ const AdminCustomizationSettings = () => {
                 <div className="space-y-2">
                   {deliveryDisplaySettings.digitalGift.features.map((feature) => (
                     <div key={feature.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">• {feature.text}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteFeature('digital', feature.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {editingFeature?.type === 'digital' && editingFeature.id === feature.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-sm">•</span>
+                          <Input
+                            value={editFeatureText}
+                            onChange={(e) => setEditFeatureText(e.target.value)}
+                            className="flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveFeature();
+                              if (e.key === 'Escape') handleCancelEditFeature();
+                            }}
+                            autoFocus
+                          />
+                          <Button size="sm" onClick={handleSaveFeature}>
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={handleCancelEditFeature}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-sm">• {feature.text}</span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditFeature('digital', feature.id, feature.text)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFeature('digital', feature.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -488,14 +559,47 @@ const AdminCustomizationSettings = () => {
                 <div className="space-y-2">
                   {deliveryDisplaySettings.physicalDelivery.features.map((feature) => (
                     <div key={feature.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <span className="text-sm">• {feature.text}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteFeature('physical', feature.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {editingFeature?.type === 'physical' && editingFeature.id === feature.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="text-sm">•</span>
+                          <Input
+                            value={editFeatureText}
+                            onChange={(e) => setEditFeatureText(e.target.value)}
+                            className="flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleSaveFeature();
+                              if (e.key === 'Escape') handleCancelEditFeature();
+                            }}
+                            autoFocus
+                          />
+                          <Button size="sm" onClick={handleSaveFeature}>
+                            <Save className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={handleCancelEditFeature}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-sm">• {feature.text}</span>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditFeature('physical', feature.id, feature.text)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFeature('physical', feature.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
