@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,22 @@ interface PhysicalCustomizationSettings {
   };
 }
 
+interface DeliveryFeature {
+  id: string;
+  text: string;
+}
+
+interface DeliveryDisplaySettings {
+  digitalGift: {
+    howItWorks: string;
+    features: DeliveryFeature[];
+  };
+  physicalDelivery: {
+    howItWorks: string;
+    features: DeliveryFeature[];
+  };
+}
+
 const mockMessageGraphics: MessageGraphic[] = [
   { 
     id: '1', 
@@ -83,6 +100,9 @@ const AdminCustomizationSettings = () => {
   const [newGraphicImage, setNewGraphicImage] = useState<File | null>(null);
   const [isAddPresetOpen, setIsAddPresetOpen] = useState(false);
   const [newPresetMessage, setNewPresetMessage] = useState('');
+  const [isAddFeatureOpen, setIsAddFeatureOpen] = useState(false);
+  const [featureType, setFeatureType] = useState<'digital' | 'physical'>('digital');
+  const [newFeatureText, setNewFeatureText] = useState('');
 
   const [physicalSettings, setPhysicalSettings] = useState<PhysicalCustomizationSettings>({
     brandedNotecards: { enabled: true, price: 2.50 },
@@ -96,6 +116,25 @@ const AdminCustomizationSettings = () => {
       ]
     },
     messageCards: { enabled: false, price: 3.00 },
+  });
+
+  const [deliveryDisplaySettings, setDeliveryDisplaySettings] = useState<DeliveryDisplaySettings>({
+    digitalGift: {
+      howItWorks: "Send personalized digital gifts instantly to recipients via email or text. Recipients can access their gift through a secure link and enjoy the experience immediately.",
+      features: [
+        { id: '1', text: "Instant delivery via email or SMS" },
+        { id: '2', text: "Personalized message cards and graphics" },
+        { id: '3', text: "No shipping costs or delays" }
+      ]
+    },
+    physicalDelivery: {
+      howItWorks: "Curate and ship beautiful gift boxes directly to recipients. Each package is carefully assembled and includes premium packaging with your personalized touches.",
+      features: [
+        { id: '1', text: "Premium packaging and presentation" },
+        { id: '2', text: "Branded notecards and gift tags available" },
+        { id: '3', text: "Real-time tracking and delivery confirmation" }
+      ]
+    }
   });
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,6 +262,57 @@ const AdminCustomizationSettings = () => {
     });
   };
 
+  const handleAddFeature = () => {
+    if (!newFeatureText.trim()) {
+      toast.error('Please enter feature text');
+      return;
+    }
+
+    const currentFeatures = deliveryDisplaySettings[featureType].features;
+    if (currentFeatures.length >= 3) {
+      toast.error('Maximum 3 features allowed');
+      return;
+    }
+
+    const newFeature: DeliveryFeature = {
+      id: (currentFeatures.length + 1).toString(),
+      text: newFeatureText,
+    };
+
+    setDeliveryDisplaySettings({
+      ...deliveryDisplaySettings,
+      [featureType]: {
+        ...deliveryDisplaySettings[featureType],
+        features: [...currentFeatures, newFeature]
+      }
+    });
+
+    setNewFeatureText('');
+    setIsAddFeatureOpen(false);
+    toast.success('Feature added successfully');
+  };
+
+  const handleDeleteFeature = (type: 'digital' | 'physical', featureId: string) => {
+    setDeliveryDisplaySettings({
+      ...deliveryDisplaySettings,
+      [type]: {
+        ...deliveryDisplaySettings[type],
+        features: deliveryDisplaySettings[type].features.filter(feature => feature.id !== featureId)
+      }
+    });
+    toast.success('Feature deleted successfully');
+  };
+
+  const updateDeliveryContent = (type: 'digital' | 'physical', content: string) => {
+    setDeliveryDisplaySettings({
+      ...deliveryDisplaySettings,
+      [type === 'digital' ? 'digitalGift' : 'physicalDelivery']: {
+        ...deliveryDisplaySettings[type === 'digital' ? 'digitalGift' : 'physicalDelivery'],
+        howItWorks: content
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -298,6 +388,119 @@ const AdminCustomizationSettings = () => {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gift Delivery Display Customization */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Gift Delivery Display Customization</CardTitle>
+          <CardDescription>
+            Manage the display content for delivery options shown to clients during the order flow
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Digital Gift Delivery */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <h4 className="text-lg font-medium">📧 Digital Gift Delivery</h4>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="digital-how-it-works">How E-Gifting Works</Label>
+                <Textarea
+                  id="digital-how-it-works"
+                  value={deliveryDisplaySettings.digitalGift.howItWorks}
+                  onChange={(e) => updateDeliveryContent('digital', e.target.value)}
+                  placeholder="Explain how the digital gifting process works..."
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Features Include (Max 3)</Label>
+                  {deliveryDisplaySettings.digitalGift.features.length < 3 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFeatureType('digital');
+                        setIsAddFeatureOpen(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Feature
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {deliveryDisplaySettings.digitalGift.features.map((feature) => (
+                    <div key={feature.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm">• {feature.text}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteFeature('digital', feature.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Direct Physical Delivery */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <h4 className="text-lg font-medium">🚚 Direct Physical Delivery</h4>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="physical-how-it-works">How Physical Shipping Works</Label>
+                <Textarea
+                  id="physical-how-it-works"
+                  value={deliveryDisplaySettings.physicalDelivery.howItWorks}
+                  onChange={(e) => updateDeliveryContent('physical', e.target.value)}
+                  placeholder="Describe the process of managing and shipping physical gifts..."
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Features Include (Max 3)</Label>
+                  {deliveryDisplaySettings.physicalDelivery.features.length < 3 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setFeatureType('physical');
+                        setIsAddFeatureOpen(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Feature
+                    </Button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {deliveryDisplaySettings.physicalDelivery.features.map((feature) => (
+                    <div key={feature.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <span className="text-sm">• {feature.text}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteFeature('physical', feature.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -576,6 +779,32 @@ const AdminCustomizationSettings = () => {
               Cancel
             </Button>
             <Button onClick={handleAddPresetMessage}>Add Message</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Feature Modal */}
+      <Dialog open={isAddFeatureOpen} onOpenChange={setIsAddFeatureOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Feature</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="feature-text">Feature Text</Label>
+              <Input
+                id="feature-text"
+                value={newFeatureText}
+                onChange={(e) => setNewFeatureText(e.target.value)}
+                placeholder="Enter feature description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddFeatureOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddFeature}>Add Feature</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
