@@ -125,6 +125,16 @@ const LandingPage = () => {
     navigate(`/box-details/${boxId}`);
   };
 
+  const handleSelectGiftBox = (boxId: number) => {
+    // Redirect to Order Management Flow for guests
+    navigate('/choose-delivery-method', { 
+      state: { 
+        selectedGiftBox: presetGiftBoxes.find(box => box.id === boxId),
+        isGuestFlow: true
+      }
+    });
+  };
+
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -378,7 +388,7 @@ const LandingPage = () => {
             <Card 
               key={box.id} 
               className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-              onClick={() => handleGiftBoxClick(box.id)}
+              onClick={() => handleSelectGiftBox(box.id)}
             >
               <div className="aspect-square bg-gray-200 rounded-t-lg overflow-hidden">
                 <img 
@@ -388,15 +398,24 @@ const LandingPage = () => {
                 />
               </div>
               <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-2">
+                <div className="space-y-3">
                   <h3 className="font-semibold text-lg text-gray-900">{box.name}</h3>
-                  <span className="text-lg font-bold text-linden-blue">${box.price}</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{box.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs bg-linden-lightblue text-linden-blue px-2 py-1 rounded-full">
-                    {box.theme}
-                  </span>
+                  <p className="text-sm text-gray-600">{box.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs bg-linden-lightblue text-linden-blue px-2 py-1 rounded-full">
+                      {box.theme}
+                    </span>
+                    <span className="text-sm font-medium text-linden-blue">Starting at ${box.price}</span>
+                  </div>
+                  <Button 
+                    className="w-full bg-linden-blue hover:bg-linden-blue/90"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectGiftBox(box.id);
+                    }}
+                  >
+                    Select This Box
+                  </Button>
                 </div>
               </CardContent>
             </Card>
