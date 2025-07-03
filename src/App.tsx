@@ -42,7 +42,6 @@ import AdminMyProfile from "./pages/admin/MyProfile";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminDashboardLayout from "./layouts/AdminDashboardLayout";
-import GuestLayout from "./layouts/GuestLayout";
 
 const queryClient = new QueryClient();
 
@@ -66,21 +65,17 @@ function App() {
               <Route path="/invoices" element={<DashboardLayout><Invoices /></DashboardLayout>} />
               <Route path="/view-invoice/:id" element={<DashboardLayout><ViewInvoice /></DashboardLayout>} />
               <Route path="/profile" element={<DashboardLayout><Profile /></DashboardLayout>} />
-              
-              {/* Guest Order Flow Routes - No sidebar/topbar for guests */}
-              <Route path="/choose-delivery-method" element={<GuestLayout><ChooseDeliveryMethod /></GuestLayout>} />
-              <Route path="/recipient-selection" element={<GuestLayout><RecipientSelection /></GuestLayout>} />
-              <Route path="/customization" element={<GuestLayout><CustomizationPage /></GuestLayout>} />
-              <Route path="/shipping-fulfillment" element={<GuestLayout><ShippingFulfillment /></GuestLayout>} />
-              <Route path="/egift-send-options" element={<GuestLayout><EGiftSendOptions /></GuestLayout>} />
-              <Route path="/final-summary" element={<GuestLayout><FinalSummary /></GuestLayout>} />
-              <Route path="/payment-method" element={<GuestLayout><PaymentMethod /></GuestLayout>} />
-              <Route path="/select-recipients-egift" element={<GuestLayout><SelectRecipientsEGift /></GuestLayout>} />
-              <Route path="/customize-egift" element={<GuestLayout><CustomizeEGift /></GuestLayout>} />
-              
-              {/* Client Dashboard Routes - Keep existing layout for logged-in users */}
+              <Route path="/choose-delivery-method" element={<DashboardLayout><ChooseDeliveryMethod /></DashboardLayout>} />
+              <Route path="/recipient-selection" element={<DashboardLayout><RecipientSelection /></DashboardLayout>} />
+              <Route path="/customization" element={<DashboardLayout><CustomizationPage /></DashboardLayout>} />
+              <Route path="/shipping-fulfillment" element={<DashboardLayout><ShippingFulfillment /></DashboardLayout>} />
+              <Route path="/egift-send-options" element={<DashboardLayout><EGiftSendOptions /></DashboardLayout>} />
               <Route path="/box-listing" element={<DashboardLayout><BoxListing /></DashboardLayout>} />
               <Route path="/box-details/:id" element={<DashboardLayout><BoxDetails /></DashboardLayout>} />
+              <Route path="/final-summary" element={<DashboardLayout><FinalSummary /></DashboardLayout>} />
+              <Route path="/payment-method" element={<DashboardLayout><PaymentMethod /></DashboardLayout>} />
+              <Route path="/select-recipients-egift" element={<DashboardLayout><SelectRecipientsEGift /></DashboardLayout>} />
+              <Route path="/customize-egift" element={<DashboardLayout><CustomizeEGift /></DashboardLayout>} />
 
               {/* Admin Dashboard Routes */}
               <Route path="/admin/dashboard" element={<AdminDashboardLayout><AdminDashboard /></AdminDashboardLayout>} />
